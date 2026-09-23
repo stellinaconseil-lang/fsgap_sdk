@@ -71,6 +71,7 @@ src/
   FSGAP.Fenix/          FenixAircraftProvider (identification only in 0.1.0)
 tests/                  xUnit tests, one project per library
 docs/architecture.md    principles, decisions and future targets
+docs/audits/            BLOCK 1 audit of the existing Fenix/MSFS integrations, mapping and extraction plan
 ```
 
 ## Usage
