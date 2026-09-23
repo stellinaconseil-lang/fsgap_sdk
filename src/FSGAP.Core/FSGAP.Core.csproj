@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>FSGAP.Core</RootNamespace>
+    <Description>Vendor-independent mechanisms of FSGAP_SDK: provider registry and resolution, session lifecycle, and reusable telemetry/failure building blocks for providers.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FSGAP.Abstractions\FSGAP.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

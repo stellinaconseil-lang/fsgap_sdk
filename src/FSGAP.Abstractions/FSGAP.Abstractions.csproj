@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>FSGAP.Abstractions</RootNamespace>
+    <Description>Vendor-neutral contracts of FSGAP_SDK: aircraft identification, providers, normalized telemetry, capabilities and failures. Has no dependency on any aircraft SDK or simulator library.</Description>
+  </PropertyGroup>
+
+</Project>

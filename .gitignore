@@ -1,0 +1,20 @@
+# Build output
+bin/
+obj/
+artifacts/
+*.nupkg
+*.snupkg
+
+# Test output
+TestResults/
+coverage*/
+
+# IDE / OS
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.DotSettings.user
+Thumbs.db
+.DS_Store
