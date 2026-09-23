@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>FSGAP.Fenix</RootNamespace>
-    <Description>FSGAP_SDK aircraft provider for the Fenix Simulations A319/A320/A321. Version 0.1.0 only recognizes the aircraft; telemetry and failures are not implemented yet.</Description>
+    <Description>FSGAP_SDK aircraft provider for the Fenix Simulations A319/A320/A321. It currently only recognizes the aircraft; telemetry and failures are not implemented yet.</Description>
   </PropertyGroup>
 
   <ItemGroup>

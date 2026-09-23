@@ -2,8 +2,10 @@ namespace FSGAP.Abstractions.Failures;
 
 /// <summary>Reads, triggers and clears normalized failures on the attached aircraft.</summary>
 /// <remarks>
-/// Check <see cref="Capabilities.FailureCapabilities"/> before calling: an unsupported read throws, while an
-/// unsupported trigger or clear returns <see cref="FailureCommandStatus.NotSupported"/>.
+/// The failures a provider supports, and what it can do with each, are published in
+/// <see cref="Capabilities.FailureCapabilities"/> (its <see cref="FailureCatalog"/>). An unsupported read throws;
+/// a trigger or clear for a key, target or operation outside the catalog returns
+/// <see cref="FailureCommandStatus.NotSupported"/> without contacting the aircraft.
 /// </remarks>
 public interface IFailureProvider
 {

@@ -9,9 +9,12 @@ public enum ValueState
     /// </summary>
     Unavailable = 0,
 
-    /// <summary>The provider supports this value, but has no valid reading right now (not received yet, stale, invalid).</summary>
+    /// <summary>
+    /// The provider supports this value, but has no valid reading right now: never received, invalid, or stale
+    /// (older than the freshness limit).
+    /// </summary>
     Unknown = 1,
 
-    /// <summary>The value is known and can be read.</summary>
+    /// <summary>The value is known, fresh and can be read.</summary>
     Known = 2,
 }

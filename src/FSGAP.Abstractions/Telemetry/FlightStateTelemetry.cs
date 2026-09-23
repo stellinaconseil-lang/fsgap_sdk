@@ -15,7 +15,13 @@ public sealed record FlightStateTelemetry
     /// <summary>Altitude above mean sea level, in feet.</summary>
     public TelemetryValue<double> AltitudeFeet { get; init; }
 
-    /// <summary>Height above ground from the radio altimeter, in feet.</summary>
+    /// <summary>
+    /// Geometric height of the aircraft above the terrain below it, in feet, as computed by the simulator.
+    /// Available on every aircraft, unlike <see cref="RadioAltitudeFeet"/>.
+    /// </summary>
+    public TelemetryValue<double> HeightAboveGroundFeet { get; init; }
+
+    /// <summary>Height above ground as indicated by the aircraft's radio altimeter, in feet.</summary>
     public TelemetryValue<double> RadioAltitudeFeet { get; init; }
 
     /// <summary>Indicated airspeed, in knots.</summary>
@@ -26,6 +32,12 @@ public sealed record FlightStateTelemetry
 
     /// <summary>Vertical speed, in feet per minute, positive climbing.</summary>
     public TelemetryValue<double> VerticalSpeedFeetPerMinute { get; init; }
+
+    /// <summary>
+    /// Vertical speed at the most recent touchdown, in feet per minute, negative when descending (for example
+    /// -150 for a gentle landing). Unknown until a touchdown has been observed.
+    /// </summary>
+    public TelemetryValue<double> TouchdownVerticalSpeedFeetPerMinute { get; init; }
 
     /// <summary>Magnetic heading, in degrees [0, 360).</summary>
     public TelemetryValue<double> HeadingMagneticDegrees { get; init; }

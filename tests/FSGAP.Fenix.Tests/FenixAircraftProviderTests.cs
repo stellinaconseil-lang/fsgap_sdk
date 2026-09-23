@@ -75,7 +75,8 @@ public class FenixAircraftProviderTests
 
         await using var session = await provider.AttachAsync(new AircraftDescriptor { Title = "Fenix A321" });
         var snapshot = await session.Telemetry.GetSnapshotAsync();
-        var trigger = await session.Failures.TriggerAsync(new FailureCommand(FailureType.EngineFire, FailureTarget.Engine(1)));
+        var engineFire = new FailureCommand(FailureKey.Parse("engine.fire"), FailureTarget.Engine(1));
+        var trigger = await session.Failures.TriggerAsync(engineFire);
 
         Assert.Equal(FenixAircraftProvider.Id, session.ProviderId);
         Assert.Equal("A321", session.Identity.Model);
@@ -83,6 +84,8 @@ public class FenixAircraftProviderTests
         Assert.Equal(clock.GetUtcNow(), snapshot.Timestamp);
         Assert.Equal(ValueState.Unavailable, snapshot.Apu.Running.State);
         Assert.Equal(FailureCommandStatus.NotSupported, trigger.Status);
+        Assert.False(session.Capabilities.Failures.CanTrigger(engineFire));
+        Assert.Empty(session.Capabilities.Failures.Catalog);
     }
 
     [Fact]

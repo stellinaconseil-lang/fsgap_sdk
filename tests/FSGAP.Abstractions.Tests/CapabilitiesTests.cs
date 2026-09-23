@@ -5,6 +5,29 @@ namespace FSGAP.Abstractions.Tests;
 
 public class CapabilitiesTests
 {
+    private static readonly FailureKey EngineFire = FailureKey.Parse("engine.fire");
+    private static readonly FailureKey ApuFire = FailureKey.Parse("apu.fire");
+    private static readonly FailureKey AdfFailure = FailureKey.Parse("navigation.adf");
+    private static readonly FailureKey NotInCatalog = FailureKey.Parse("hydraulic.pump.blue");
+
+    private static readonly FailureCapabilities Failures = new()
+    {
+        CanReadActiveFailures = true,
+        Catalog = new FailureCatalog(
+        [
+            new FailureDefinition
+            {
+                Key = EngineFire,
+                DisplayName = "Engine fire",
+                Category = FailureCategory.Fire,
+                SupportedTargets = [FailureTarget.Engine(1), FailureTarget.Engine(2)],
+                Operations = FailureOperations.Trigger | FailureOperations.Clear,
+            },
+            new FailureDefinition { Key = ApuFire, DisplayName = "APU fire", Operations = FailureOperations.Trigger },
+            new FailureDefinition { Key = AdfFailure, DisplayName = "ADF (report only)" },
+        ]),
+    };
+
     [Fact]
     public void None_supports_nothing()
     {
@@ -13,14 +36,14 @@ public class CapabilitiesTests
         Assert.False(capabilities.Telemetry.Apu);
         Assert.False(capabilities.Telemetry.Engines);
         Assert.False(capabilities.Telemetry.FlightState);
+        Assert.False(capabilities.Telemetry.LandingGear);
+        Assert.False(capabilities.Telemetry.Warnings);
         Assert.False(capabilities.Failures.CanReadActiveFailures);
         Assert.False(capabilities.Failures.CanTriggerAny);
         Assert.False(capabilities.Failures.CanClearAny);
-        Assert.All(Enum.GetValues<FailureType>(), type =>
-        {
-            Assert.False(capabilities.Failures.CanTrigger(type));
-            Assert.False(capabilities.Failures.CanClear(type));
-        });
+        Assert.Empty(capabilities.Failures.Catalog);
+        Assert.False(capabilities.Failures.CanTrigger(EngineFire));
+        Assert.False(capabilities.Failures.CanClear(EngineFire));
     }
 
     [Fact]
@@ -28,41 +51,44 @@ public class CapabilitiesTests
     {
         var capabilities = new AircraftCapabilities
         {
-            Telemetry = new TelemetryCapabilities { Apu = true, Engines = true },
+            Telemetry = new TelemetryCapabilities { Apu = true, Engines = true, LandingGear = true },
         };
 
         Assert.True(capabilities.Telemetry.Apu);
         Assert.True(capabilities.Telemetry.Engines);
+        Assert.True(capabilities.Telemetry.LandingGear);
         Assert.False(capabilities.Telemetry.InertialReferences);
-        Assert.False(capabilities.Telemetry.Hydraulics);
+        Assert.False(capabilities.Telemetry.Warnings);
     }
 
     [Fact]
-    public void Failure_capabilities_are_per_type_and_per_operation()
+    public void Failure_capabilities_answer_per_key_and_per_operation()
     {
-        var failures = new FailureCapabilities
-        {
-            CanReadActiveFailures = true,
-            TriggerableTypes = new HashSet<FailureType> { FailureType.EngineFire, FailureType.ApuFire },
-            ClearableTypes = new HashSet<FailureType> { FailureType.EngineFire },
-        };
-
-        Assert.True(failures.CanTrigger(FailureType.EngineFire));
-        Assert.True(failures.CanTrigger(FailureType.ApuFire));
-        Assert.False(failures.CanTrigger(FailureType.HydraulicSystemFailure));
-        Assert.True(failures.CanClear(FailureType.EngineFire));
-        Assert.False(failures.CanClear(FailureType.ApuFire));
+        Assert.True(Failures.CanTrigger(EngineFire));
+        Assert.True(Failures.CanClear(EngineFire));
+        Assert.True(Failures.CanTrigger(ApuFire));
+        Assert.False(Failures.CanClear(ApuFire));
+        Assert.False(Failures.CanTrigger(AdfFailure));
+        Assert.False(Failures.CanTrigger(NotInCatalog));
+        Assert.True(Failures.CanTriggerAny);
+        Assert.True(Failures.CanClearAny);
     }
 
     [Fact]
-    public void Failure_type_sets_are_copied_on_assignment()
+    public void Commands_are_checked_against_the_supported_targets()
     {
-        var source = new HashSet<FailureType> { FailureType.EngineFire };
-        var failures = new FailureCapabilities { TriggerableTypes = source };
+        Assert.True(Failures.CanTrigger(new FailureCommand(EngineFire, FailureTarget.Engine(2))));
+        Assert.False(Failures.CanTrigger(new FailureCommand(EngineFire, FailureTarget.Engine(3))));
+        Assert.False(Failures.CanTrigger(new FailureCommand(EngineFire)));
+        Assert.True(Failures.CanTrigger(new FailureCommand(ApuFire)));
+        Assert.False(Failures.CanClear(new FailureCommand(ApuFire)));
+        Assert.False(Failures.CanTrigger(new FailureCommand(NotInCatalog)));
+    }
 
-        source.Add(FailureType.ApuFire);
-
-        Assert.False(failures.CanTrigger(FailureType.ApuFire));
-        Assert.Single(failures.TriggerableTypes);
+    [Fact]
+    public void Catalog_lists_known_failures_even_when_not_commandable()
+    {
+        Assert.True(Failures.Catalog.TryGet(AdfFailure, out var adf));
+        Assert.Equal(FailureOperations.None, adf.Operations);
     }
 }

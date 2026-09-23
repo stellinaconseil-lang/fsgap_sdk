@@ -8,7 +8,7 @@ namespace FSGAP.Core.Tests;
 
 public class NullObjectProvidersTests
 {
-    private static readonly FailureCommand EngineFire = new(FailureType.EngineFire, FailureTarget.Engine(1));
+    private static readonly FailureCommand EngineFire = new(FailureKey.Parse("engine.fire"), FailureTarget.Engine(1));
 
     [Fact]
     public async Task Unavailable_telemetry_snapshot_is_timestamped_and_empty()

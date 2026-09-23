@@ -4,6 +4,23 @@ BLOCK 1 of FSGAP_SDK, 2026-09-23. Evidence and file references are in
 [fenix-existing-code-audit.md](fenix-existing-code-audit.md). **No contract has been changed.** The gaps below are
 proposals for later blocks.
 
+> **Status after BLOCK 2 (version 0.2.0).** This document is kept as the BLOCK 1 snapshot. The P1 gaps are now in
+> the contracts:
+>
+> - G-S1/G-S2: simulator contracts;
+> - G-X1: `FsgapOptions`;
+> - G-I1: `LiveryFolder`;
+> - G-I3: `IInstalledAircraftCatalog`;
+> - G-T1/G-T2: height above ground and touchdown vertical speed;
+> - G-T3: `Warnings`;
+> - G-T7: `LandingGear`;
+> - G-T8 (flaps only): flap handle vs `FlapSurfaces`;
+> - G-T12: freshness;
+> - G-F1/G-F6: `FailureKey` + `FailureCatalog`.
+>
+> References to `FailureType` and `FlightControls.FlapsExtensionPercent` below describe the BLOCK 0 model; both
+> were removed. P2 and P3 gaps are still open.
+
 Column meanings:
 
 - **Source:** FSH = FSHANGAR client, FLP = FLIPPP client, both = identical or near-identical code in both.

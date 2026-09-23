@@ -22,15 +22,15 @@ Nothing in it has been started.
 6. **Live validation** requires the MSFS 2024 + Fenix test PC. Each block that touches the simulator ends with a
    manual live checklist. Automated tests never require MSFS.
 
-## Decisions needed from you before the blocks that depend on them
+## Decisions (validated at the start of BLOCK 2)
 
-| # | Decision | Needed by | Recommendation |
-|---|---|---|---|
-| DEC-1 | Failure vocabulary (G-F1): extend the closed `FailureType` enum, or replace it with a normalized, string-keyed failure catalog? | BLOCK 2 (contract), BLOCK 7 | A normalized catalog: keys like `nav.adf.1` or `hyd.pump.blue`, each with a `FailureTarget` and an ATA chapter. FSGAP.Fenix maps the keys to Fenix ids internally. |
-| DEC-2 | How fenixhangarweb stops storing `fenix_failure_id`: a server migration to normalized keys, or a transitional period where FSGAP.Fenix also accepts legacy Fenix ids at the app boundary. Either way, FSGAP's public API never accepts them. | BLOCK 7, BLOCK 9 | Server migration, with a temporary translation table kept in fenixhangarweb (not in FSGAP) |
-| DEC-3 | Distribution: how do the apps consume FSGAP? Options: a local NuGet feed built with `dotnet pack`, git submodule plus ProjectReference, or a private package feed. | BLOCK 9 | A local folder NuGet feed first. Versioned and reproducible, with no source copying. |
-| DEC-4 | SimConnect.NET internals: keep reflection on `SimConnectNative` (pinned to 0.2.2), or use a small direct P/Invoke for the facility and FlightLoad calls? | BLOCK 3 | Pin 0.2.2 and isolate every reflection call behind one internal class with a startup self-check. Revisit later. |
-| DEC-5 | Lat/lon cadence. Today it is 10 s, and FLIPPP's route animation is tuned for it. Faster is possible. | BLOCK 5 | Keep 10 s for parity; change it later as a deliberate product decision |
+| # | Decision | Record |
+|---|---|---|
+| DEC-1 | Failures are identified by an open, normalized `FailureKey` and published per provider in a `FailureCatalog`. There is no giant enum, and no Fenix id in the public API. The `FailureType` enum is removed. | [ADR 0001](../decisions/0001-failure-key-catalog.md), implemented in BLOCK 2 |
+| DEC-2 | Target: servers and applications exchange `failure_key`, never a Fenix id. The temporary legacy-id translation lives outside the FSGAP public API (fenixhangarweb or an app adapter). | [ADR 0002](../decisions/0002-server-failure-key.md), migration in BLOCK 9 |
+| DEC-3 | Distribution as versioned NuGet packages with pinned versions. GitHub Packages is the planned feed. | [ADR 0003](../decisions/0003-nuget-distribution.md), packaging ready since BLOCK 2 |
+| DEC-4 | Reflection into SimConnect.NET internals is tolerated temporarily, only inside one internal class of `FSGAP.SimConnect`, pinned and self-checked. It never appears in public contracts or app code. | [ADR 0004](../decisions/0004-simconnect-layer-and-reflection.md) |
+| DEC-5 | **Position at 1 Hz by default** (not 10 s). FSGAP provides fresh data; consumers downsample. This supersedes the "keep 10 s" recommendation of BLOCK 1. | [ADR 0005](../decisions/0005-position-update-rate.md), implemented in BLOCKs 3/5 |
 
 ## Block sequence
 
@@ -55,7 +55,25 @@ The suggested outline has been adjusted in three ways:
 
 ---
 
-## BLOCK 2 — Contract extensions (P1) and simulator abstractions
+## BLOCK 2 — Contract extensions (P1) and simulator abstractions — DONE (version 0.2.0)
+
+What was delivered:
+
+- **Failures:** `FailureKey`, `FailureDefinition`, `FailureCatalog`, `FailureCategory`, `FailureOperations` and
+  key-based `FailureCapabilities`; `FailureType` removed.
+- **Simulator contracts:** `ISimulatorConnection` (states, session clock), `ISimulatorStateProvider` (pause,
+  crashes) and `IAircraftDetector`.
+- **Aircraft:** `IInstalledAircraftCatalog` and its models; `AircraftDescriptor.LiveryFolder`.
+- **Telemetry:** height above ground, touchdown vertical speed, the `Warnings` section, `LandingGear` (handle and
+  units), and flap handle vs `FlapSurfaces`.
+- **Freshness:** `ObservedAt` on every value, expiry to `Unknown`, and `TelemetryFreshness` for snapshots.
+- **Immutability:** every public collection is copied on assignment.
+- **Options:** `FsgapOptions`.
+- **Core:** `ObservableState<T>` and the wait helpers.
+- **Docs:** ADRs 0001–0008.
+- **Packaging:** version 0.2.0 and packing to `artifacts/packages/`.
+
+Original plan:
 
 - **Goal:** extend the BLOCK 0 contracts with what the audit proved necessary, so that the implementation blocks
   have a stable target.
@@ -84,6 +102,13 @@ The suggested outline has been adjusted in three ways:
 
 - **Goal:** one reusable, thread-safe SimConnect connection. It replaces `SimConnectDataSource` in both apps, but
   is not wired to them yet.
+- **Contracts to implement (fixed in BLOCK 2):** `ISimulatorConnection`, `ISimulatorStateProvider` and
+  `IAircraftDetector`, configured by `FsgapOptions`. `ObservableState<T>` backs the watch streams.
+- **Position cadence:** position joins the 1 Hz group (ADR 0005). Speed warnings are sampled at 1 Hz.
+- **Freshness:** every reading records its observation time, and snapshots go through
+  `TelemetryFreshness.ExpireStaleValues`.
+- **Reflection:** follow ADR 0004. Any reflection into SimConnect.NET goes into one internal, self-checked
+  class.
 - **Scope:**
   - New assembly `FSGAP.SimConnect`, which depends on Abstractions, Core and `SimConnect.NET 0.2.2`.
   - Connection with a 5 s retry and a configurable client name; states and `Paused`/`Crashed` events.

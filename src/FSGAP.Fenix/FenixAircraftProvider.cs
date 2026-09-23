@@ -12,7 +12,7 @@ namespace FSGAP.Fenix;
 /// Aircraft provider for the Fenix Simulations A319, A320 and A321.
 /// </summary>
 /// <remarks>
-/// Version 0.1.0 only recognizes and identifies the aircraft. Sessions declare
+/// For now it only recognizes and identifies the aircraft (placeholder rule). Sessions declare
 /// <see cref="AircraftCapabilities.None"/>: telemetry snapshots are entirely unavailable and failure commands
 /// return <c>NotSupported</c>, until the Fenix integration is extracted from FSHANGAR.
 /// </remarks>

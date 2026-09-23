@@ -17,6 +17,9 @@ public sealed record TelemetryCapabilities
     /// <summary>Position, attitude and speeds.</summary>
     public bool FlightState { get; init; }
 
+    /// <summary>Flight-envelope warnings (overspeed, flap/gear speed, stall).</summary>
+    public bool Warnings { get; init; }
+
     /// <summary>Engine readings.</summary>
     public bool Engines { get; init; }
 
@@ -38,6 +41,9 @@ public sealed record TelemetryCapabilities
     /// <summary>Fire detection zones and engine/APU fire detection.</summary>
     public bool Fire { get; init; }
 
-    /// <summary>Flight control surfaces.</summary>
+    /// <summary>Landing gear handle and units.</summary>
+    public bool LandingGear { get; init; }
+
+    /// <summary>Flap handle, flap surfaces and speed brake.</summary>
     public bool FlightControls { get; init; }
 }

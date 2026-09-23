@@ -1,6 +1,14 @@
 # FSGAP_SDK
 
-Version 0.1.0. Foundation release: contracts, provider resolution and a Fenix placeholder. No simulator connection yet.
+Version 0.2.0. It provides:
+
+- contracts for aircraft providers, telemetry and failures;
+- normalized failure keys;
+- simulator connection, state and aircraft-detection contracts;
+- an installed-aircraft catalog contract;
+- provider resolution and a Fenix identification placeholder.
+
+There is no real simulator connection yet: the SimConnect transport arrives in BLOCK 3.
 
 ## What is FSGAP?
 
@@ -15,7 +23,11 @@ fire"). An aircraft provider translates the request into the technology of the l
 
 - Isolate aircraft-specific technology inside dedicated providers.
 - Normalized telemetry: one model for every aircraft, with explicit "unknown" and "unavailable" states.
-- Normalized failure control: trigger, clear and read failures without vendor failure ids.
+- Normalized failure control: trigger, clear and read failures by normalized `FailureKey`, never by vendor
+  failure id.
+- Simulator awareness: connection state, pause and crash, loaded-aircraft detection.
+- Fresh, immutable data: every reading carries its observation time and expires when stale, and snapshots cannot
+  be mutated.
 - Capability discovery: every provider declares at runtime what it can do.
 - Support multiple aircraft ecosystems (Fenix, PMDG, iniBuilds, generic SimConnect aircraft, and others).
 - Keep consuming applications vendor-independent.
@@ -66,11 +78,15 @@ FSGAP.Abstractions  --> nothing but the .NET base class library
 
 ```text
 src/
-  FSGAP.Abstractions/   contracts: IAircraftProvider, IAircraftSession, telemetry, capabilities, failures
-  FSGAP.Core/           AircraftProviderRegistry, AircraftSession, PollingTelemetryStream, null-object providers
-  FSGAP.Fenix/          FenixAircraftProvider (identification only in 0.1.0)
+  FSGAP.Abstractions/   contracts: providers and sessions, telemetry, capabilities, failures (FailureKey,
+                        FailureCatalog), simulator (connection, state, aircraft detector), installed-aircraft
+                        catalog, FsgapOptions
+  FSGAP.Core/           AircraftProviderRegistry, AircraftSession, ObservableState, TelemetryFreshness,
+                        PollingTelemetryStream, null-object providers
+  FSGAP.Fenix/          FenixAircraftProvider (identification placeholder only)
 tests/                  xUnit tests, one project per library
-docs/architecture.md    principles, decisions and future targets
+docs/architecture.md    principles, design and future targets
+docs/decisions/         architecture decision records (ADRs)
 docs/audits/            BLOCK 1 audit of the existing Fenix/MSFS integrations, mapping and extraction plan
 ```
 
@@ -80,7 +96,7 @@ docs/audits/            BLOCK 1 audit of the existing Fenix/MSFS integrations, m
 var registry = new AircraftProviderRegistry();
 registry.Register(new FenixAircraftProvider());
 
-// The descriptor comes from aircraft detection (not part of 0.1.0).
+// The descriptor comes from an IAircraftDetector (implemented by the SimConnect transport, BLOCK 3).
 var aircraft = new AircraftDescriptor { Title = "...", IcaoType = "A320" };
 
 var resolution = registry.Resolve(aircraft);
@@ -94,9 +110,11 @@ if (resolution.IsResolved)
         if (telemetry.Apu.Running.TryGetValue(out var running)) { /* running is a real reading */ }
     }
 
-    if (session.Capabilities.Failures.CanTrigger(FailureType.EngineFire))
+    // Keys come from the provider's catalog (session.Capabilities.Failures.Catalog), never from a vendor id.
+    var engineFire = new FailureCommand(FailureKey.Parse("engine.fire"), FailureTarget.Engine(1));
+    if (session.Capabilities.Failures.CanTrigger(engineFire))
     {
-        await session.Failures.TriggerAsync(new FailureCommand(FailureType.EngineFire, FailureTarget.Engine(1)));
+        await session.Failures.TriggerAsync(engineFire);
     }
 }
 ```
@@ -111,4 +129,6 @@ dotnet build
 dotnet test
 ```
 
-The libraries are ready to be packed as NuGet packages (`dotnet pack`), but none is published yet.
+`dotnet pack` produces versioned NuGet packages (`FSGAP.Abstractions`, `FSGAP.Core`, `FSGAP.Fenix`) in
+`artifacts/packages/`. Applications will consume them from a package feed with a pinned version (see
+`docs/decisions/0003-nuget-distribution.md`). Nothing is published yet.

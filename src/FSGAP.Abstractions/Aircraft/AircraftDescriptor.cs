@@ -26,8 +26,18 @@ public sealed record AircraftDescriptor
     /// <summary>Registration / tail number (ATC id) when reported.</summary>
     public string? Registration { get; init; }
 
-    /// <summary>Livery name when reported separately from the title.</summary>
+    /// <summary>
+    /// Human-readable livery name when reported separately from the title. Display only; use
+    /// <see cref="LiveryFolder"/> to identify the livery.
+    /// </summary>
     public string? Livery { get; init; }
+
+    /// <summary>
+    /// Name of the livery folder on disk as reported by the simulator (for example MSFS 2024's <c>LIVERY FOLDER</c>).
+    /// It identifies the exact installed livery. For some aircraft (e.g. Fenix) it is the only reliable key to
+    /// the registration, which the simulator's ATC id leaves empty.
+    /// </summary>
+    public string? LiveryFolder { get; init; }
 
     /// <summary>
     /// Path or package identifier of the aircraft content in the simulator (for example the package folder or
