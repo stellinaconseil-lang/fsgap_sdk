@@ -98,7 +98,43 @@ Original plan:
 - **Definition of done:** P1 gaps are representable. 0 warnings. All BLOCK 0 tests still pass. The mapping
   document is updated with the new targets.
 
-## BLOCK 3 — SimConnect transport and connection lifecycle
+## BLOCK 3 — SimConnect transport and connection lifecycle — DONE (version 0.3.0)
+
+**Delivered:**
+
+- `FSGAP.SimConnect` with a single public type, `SimConnectSimulator`. It implements `ISimulatorConnection`,
+  `ISimulatorStateProvider` (`.State`) and `IAircraftDetector` (`.AircraftDetector`).
+- An internal native seam (`ISimConnectSession`), so the lifecycle is tested without MSFS.
+- The live sample `samples/FSGAP.SimConnect.Console`.
+- Documentation in [../simconnect-lifecycle.md](../simconnect-lifecycle.md).
+- No reflection, no telemetry, nothing Fenix-specific.
+
+**Live validation**
+
+Performed on 2026-09-23, with MSFS 2024 already running and a Fenix A321 loaded:
+
+| Scenario | Result |
+|---|---|
+| A (connect to a running MSFS, see the aircraft) | **LIVE: PASS.** `Connecting → Connected` in about 30 ms. Descriptor: title `FenixA321 IAE WF SC`, ATC ID `SX-DNH`, livery folder `AEE-SX-DNH-7F2F`, livery `Aegean 'Early Modern' SX-DNH (2025)`. Clean stop. |
+| A+ (3 minutes connected) | **LIVE: PASS.** Stable connection. No spurious notification or log line (identity polled about 30 times, a single "Loaded aircraft" line). Clean stop after 2 min 59 s. |
+| B, C (MSFS start/close) | NOT TESTED live: it would have required closing or relaunching the user's running MSFS session. Covered by automated tests with the fake native layer. |
+| D (pause), E (crash) | NOT TESTED live: they need in-sim user actions. Covered by automated tests. |
+| F (10 minutes waiting without MSFS) | NOT TESTED live: MSFS was running. Covered automatically: 100 retries, at most 2 informative log lines, one connection alive at most. |
+
+**Findings:**
+
+- **SimConnect.NET needs access to request structs.** SimConnect.NET 0.2.2 reads request structs through `dynamic`,
+  and fails on `internal` structs (*"'object' does not contain a definition for 'OffsetBytes'"*).
+  - It was found live; the unit tests could not see it.
+  - Fix: `InternalsVisibleTo("SimConnect.NET")`, guarded by a test.
+  - FSHANGAR/FLIPPP avoid the problem because their structs are public.
+- **The Fenix `ATC ID` was not empty.** With this Fenix A321 livery, `ATC ID` returned `SX-DNH`, although the
+  BLOCK 1 audit recorded it as empty for Fenix. It may depend on the livery or the airframe. BLOCK 4 must keep
+  `LIVERY FOLDER` as the primary key and treat `ATC ID` as optional.
+- **Title format.** A live `TITLE` of `FenixA321 IAE WF SC` confirms the `Fenix<model> <engine> <wingtip> <cabin>`
+  format seen in FLIPPP's preset work. It matches the BLOCK 1 regex `Fenix\D{0,4}(319|320|321)`.
+
+Original plan:
 
 - **Goal:** one reusable, thread-safe SimConnect connection. It replaces `SimConnectDataSource` in both apps, but
   is not wired to them yet.
@@ -138,6 +174,13 @@ Original plan:
     MSFS down.
 
 ## BLOCK 4 — Aircraft detection, identity and Fenix installed-aircraft catalog
+
+> **Starting point after BLOCK 3.** Generic detection is done: `SimConnectSimulator.AircraftDetector` publishes
+> `AircraftDescriptor` (Title, Registration = ATC ID, LiveryFolder, Livery). BLOCK 4 therefore only covers:
+>
+> - the Fenix interpretation (`FenixAircraftProvider.Match`);
+> - the Fenix installed catalog and registration resolution, with `LIVERY FOLDER` first and `ATC ID` as the
+>   optional fallback (seen non-empty live).
 
 - **Goal:** turn the BLOCK 0 placeholder into the real, proven identification.
 - **Scope:**

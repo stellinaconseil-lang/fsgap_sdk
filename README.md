@@ -1,14 +1,16 @@
 # FSGAP_SDK
 
-Version 0.2.0. It provides:
+Version 0.3.0. It provides:
 
 - contracts for aircraft providers, telemetry and failures;
 - normalized failure keys;
 - simulator connection, state and aircraft-detection contracts;
 - an installed-aircraft catalog contract;
-- provider resolution and a Fenix identification placeholder.
+- provider resolution and a Fenix identification placeholder;
+- **a real MSFS SimConnect transport** (`FSGAP.SimConnect`): automatic connection and reconnection, pause and
+  crash state, and detection of the loaded aircraft.
 
-There is no real simulator connection yet: the SimConnect transport arrives in BLOCK 3.
+Aircraft telemetry and Fenix integration are not implemented yet.
 
 ## What is FSGAP?
 
@@ -84,7 +86,10 @@ src/
   FSGAP.Core/           AircraftProviderRegistry, AircraftSession, ObservableState, TelemetryFreshness,
                         PollingTelemetryStream, null-object providers
   FSGAP.Fenix/          FenixAircraftProvider (identification placeholder only)
-tests/                  xUnit tests, one project per library
+  FSGAP.SimConnect/     SimConnectSimulator: MSFS connection lifecycle, simulation state, aircraft detection
+                        (the only assembly referencing SimConnect.NET)
+tests/                  xUnit tests, one project per library (none needs MSFS)
+samples/                FSGAP.SimConnect.Console: live validation tool (not a package)
 docs/architecture.md    principles, design and future targets
 docs/decisions/         architecture decision records (ADRs)
 docs/audits/            BLOCK 1 audit of the existing Fenix/MSFS integrations, mapping and extraction plan
@@ -93,11 +98,15 @@ docs/audits/            BLOCK 1 audit of the existing Fenix/MSFS integrations, m
 ## Usage
 
 ```csharp
+var options = new FsgapOptions { ApplicationName = "MyApp", DataDirectory = @"C:\ProgramData\MyApp\fsgap" };
+
+// Simulator: connects in the background, retries while MSFS is absent, reconnects after a loss.
+await using var simulator = new SimConnectSimulator(options, logger);
+await simulator.StartAsync();
+var aircraft = await simulator.AircraftDetector.WaitForAircraftAsync();   // TITLE, ATC ID, LIVERY FOLDER, LIVERY NAME
+
 var registry = new AircraftProviderRegistry();
 registry.Register(new FenixAircraftProvider());
-
-// The descriptor comes from an IAircraftDetector (implemented by the SimConnect transport, BLOCK 3).
-var aircraft = new AircraftDescriptor { Title = "...", IcaoType = "A320" };
 
 var resolution = registry.Resolve(aircraft);
 if (resolution.IsResolved)
@@ -129,6 +138,12 @@ dotnet build
 dotnet test
 ```
 
-`dotnet pack` produces versioned NuGet packages (`FSGAP.Abstractions`, `FSGAP.Core`, `FSGAP.Fenix`) in
-`artifacts/packages/`. Applications will consume them from a package feed with a pinned version (see
+Live check against a running MSFS (see `docs/simconnect-lifecycle.md`):
+
+```bash
+dotnet run --project samples/FSGAP.SimConnect.Console -- --minutes 1
+```
+
+`dotnet pack` produces versioned NuGet packages (`FSGAP.Abstractions`, `FSGAP.Core`, `FSGAP.Fenix`,
+`FSGAP.SimConnect`) in `artifacts/packages/`. Applications will consume them from a package feed with a pinned version (see
 `docs/decisions/0003-nuget-distribution.md`). Nothing is published yet.

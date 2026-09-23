@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Live validation tool for FSGAP.SimConnect. A sample, not a product: never packed or shipped. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>FSGAP.SimConnect.Console</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FSGAP.SimConnect\FSGAP.SimConnect.csproj" />
+  </ItemGroup>
+
+</Project>

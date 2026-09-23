@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>FSGAP.SimConnect</RootNamespace>
+    <Description>Vendor-neutral Microsoft Flight Simulator transport for FSGAP_SDK: SimConnect connection lifecycle with automatic reconnection, simulation state (pause, crash) and loaded-aircraft detection. The only FSGAP assembly that references SimConnect.NET.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FSGAP.Abstractions\FSGAP.Abstractions.csproj" />
+    <ProjectReference Include="..\FSGAP.Core\FSGAP.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SimConnect.NET" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="FSGAP.SimConnect.Tests" />
+    <!--
+      SimConnect.NET unmarshals request structs through `dynamic` over generic types closed on the struct type.
+      With an internal struct those types are inaccessible from SimConnect.NET, and the runtime binder then fails
+      ("'object' does not contain a definition for 'OffsetBytes'", found in live validation). Granting SimConnect.NET
+      access keeps the structs internal instead of making them public API.
+    -->
+    <InternalsVisibleTo Include="SimConnect.NET" />
+  </ItemGroup>
+
+</Project>

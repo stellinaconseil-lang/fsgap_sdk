@@ -1,6 +1,6 @@
 # FSGAP_SDK architecture
 
-This document records the principles FSGAP_SDK is built on, the current design (version 0.2.0) and targets that are
+This document records the principles FSGAP_SDK is built on, the current design (version 0.3.0) and targets that are
 planned but not implemented. Individual decisions are recorded as ADRs in [decisions/](decisions/README.md). The
 BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 
@@ -8,14 +8,14 @@ BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 
 | Assembly | Role | Depends on | Status |
 |---|---|---|---|
-| `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.2.0 |
-| `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.2.0 |
-| `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321 (identification placeholder only) | Abstractions, Core | 0.2.0 |
-| `FSGAP.SimConnect` | Generic MSFS transport implementing the simulator contracts | Abstractions, Core, SimConnect.NET | planned (BLOCK 3, [ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
+| `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.3.0 |
+| `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.3.0 |
+| `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321 (identification placeholder only) | Abstractions, Core | 0.3.0 |
+| `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)) | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.3.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
 
 ```text
 FSGAP.Abstractions  <-  FSGAP.Core  <-  FSGAP.Fenix
-                                    <-  FSGAP.SimConnect   (BLOCK 3)
+                                    <-  FSGAP.SimConnect   (-> SimConnect.NET)
 ```
 
 Compile-time dependencies always point towards `FSGAP.Abstractions`. `FSGAP.SimConnect` never depends on
@@ -23,7 +23,8 @@ Compile-time dependencies always point towards `FSGAP.Abstractions`. `FSGAP.SimC
 
 - `FSGAP.Abstractions` references only the base class library;
 - its public surface names no vendor, simulator library or application;
-- `FSGAP.Core` references only the base class library and `FSGAP.Abstractions`.
+- `FSGAP.Core` references only the base class library and `FSGAP.Abstractions`;
+- `FSGAP.SimConnect` references no provider, and its public API exposes no SimConnect.NET type.
 
 No FSGAP assembly references FSHANGAR or FLIPPP.
 
@@ -221,6 +222,20 @@ Connection status, simulation state and the detected aircraft are exposed as **l
 `WaitForAircraftAsync` wrap common waits. Pause may be `Unavailable`. Crashes are observed through a monotonic
 `CrashCount`. `ISimulatorConnection.SessionElapsed` is monotonic across reconnects and reset by `StopAsync`.
 
+### Simulator transport (FSGAP.SimConnect)
+
+`SimConnectSimulator` implements the three simulator contracts on top of SimConnect.NET 0.2.2:
+
+- one background loop owns the native connection;
+- it retries every `RetryDelay`, reconnects automatically, and disposes every connection before opening the next;
+- native callbacks only update immutable state;
+- consumer code never runs on the native thread;
+- `Faulted` is reserved for an unusable native library.
+
+Aircraft identity comes from `TITLE`, `ATC ID`, `LIVERY FOLDER` and `LIVERY NAME`, polled every 2 s and then every
+5 s once the aircraft is stable. Details, fault semantics and the live validation procedure are in
+[simconnect-lifecycle.md](simconnect-lifecycle.md). A live sample is in `samples/FSGAP.SimConnect.Console`.
+
 ### Failure model
 
 - `FailureKey`: the identity.
@@ -237,7 +252,7 @@ A trigger or clear outside the catalog returns `NotSupported` without contacting
 ### Null-object building blocks
 
 `UnavailableTelemetryProvider` and `UnsupportedFailureProvider` (Core) let a provider open an honest session before
-its telemetry or failures are implemented. `FSGAP.Fenix` uses them in 0.2.0.
+its telemetry or failures are implemented. `FSGAP.Fenix` uses them in 0.3.0.
 
 ### Plugin loading
 
@@ -256,7 +271,7 @@ contract, in FSGAP.Abstractions or in application code ([ADR 0004](decisions/000
 - All projects target `net8.0`, with nullable reference types and implicit usings.
 - Warnings are treated as errors.
 - XML documentation is generated and required for every public member.
-- The single version, **0.2.0**, is defined in `Directory.Build.props`.
+- The single version, **0.3.0**, is defined in `Directory.Build.props`.
 - NuGet versions are pinned centrally in `Directory.Packages.props`.
 - `dotnet pack` writes versioned packages to `artifacts/packages/`.
 - Applications will consume them from a feed (GitHub Packages planned) with an explicitly pinned version. They

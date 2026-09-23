@@ -1,6 +1,8 @@
 # 0004 — `FSGAP.SimConnect` layer and reflection isolation
 
-- **Status:** Accepted (BLOCK 2, DEC-4). The project is created in BLOCK 3.
+- **Status:** Accepted (BLOCK 2, DEC-4). Implemented in BLOCK 3 (0.3.0) with the connection lifecycle, simulation
+  state and aircraft detection, and **no reflection at all**. Airport list, parking and `FlightLoad` are still to
+  come.
 
 ## Context
 
