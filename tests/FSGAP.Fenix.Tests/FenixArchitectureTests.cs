@@ -5,16 +5,17 @@ using FSGAP.Abstractions.Telemetry;
 
 namespace FSGAP.Fenix.Tests;
 
-/// <summary>What FSGAP.Fenix exposes, and what it must not contain yet (BLOCK 6 scope: no failures, no EFB).</summary>
+/// <summary>What FSGAP.Fenix exposes, and where its EFB and failure code may live (BLOCK 7 scope).</summary>
 public class FenixArchitectureTests
 {
     private static readonly Assembly Fenix = typeof(FenixAircraftProvider).Assembly;
 
     [Fact]
-    public void Public_api_is_the_provider_and_the_catalog_only()
+    public void Public_api_is_the_provider_the_catalog_and_the_fenix_options_only()
     {
+        // BLOCK 7 adds FenixOptions (EFB address and timeout), the one Fenix setting an integrator must be able to set.
         Assert.Equal(
-            [nameof(FenixAircraftProvider), nameof(FenixInstalledAircraftCatalog)],
+            [nameof(FenixAircraftProvider), nameof(FenixInstalledAircraftCatalog), nameof(FenixOptions)],
             Fenix.GetExportedTypes().Select(t => t.Name).Order());
     }
 
@@ -25,32 +26,63 @@ public class FenixArchitectureTests
     }
 
     [Fact]
-    public void No_failure_efb_or_diagnostic_probe_implementation_yet()
+    public void Failure_and_efb_code_is_confined_to_the_failures_namespace_and_no_probe_exists()
     {
-        // BLOCK 6 legitimately reads cockpit variables (so "Cockpit" left this list), composed through Core's
-        // TransformedTelemetryProvider (so Fenix still implements no ITelemetryProvider of its own). Failures and the
-        // EFB stay BLOCK 7; the FIRE TEST probe is a diagnostic that is not ported.
+        // BLOCK 7 guard (replaces the BLOCK 6 "no failure yet" guard; tightened rather than dropped):
+        // - exactly one failure provider, internal, in FSGAP.Fenix.Failures; still no ITelemetryProvider of Fenix's own;
+        // - EFB-related names only in FSGAP.Fenix.Failures, FenixOptions (its settings) and FenixAircraftProvider (the
+        //   composition root that creates the session's provider);
+        // - still never an LVAR helper, an injector or the FIRE TEST probe.
+        const string failuresNamespace = "FSGAP.Fenix.Failures";
         var types = Fenix.GetTypes();
-        string[] forbidden = ["Lvar", "Efb", "8083", "SaveManual", "FireTest", "Failure", "Inject"];
+        var failureProviders = types.Where(t => !t.IsInterface && typeof(IFailureProvider).IsAssignableFrom(t)).ToArray();
 
-        Assert.DoesNotContain(types, t => typeof(IFailureProvider).IsAssignableFrom(t) || typeof(ITelemetryProvider).IsAssignableFrom(t));
+        Assert.Single(failureProviders);
+        Assert.Equal(failuresNamespace, failureProviders[0].Namespace);
+        Assert.False(failureProviders[0].IsVisible);
+        Assert.DoesNotContain(types, t => typeof(ITelemetryProvider).IsAssignableFrom(t));
+
+        var names = types
+            .SelectMany(t => t.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                .Select(m => (Owner: Outermost(t), Name: $"{t.FullName}.{m.Name}"))
+                .Prepend((Owner: Outermost(t), Name: t.FullName!)))
+            .ToArray();
+        string[] forbiddenEverywhere = ["Lvar", "FireTest", "Inject", "8083"];
+        Assert.DoesNotContain(names, n => forbiddenEverywhere.Any(f => n.Name.Contains(f, StringComparison.OrdinalIgnoreCase)));
+
+        string[] efbWords = ["Efb", "SaveManual"];
+        Type[] allowedOutsideNamespace = [typeof(FenixOptions), typeof(FenixAircraftProvider)];
         Assert.DoesNotContain(
-            types.SelectMany(t => t.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
-                .Select(m => $"{t.FullName}.{m.Name}").Prepend(t.FullName!)),
-            name => forbidden.Any(f => name.Contains(f, StringComparison.OrdinalIgnoreCase)));
+            names,
+            n => efbWords.Any(w => n.Name.Contains(w, StringComparison.OrdinalIgnoreCase))
+                && n.Owner.Namespace != failuresNamespace
+                && !allowedOutsideNamespace.Contains(n.Owner));
     }
 
     [Fact]
-    public void The_binary_contains_no_efb_endpoint_no_http_and_no_failure_call()
+    public void Only_the_efb_client_and_the_composition_root_hold_an_http_client()
     {
-        // BLOCK 6 failure boundary, checked on the compiled string literals rather than on names only.
-        // "https://" is not listed: the assembly metadata carries the repository URL. The absence of any HTTP assembly
-        // reference is the real guard against a call.
-        string[] forbidden = ["8083", "127.0.0.1", "localhost", "fenix/failures", "saveManual", "http://"];
+        var holders = Fenix.GetTypes()
+            .Where(t => t.GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).Any(f => f.FieldType == typeof(HttpClient)))
+            .Select(t => Outermost(t).Name)
+            .ToHashSet();
 
-        Assert.DoesNotContain(Fenix.GetReferencedAssemblies(), a => a.Name!.Contains("Http", StringComparison.OrdinalIgnoreCase));
-        Assert.All(forbidden, text => Assert.False(BinaryContains(Fenix, text), $"FSGAP.Fenix contains '{text}'."));
+        Assert.Subset(new HashSet<string> { "FenixEfbClient", nameof(FenixAircraftProvider) }, holders);
+        Assert.Contains("FenixEfbClient", holders);
     }
+
+    [Fact]
+    public void The_only_efb_endpoints_are_the_two_audited_ones()
+    {
+        // Positive control, and a guard against unverified EFB endpoints (the /arrival list was never understood) and
+        // against the slow "localhost" address (IPv6 first, about 2 s lost per call in the audited applications).
+        Assert.True(BinaryContains(Fenix, "fenix/failures/saveManual"));
+        Assert.True(BinaryContains(Fenix, "fenix/failures/manual"));
+        Assert.False(BinaryContains(Fenix, "fenix/failures/arrival"));
+        Assert.False(BinaryContains(Fenix, "localhost"));
+    }
+
+    private static Type Outermost(Type type) => type.DeclaringType is { } outer ? Outermost(outer) : type;
 
     [Fact]
     public void The_fenix_variable_names_live_in_this_assembly()

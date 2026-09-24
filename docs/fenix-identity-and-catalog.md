@@ -4,8 +4,8 @@
 `AircraftIdentity`, and keeps a catalog of the Fenix liveries installed locally, which it uses to resolve
 registrations. Since 0.5.0 a session can expose the generic SimConnect telemetry through a Fenix masking policy
 ([generic-telemetry.md](generic-telemetry.md#fenix-policy)), and since 0.6.0 the proven Fenix systems (ADIRS, fuel
-pumps, fire panel, hydraulics: [fenix-system-telemetry.md](fenix-system-telemetry.md)). It does not handle failures;
-they come in BLOCK 7.
+pumps, fire panel, hydraulics: [fenix-system-telemetry.md](fenix-system-telemetry.md)). Since 0.7.0 it also handles
+failures through the local EFB ([fenix-failures.md](fenix-failures.md)).
 
 ```text
 FSGAP.SimConnect                         FSGAP.Fenix

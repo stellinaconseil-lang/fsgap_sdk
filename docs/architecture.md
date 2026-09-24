@@ -1,6 +1,6 @@
 # FSGAP_SDK architecture
 
-This document records the principles FSGAP_SDK is built on, the current design (version 0.6.0) and targets that are
+This document records the principles FSGAP_SDK is built on, the current design (version 0.7.0) and targets that are
 planned but not implemented. Individual decisions are recorded as ADRs in [decisions/](decisions/README.md). The
 BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 
@@ -8,10 +8,10 @@ BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 
 | Assembly | Role | Depends on | Status |
 |---|---|---|---|
-| `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.6.0 |
-| `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.6.0 |
-| `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321: recognition, normalized identity, installed livery catalog ([details](fenix-identity-and-catalog.md)), generic-telemetry policy and system telemetry ([details](fenix-system-telemetry.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.6.0 |
-| `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)), generic telemetry ([details](generic-telemetry.md)), batched variable reader | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.6.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
+| `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.7.0 |
+| `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.7.0 |
+| `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321: recognition, normalized identity, installed livery catalog ([details](fenix-identity-and-catalog.md)), generic-telemetry policy and system telemetry ([details](fenix-system-telemetry.md)), failures through the EFB ([details](fenix-failures.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.7.0 |
+| `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)), generic telemetry ([details](generic-telemetry.md)), batched variable reader | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.7.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
 
 ```text
 FSGAP.Abstractions  <-  FSGAP.Core  <-  FSGAP.Fenix
@@ -291,16 +291,35 @@ Aircraft identity comes from `TITLE`, `ATC ID`, `LIVERY FOLDER` and `LIVERY NAME
 - `FailureTarget`: which instance.
 - `FailureCommand(key, target)`: target defaults to the aircraft.
 - `AircraftFailure`: active failure with key, target, category, severity and description.
-- `FailureCommandResult`: `Succeeded`, `NotSupported`, `Rejected` or `Failed`.
+- `FailureCommandResult`: `Succeeded`, `NotSupported`, `Rejected`, `Failed`, and since 0.7.0:
+  - `Unavailable`: failure system unreachable, nothing applied, safe to retry;
+  - `Unconfirmed`: sent but not confirmed, may be applied, never retry blindly.
+- `FailuresUnavailableException` (0.7.0): the active failures cannot be read right now. An empty list always means
+  "no failure".
 
 A trigger or clear outside the catalog returns `NotSupported` without contacting the aircraft. The BLOCK 0
 `FailureType` enum has been removed.
 
+### Fenix failures (0.7.0)
+
+- `FenixAircraftProvider(fenixOptions:)` gives each Fenix session an internal `IFailureProvider` over the local
+  Fenix EFB (HTTP, default `http://127.0.0.1:8083/`, 3 s per request).
+  - There is one shared `HttpClient` per provider.
+  - The EFB is a transport of its own, with no SimConnect dependency.
+- **Catalog.** 40 normalized keys (the failures used today) over the embedded 384-entry EFB catalog.
+  - The Fenix ids and titles stay in `FSGAP.Fenix` resources.
+  - Unkeyed active failures are reported with `Key = null`.
+- **Commands.** Commands are serialized per session and confirmed by the echo or by reading the list back. They are
+  never retried.
+- **Reads.** Reads come from the EFB's live list only.
+- Details: [fenix-failures.md](fenix-failures.md). Key ↔ id table for the server migration:
+  [fenix-failure-mapping.md](fenix-failure-mapping.md).
+
 ### Null-object building blocks
 
 `UnavailableTelemetryProvider` and `UnsupportedFailureProvider` (Core) let a provider open an honest session before
-its telemetry or failures are implemented. `FSGAP.Fenix` uses `UnsupportedFailureProvider`, and
-`UnavailableTelemetryProvider` when it is given neither generic telemetry nor a variable reader.
+its telemetry or failures are implemented. `FSGAP.Fenix` uses `UnsupportedFailureProvider` when it is given no
+`FenixOptions`, and `UnavailableTelemetryProvider` when it is given neither generic telemetry nor a variable reader.
 
 ### Plugin loading
 

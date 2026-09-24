@@ -19,4 +19,10 @@ public sealed record FailureCommandResult(FailureCommandStatus Status, string? M
 
     /// <summary>Creates a result stating the command failed while being applied.</summary>
     public static FailureCommandResult Failed(string? message = null) => new(FailureCommandStatus.Failed, message);
+
+    /// <summary>Creates a result stating the failure system could not be reached; nothing was applied.</summary>
+    public static FailureCommandResult Unavailable(string? message = null) => new(FailureCommandStatus.Unavailable, message);
+
+    /// <summary>Creates a result stating the command was sent but its outcome is unknown.</summary>
+    public static FailureCommandResult Unconfirmed(string? message = null) => new(FailureCommandStatus.Unconfirmed, message);
 }

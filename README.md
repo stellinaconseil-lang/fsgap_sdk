@@ -1,6 +1,6 @@
 # FSGAP_SDK
 
-Version 0.6.0. It provides:
+Version 0.7.0. It provides:
 
 - contracts for aircraft providers, telemetry and failures;
 - normalized failure keys;
@@ -15,10 +15,12 @@ Version 0.6.0. It provides:
   read-only, batched reader of named simulator variables on that connection (`ISimulatorVariableReader`);
 - **Fenix telemetry**: a Fenix session exposes the generic telemetry with the values known to be wrong on Fenix
   masked, plus the proven Fenix systems: ADIRS modes, fuel pump switches, fire panel (handles, fire warning lights)
-  and green/blue hydraulic pressure.
+  and green/blue hydraulic pressure;
+- **Fenix failures** through the local Fenix EFB: a normalized catalog of 40 failure keys (the failures the
+  applications use today), trigger, clear and read of the active failures, never exposing a Fenix id.
 
-Fenix failures (BLOCK 7), the APU operating state and the electrical system are not implemented yet. See
-`docs/generic-telemetry.md` and `docs/fenix-system-telemetry.md`.
+Simulator services (airport search, parking, flight loading), the APU operating state and the electrical system are
+not implemented yet. See `docs/generic-telemetry.md`, `docs/fenix-system-telemetry.md` and `docs/fenix-failures.md`.
 
 ## What is FSGAP?
 
@@ -94,8 +96,8 @@ src/
   FSGAP.Core/           AircraftProviderRegistry, AircraftSession, ObservableState, TelemetryFreshness,
                         TransformedTelemetryProvider,
                         PollingTelemetryStream, null-object providers
-  FSGAP.Fenix/          FenixAircraftProvider (recognition, identity) and FenixInstalledAircraftCatalog
-                        (installed liveries, registration resolution)
+  FSGAP.Fenix/          FenixAircraftProvider (recognition, identity, telemetry, failures), FenixOptions and
+                        FenixInstalledAircraftCatalog (installed liveries, registration resolution)
   FSGAP.SimConnect/     SimConnectSimulator: MSFS connection lifecycle, simulation state, aircraft detection,
                         generic telemetry
                         (the only assembly referencing SimConnect.NET)
@@ -104,6 +106,8 @@ samples/                FSGAP.SimConnect.Console: live validation tool (not a pa
 docs/architecture.md    principles, design and future targets
 docs/generic-telemetry.md  the generic telemetry: SimVars, groups, cadences, conversions, Fenix policy
 docs/fenix-system-telemetry.md  the Fenix system telemetry: variables, transport, overlay, LVAR inventory
+docs/fenix-failures.md    the Fenix failure provider: EFB transport, catalogue, key policy, results, lifecycle
+docs/fenix-failure-mapping.md  FailureKey ↔ Fenix id table (reference for the server migration)
 docs/decisions/         architecture decision records (ADRs)
 docs/audits/            BLOCK 1 audit of the existing Fenix/MSFS integrations, mapping and extraction plan
 ```
@@ -125,7 +129,8 @@ registry.Register(new FenixAircraftProvider(
     fenixLiveries,
     genericTelemetry: simulator.Telemetry,          // generic MSFS telemetry
     simulatorVariables: simulator,                  // Fenix variables, read on the same connection
-    aircraftDetector: simulator.AircraftDetector)); // stop reading when another aircraft is loaded
+    aircraftDetector: simulator.AircraftDetector,   // stop reading when another aircraft is loaded
+    fenixOptions: new FenixOptions()));             // Fenix failures through the local EFB
 
 var resolution = registry.Resolve(aircraft);
 if (resolution.IsResolved)
@@ -145,10 +150,12 @@ if (resolution.IsResolved)
     }
 
     // Keys come from the provider's catalog (session.Capabilities.Failures.Catalog), never from a vendor id.
-    var engineFire = new FailureCommand(FailureKey.Parse("engine.fire"), FailureTarget.Engine(1));
-    if (session.Capabilities.Failures.CanTrigger(engineFire))
+    var blueLeak = new FailureCommand(FailureKey.Parse("hydraulic.blue.leak"), FailureTarget.HydraulicSystem("blue"));
+    if (session.Capabilities.Failures.CanTrigger(blueLeak))
     {
-        await session.Failures.TriggerAsync(engineFire);
+        var result = await session.Failures.TriggerAsync(blueLeak);
+        // Succeeded, or Unavailable (EFB not reachable: nothing applied), Unconfirmed (may be applied: read before
+        // retrying), Rejected, Failed, NotSupported.
     }
 }
 ```

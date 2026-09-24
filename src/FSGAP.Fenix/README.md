@@ -2,7 +2,7 @@
 
 Aircraft provider for the Fenix Simulations A319 / A320 / A321.
 
-## What it does (0.6.0)
+## What it does (0.7.0)
 
 - `FenixAircraftProvider.Match` recognizes a Fenix A319/A320/A321 from the generic `AircraftDescriptor`. The rule
   `Fenix\D{0,4}(319|320|321)` is applied to `TITLE`, then to `LIVERY FOLDER`. It returns `Dedicated` and a
@@ -22,17 +22,20 @@ Aircraft provider for the Fenix Simulations A319 / A320 / A321.
     fuel pump switches, the fire handles and engine fire lights, and green/blue hydraulic pressure;
   - with `aircraftDetector`: no read, and nothing published, once another aircraft is loaded;
   - neither input: `AircraftCapabilities.None`.
-- Failure commands return `NotSupported` (failures are BLOCK 7).
+- **Failures** (with `FenixOptions`): trigger, clear and read of the active failures through the local Fenix EFB,
+  in `FailureKey` terms only. The catalog has 40 normalized keys (the failures the applications use today) over the
+  embedded 384-entry EFB catalog. Without `FenixOptions`, failure commands return `NotSupported`.
 
 Details:
 - [docs/fenix-identity-and-catalog.md](../../docs/fenix-identity-and-catalog.md);
+- [docs/fenix-failures.md](../../docs/fenix-failures.md) and [docs/fenix-failure-mapping.md](../../docs/fenix-failure-mapping.md);
 - [docs/fenix-system-telemetry.md](../../docs/fenix-system-telemetry.md), which includes the inventory of the 39
   legacy LVARs.
 
 ## What it does not do
 
-- No write of any kind: no LVAR, HVAR or event.
-- No EFB call and no failure id.
+- No simulator write: no LVAR, HVAR or event. The only write is an explicit failure command to the EFB.
+- No EFB call outside `Failures/`, and no Fenix failure id in any public type.
 - No fire-test diagnostic probe.
 - No dependency on any Fenix SDK or on SimConnect: variables are read through `ISimulatorVariableReader`.
 
@@ -46,7 +49,7 @@ Details:
 | `Catalog/` | Package discovery, livery parsing, scanner, immutable indexed snapshot, JSON cache |
 | `Variables/` | `FenixVariables`: the only place in FSGAP where Fenix variable names exist, and their read groups |
 | `Telemetry/` | Generic policy (mask), system mapper, session polling source, composer (overlay) |
-| `Failures/` | Planned (BLOCK 7) |
+| `Failures/` | EFB client, failure provider, catalog loader; `Resources/` holds the EFB catalog and the key mapping (the only place Fenix failure ids exist) |
 
-Everything Fenix-specific stays `internal`. The public API is `FenixAircraftProvider` and
+Everything Fenix-specific stays `internal`. The public API is `FenixAircraftProvider`, `FenixOptions` and
 `FenixInstalledAircraftCatalog`; consumers otherwise only see FSGAP.Abstractions types.

@@ -51,6 +51,15 @@ proposals for later blocks.
 > FIRE TEST, agent and MASTER WARNING pushbuttons (counters) stay deferred (G-C2). The ENG FIRE TEST probe (G-C3) is
 > classified diagnostic only and is not ported. Full LVAR inventory: [../fenix-system-telemetry.md](../fenix-system-telemetry.md).
 
+> **Status after BLOCK 7 (version 0.7.0).** §3 (failures) is implemented in `FSGAP.Fenix`:
+>
+> - G-F1/G-F6: 40 normalized keys, the failures the applications use today;
+> - G-F2: `Unavailable` and `Unconfirmed` results, plus `FailuresUnavailableException`;
+> - G-F3 (availability API): not needed, each call reports it.
+>
+> Fenix ids stay inside FSGAP.Fenix. Table: [../fenix-failure-mapping.md](../fenix-failure-mapping.md). The server
+> (DEC-2) is not migrated yet.
+
 Column meanings:
 
 - **Source:** FSH = FSHANGAR client, FLP = FLIPPP client, both = identical or near-identical code in both.

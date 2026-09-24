@@ -14,6 +14,9 @@ public interface IFailureProvider
     /// <exception cref="NotSupportedException">
     /// The provider cannot read active failures. An empty result always means "no active failure", never "cannot tell".
     /// </exception>
+    /// <exception cref="FailuresUnavailableException">
+    /// The failures cannot be read right now (failure system unreachable, no answer in time, unreadable answer).
+    /// </exception>
     Task<IReadOnlyCollection<AircraftFailure>> GetActiveFailuresAsync(CancellationToken cancellationToken = default);
 
     /// <summary>Triggers a failure.</summary>

@@ -18,7 +18,8 @@ This is the BLOCK 5 composition point extended, not a second chain. The session'
 `TransformedTelemetryProvider` over the generic telemetry. Its transformation now also overlays the Fenix state, and
 it owns the Fenix polling, which it stops when the session is disposed.
 
-Read-only: FSGAP never writes an LVAR, an HVAR or an event, never calls the EFB, and injects no failure.
+The telemetry is read-only: it never writes an LVAR, an HVAR or an event. Failures (0.7.0) are a separate transport,
+the EFB, documented in [fenix-failures.md](fenix-failures.md).
 
 ## Transport: one connection, batched
 
@@ -113,7 +114,7 @@ With generic telemetry and a variable reader:
 Not declared:
 - `Apu`: no proven source for master, running, available or bleed;
 - `Electrical`: no contract field for the one reliable battery reading;
-- no failures.
+- no failures in the telemetry sections; failures are a separate capability since 0.7.0 ([fenix-failures.md](fenix-failures.md)).
 
 ## Inventory of the 39 legacy cockpit LVARs
 

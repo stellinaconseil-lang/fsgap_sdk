@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>FSGAP.Fenix</RootNamespace>
-    <Description>FSGAP_SDK aircraft provider for the Fenix Simulations A319/A320/A321: aircraft recognition, normalized identity and the installed Fenix livery catalog (registration resolution). Telemetry and failures are not implemented yet.</Description>
+    <Description>FSGAP_SDK aircraft provider for the Fenix Simulations A319/A320/A321: aircraft recognition, normalized identity, the installed Fenix livery catalog, generic and Fenix system telemetry, and Fenix failures through the local EFB (normalized failure keys).</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +16,11 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="FSGAP.Fenix.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Failures\Resources\fenix-failure-catalog.json" LogicalName="FSGAP.Fenix.Failures.fenix-failure-catalog.json" />
+    <EmbeddedResource Include="Failures\Resources\fenix-failure-mapping.json" LogicalName="FSGAP.Fenix.Failures.fenix-failure-mapping.json" />
   </ItemGroup>
 
 </Project>

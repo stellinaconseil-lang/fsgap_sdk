@@ -116,7 +116,12 @@ public class ArchitectureTests
     {
         // BLOCK 6: Fenix variable names live in FSGAP.Fenix only. Checked on the compiled binaries (string literals and
         // metadata), so no name can slip in through a constant.
-        string[] fenixMarkers = ["S_OH_", "I_OH_", "S_MIP_", "I_MIP_", "I_ENG_FIRE", "L:S_", "L:I_"];
+        // BLOCK 7 adds the Fenix failure and EFB details: raw failure ids, endpoints, port.
+        string[] fenixMarkers =
+        [
+            "S_OH_", "I_OH_", "S_MIP_", "I_MIP_", "I_ENG_FIRE", "L:S_", "L:I_",
+            "F_PNEUMATIC", "F_ELEC_", "F_HYD_", "B_INT_SFCDC", "saveManual", "fenix/failures", "8083",
+        ];
         Assembly[] assemblies = [Transport, typeof(IAircraftProvider).Assembly, typeof(ObservableState<>).Assembly];
 
         foreach (var assembly in assemblies)

@@ -400,7 +400,51 @@ Original plan:
   - Normalized ADIRS and pump values are live-verified.
   - The probe's PASS on ENG1 and ENG2 is reproduced through FSGAP.
 
-## BLOCK 7 — Fenix failure provider
+## BLOCK 7 — Fenix failure provider — DONE (version 0.7.0)
+
+**Delivered** (details in [../fenix-failures.md](../fenix-failures.md), table in
+[../fenix-failure-mapping.md](../fenix-failure-mapping.md)):
+
+- `FenixFailureProvider` (internal):
+  - trigger, clear and read of the active failures over the EFB (`saveManual`, `manual`);
+  - echo confirmation, then a list read-back (3 × 400 ms);
+  - 3 s per request; never a command retry; commands serialized per session (fixes D4: one injector per session).
+- `FenixOptions` (public): EFB address and timeout, default `http://127.0.0.1:8083/`.
+- Catalog:
+  - the 384-entry EFB catalog embedded verbatim;
+  - **40 normalized keys**: every id used by FLIPPP (24), FSHANGAR (live, tests, fire probe) and fenixhangarweb;
+  - the other ids reported unkeyed when active.
+- Contract, minimal: `FailureCommandStatus.Unavailable` and `Unconfirmed` (G-F2), and `FailuresUnavailableException`.
+- 107 tests added:
+  - catalog;
+  - trigger, clear and read against a fake EFB;
+  - lifecycle, non-Fenix aircraft, telemetry regression;
+  - no raw-id leakage.
+
+**Deviations from the plan below, and why:**
+
+- **No probe or availability API (G-F3).** Availability is reported by every call (`Unavailable`,
+  `FailuresUnavailableException`); no consumer needed a separate probe.
+- **No "clear everything this session triggered" helper (D5).**
+  - It would rebuild the aircraft state from the commands sent, which the BLOCK 7 specification forbids ("no lying
+    cache").
+  - A consumer can clear what `GetActiveFailuresAsync` reports.
+- **The ported legacy tests are replaced by equivalent FSGAP tests.** They cover the echo anomaly, a missing title
+  refused before HTTP, timeouts and connection errors.
+- **Live checklist reduced to one failure.** Only `air-conditioning.cpc.1` was written live, the failure FSHANGAR
+  itself used for its first round trip. Triggering one id per FLIPPP tier in the user's session was judged
+  unnecessary risk: the mapping of those ids is covered by the catalog tests.
+
+**Live validation (2026-09-24):** LIVE TEST.
+
+- **Read-only.** EFB reachable; live catalog identical to the embedded one (384 ids).
+- **Write.** `air-conditioning.cpc.1` triggered, read back, cleared and read back, **twice**.
+  - **First run (clear 30 ms after the trigger):** the clear was confirmed, yet the failure was active again moments
+    later (asynchronous application by Fenix). It was cleared again with the same payload and stayed clear.
+  - **Second run (5 s hold):** clean.
+- **Failures left active: 0.**
+
+**Original plan:**
 
 - **Goal:** trigger, clear and read Fenix failures through `IFailureProvider`, with no Fenix id in the public API.
 - **Scope:**

@@ -1,0 +1,1922 @@
+[
+  {
+    "id": "F_PNEUMATIC_CPC_1",
+    "title": "CPC 1",
+    "category": "ATA 21 - Air Conditioning / CPC"
+  },
+  {
+    "id": "F_PNEUMATIC_CPC_2",
+    "title": "CPC 2",
+    "category": "ATA 21 - Air Conditioning / CPC"
+  },
+  {
+    "id": "F_PNEUMATIC_PACK_1_OVERHEAT",
+    "title": "Pack 1 overheat",
+    "category": "ATA 21 - Air Conditioning / Overheat"
+  },
+  {
+    "id": "F_PNEUMATIC_PACK_2_OVERHEAT",
+    "title": "Pack 2 overheat",
+    "category": "ATA 21 - Air Conditioning / Overheat"
+  },
+  {
+    "id": "F_PNEUMATIC_PACK_1_REG_FAULT",
+    "title": "Pack 1 regulator fault",
+    "category": "ATA 21 - Air Conditioning / Regulator fault"
+  },
+  {
+    "id": "F_PNEUMATIC_PACK_2_REG_FAULT",
+    "title": "Pack 2 regulator fault",
+    "category": "ATA 21 - Air Conditioning / Regulator fault"
+  },
+  {
+    "id": "F_PNEUMATIC_ZONECONTROLLER_PRIM",
+    "title": "Zone controller primary",
+    "category": "ATA 21 - Air Conditioning / Zone controller"
+  },
+  {
+    "id": "F_PNEUMATIC_ZONECONTROLLER_SEC",
+    "title": "Zone controller secondary",
+    "category": "ATA 21 - Air Conditioning / Zone controller"
+  },
+  {
+    "id": "F_PNEUMATIC_TRIM_AIR",
+    "title": "Hot air fault",
+    "category": "ATA 21 - Air Conditioning / Trim air"
+  },
+  {
+    "id": "F_PNEUMATIC_CVC",
+    "title": "Cargo ventilation controller",
+    "category": "ATA 21 - Air Conditioning / Cargo"
+  },
+  {
+    "id": "F_PNEUMATIC_HOT_AIR_VALVE_AFT_CARGO",
+    "title": "Hot air valve aft cargo",
+    "category": "ATA 21 - Air Conditioning / Pneumatic valves"
+  },
+  {
+    "id": "F_PNEUMATIC_CARGO_ISOL_FWD_UP",
+    "title": "Cargo fwd isolation valve upstream",
+    "category": "ATA 21 - Air Conditioning / Cargo vent"
+  },
+  {
+    "id": "F_PNEUMATIC_CARGO_ISOL_FWD_DOWN",
+    "title": "Cargo fwd isolation valve downstream",
+    "category": "ATA 21 - Air Conditioning / Cargo vent"
+  },
+  {
+    "id": "F_PNEUMATIC_CARGO_ISOL_AFT_UP",
+    "title": "Cargo aft isolation valve upstream",
+    "category": "ATA 21 - Air Conditioning / Cargo vent"
+  },
+  {
+    "id": "F_PNEUMATIC_CARGO_ISOL_AFT_DOWN",
+    "title": "Cargo aft isolation valve downstream",
+    "category": "ATA 21 - Air Conditioning / Cargo vent"
+  },
+  {
+    "id": "F_PNEUMATIC_RECIRC_FANS",
+    "title": "Recirculation fans",
+    "category": "ATA 21 - Air Conditioning / Recirculation"
+  },
+  {
+    "id": "F_PNEUMATIC_DECOMPRESSION_MINOR",
+    "title": "Slow decompression",
+    "category": "ATA 21 - Air Conditioning / Decompression"
+  },
+  {
+    "id": "F_PNEUMATIC_DECOMPRESSION_MAJOR",
+    "title": "Rapid decompression",
+    "category": "ATA 21 - Air Conditioning / Decompression"
+  },
+  {
+    "id": "F_PNEUMATIC_OUTFLOWVALVE_STUCK",
+    "title": "Outflow valve stuck",
+    "category": "ATA 21 - Air Conditioning / Outflow valve"
+  },
+  {
+    "id": "F_PNEUMATIC_AEVC",
+    "title": "Ventilation AEVC",
+    "category": "ATA 21 - Air Conditioning / Ventilation"
+  },
+  {
+    "id": "F_PNEUMATIC_BLOWER",
+    "title": "Ventilation blower fault",
+    "category": "ATA 21 - Air Conditioning / Ventilation"
+  },
+  {
+    "id": "F_PNEUMATIC_EXTRACT",
+    "title": "Ventilation extract fault",
+    "category": "ATA 21 - Air Conditioning / Ventilation"
+  },
+  {
+    "id": "F_PNEUMATIC_VENT_INLET",
+    "title": "Vent inlet valve",
+    "category": "ATA 21 - Air Conditioning / Ventilation valves"
+  },
+  {
+    "id": "F_PNEUMATIC_VENT_EXTRACT",
+    "title": "Vent extract valve",
+    "category": "ATA 21 - Air Conditioning / Ventilation valves"
+  },
+  {
+    "id": "F_OH_FLT_CTL_FAC_1",
+    "title": "FAC 1",
+    "category": "ATA 22 - AutoFlight / Nonresettable fault"
+  },
+  {
+    "id": "F_OH_FLT_CTL_FAC_2",
+    "title": "FAC 2",
+    "category": "ATA 22 - AutoFlight / Nonresettable fault"
+  },
+  {
+    "id": "F_OH_FLT_CTL_FAC_RECOVERABLE_1",
+    "title": "FAC 1 resettable fault",
+    "category": "ATA 22 - AutoFlight / Resettable fault"
+  },
+  {
+    "id": "F_OH_FLT_CTL_FAC_RECOVERABLE_2",
+    "title": "FAC 2 resettable fault",
+    "category": "ATA 22 - AutoFlight / Resettable fault"
+  },
+  {
+    "id": "F_FC_YAW_RTL_1",
+    "title": "Rudder travel limiter channel 1",
+    "category": "ATA 22 - AutoFlight / Rudder travel limiter"
+  },
+  {
+    "id": "F_FC_YAW_RTL_2",
+    "title": "Rudder travel limiter channel 2",
+    "category": "ATA 22 - AutoFlight / Rudder travel limiter"
+  },
+  {
+    "id": "F_FC_RUDDERTRIM_1",
+    "title": "Rudder trim channel 1",
+    "category": "ATA 22 - AutoFlight / Rudder trim"
+  },
+  {
+    "id": "F_FC_RUDDERTRIM_2",
+    "title": "Rudder trim channel 2",
+    "category": "ATA 22 - AutoFlight / Rudder trim"
+  },
+  {
+    "id": "F_FC_WINDSHEAR_1",
+    "title": "Reactive W/S det channel 1",
+    "category": "ATA 22 - AutoFlight / Reactive W/S det"
+  },
+  {
+    "id": "F_FC_WINDSHEAR_2",
+    "title": "Reactive W/S det channel 2",
+    "category": "ATA 22 - AutoFlight / Reactive W/S det"
+  },
+  {
+    "id": "F_FC_ALTERNATE_LAW_1",
+    "title": "Alternate law with protection",
+    "category": "ATA 22 - AutoFlight / Law override"
+  },
+  {
+    "id": "F_FC_ALTERNATE_LAW_2",
+    "title": "Alternate law without protection",
+    "category": "ATA 22 - AutoFlight / Law override"
+  },
+  {
+    "id": "F_FC_DIRECT_LAW",
+    "title": "Direct law",
+    "category": "ATA 22 - AutoFlight / Law override"
+  },
+  {
+    "id": "F_FCU_1",
+    "title": "FCU Channel 1",
+    "category": "ATA 22 - AutoFlight / FCU"
+  },
+  {
+    "id": "F_FCU_2",
+    "title": "FCU Channel 2",
+    "category": "ATA 22 - AutoFlight / FCU"
+  },
+  {
+    "id": "F_AUTOFLIGHT_ATHR1",
+    "title": "A/THR 1",
+    "category": "ATA 22 - AutoFlight / A/THR"
+  },
+  {
+    "id": "F_AUTOFLIGHT_ATHR2",
+    "title": "A/THR 2",
+    "category": "ATA 22 - AutoFlight / A/THR"
+  },
+  {
+    "id": "F_AUTOFLIGHT_AP1",
+    "title": "AP 1",
+    "category": "ATA 22 - AutoFlight / AP"
+  },
+  {
+    "id": "F_AUTOFLIGHT_AP2",
+    "title": "AP 2",
+    "category": "ATA 22 - AutoFlight / AP"
+  },
+  {
+    "id": "F_ELEC_BUS_BAT",
+    "title": "DC Bat bus",
+    "category": "ATA 24 - Electrical power / DC Bus Fault"
+  },
+  {
+    "id": "F_ELEC_BUS_DC_1",
+    "title": "DC bus 1",
+    "category": "ATA 24 - Electrical power / DC Bus Fault"
+  },
+  {
+    "id": "F_ELEC_BUS_DC_2",
+    "title": "DC bus 2",
+    "category": "ATA 24 - Electrical power / DC Bus Fault"
+  },
+  {
+    "id": "F_ELEC_BUS_HOT_1",
+    "title": "Hot bus 1",
+    "category": "ATA 24 - Electrical power / DC Bus Fault"
+  },
+  {
+    "id": "F_ELEC_BUS_HOT_2",
+    "title": "Hot bus 2",
+    "category": "ATA 24 - Electrical power / DC Bus Fault"
+  },
+  {
+    "id": "F_ELEC_BUS_DC_ESSENTIAL",
+    "title": "DC Essential bus",
+    "category": "ATA 24 - Electrical power / DC Bus Fault"
+  },
+  {
+    "id": "F_ELEC_BUS_DC_SHED",
+    "title": "DC Essential shed bus",
+    "category": "ATA 24 - Electrical power / DC Bus Fault"
+  },
+  {
+    "id": "F_ELEC_BUS_AC_1",
+    "title": "AC bus 1",
+    "category": "ATA 24 - Electrical power / AC Bus Fault"
+  },
+  {
+    "id": "F_ELEC_BUS_AC_2",
+    "title": "AC bus 2",
+    "category": "ATA 24 - Electrical power / AC Bus Fault"
+  },
+  {
+    "id": "F_ELEC_BUS_AC_ESSENTIAL",
+    "title": "AC Essential bus",
+    "category": "ATA 24 - Electrical power / AC Bus Fault"
+  },
+  {
+    "id": "F_ELEC_BUS_AC_SHED",
+    "title": "AC Essential shed bus",
+    "category": "ATA 24 - Electrical power / AC Bus Fault"
+  },
+  {
+    "id": "F_ELEC_BUS_AC_STATIC_INVERTER",
+    "title": "AC Static inverter bus",
+    "category": "ATA 24 - Electrical power / AC Bus Fault"
+  },
+  {
+    "id": "F_ELEC_BUS_AC26_1",
+    "title": "AC bus 1 26v",
+    "category": "ATA 24 - Electrical power / AC 26v Bus Fault"
+  },
+  {
+    "id": "F_ELEC_BUS_AC26_2",
+    "title": "AC bus 2 26v",
+    "category": "ATA 24 - Electrical power / AC 26v Bus Fault"
+  },
+  {
+    "id": "F_ELEC_BUS_AC26_ESS",
+    "title": "AC ess bus 26v",
+    "category": "ATA 24 - Electrical power / AC 26v Bus Fault"
+  },
+  {
+    "id": "F_ELEC_APU_GEN",
+    "title": "APU Generator",
+    "category": "ATA 24 - Electrical power / Generator"
+  },
+  {
+    "id": "F_ELEC_DRIVE_FAILURE_L",
+    "title": "Generator 1",
+    "category": "ATA 24 - Electrical power / Generator"
+  },
+  {
+    "id": "F_ELEC_DRIVE_FAILURE_R",
+    "title": "Generator 2",
+    "category": "ATA 24 - Electrical power / Generator"
+  },
+  {
+    "id": "F_ELEC_GEN_OVERHEAT_L",
+    "title": "IDG 1 oil overheat",
+    "category": "ATA 24 - Electrical power / IDG oil ovht"
+  },
+  {
+    "id": "F_ELEC_GEN_OVERHEAT_R",
+    "title": "IDG 2 oil overheat",
+    "category": "ATA 24 - Electrical power / IDG oil ovht"
+  },
+  {
+    "id": "F_ELEC_DRIVE_OIL_LOW_L",
+    "title": "IDG 1 oil low pressure",
+    "category": "ATA 24 - Electrical power / IDG oil low pressure"
+  },
+  {
+    "id": "F_ELEC_DRIVE_OIL_LOW_R",
+    "title": "IDG 2 oil low pressure",
+    "category": "ATA 24 - Electrical power / IDG oil low pressure"
+  },
+  {
+    "id": "F_ELEC_STATIC_INVERTER",
+    "title": "Static inverter",
+    "category": "ATA 24 - Electrical power / Static inverter"
+  },
+  {
+    "id": "F_ELEC_TR1",
+    "title": "TR 1",
+    "category": "ATA 24 - Electrical power / TR Failure"
+  },
+  {
+    "id": "F_ELEC_TR2",
+    "title": "TR 2",
+    "category": "ATA 24 - Electrical power / TR Failure"
+  },
+  {
+    "id": "F_ELEC_TR_ESS",
+    "title": "ESS TR failure",
+    "category": "ATA 24 - Electrical power / TR Failure"
+  },
+  {
+    "id": "F_ELEC_AC_ESS_ALTN",
+    "title": "AC Ess Bus Altn",
+    "category": "ATA 24 - Electrical power / AC Ess"
+  },
+  {
+    "id": "F_ELEC_AC_ESS_FEED_1",
+    "title": "AC Ess feed from AC Bus 1",
+    "category": "ATA 24 - Electrical power / AC Ess feed"
+  },
+  {
+    "id": "F_ELEC_AC_ESS_FEED_2",
+    "title": "AC Ess feed from AC Bus 2",
+    "category": "ATA 24 - Electrical power / AC Ess feed"
+  },
+  {
+    "id": "F_SDCU",
+    "title": "SDCU",
+    "category": "ATA 26 - Fire protection / SDCU"
+  },
+  {
+    "id": "F_FIRE_CARGO_FWD_SMOKE",
+    "title": "Fwd cargo smoke detected",
+    "category": "ATA 26 - Fire protection / Fwd cargo"
+  },
+  {
+    "id": "F_FIRE_CARGO_AFT_SMOKE",
+    "title": "Aft cargo smoke detected",
+    "category": "ATA 26 - Fire protection / Aft cargo"
+  },
+  {
+    "id": "F_FIRE_LAVATORY_SMOKE",
+    "title": "Lavatory smoke",
+    "category": "ATA 26 - Fire protection / Lavatory"
+  },
+  {
+    "id": "F_OH_FIRE_ENG_1",
+    "title": "Eng 1 unextinguishable fire ",
+    "category": "ATA 26 - Fire protection / Fire unextinguishable"
+  },
+  {
+    "id": "F_OH_FIRE_ENG_2",
+    "title": "Eng 2 unextinguishable fire ",
+    "category": "ATA 26 - Fire protection / Fire unextinguishable"
+  },
+  {
+    "id": "F_OH_FIRE_APU",
+    "title": "APU unextinguishable fire ",
+    "category": "ATA 26 - Fire protection / Fire unextinguishable"
+  },
+  {
+    "id": "F_OH_FIRE_ENG_1_1BOTTLE",
+    "title": "Eng 1 fire extinguished with 1 bottle",
+    "category": "ATA 26 - Fire protection / Fire 1 bottle"
+  },
+  {
+    "id": "F_OH_FIRE_ENG_2_1BOTTLE",
+    "title": "Eng 2 fire extinguished with 1 bottle",
+    "category": "ATA 26 - Fire protection / Fire 1 bottle"
+  },
+  {
+    "id": "F_OH_FIRE_APU_1BOTTLE",
+    "title": "APU fire extinguished with 1 bottle",
+    "category": "ATA 26 - Fire protection / Fire 1 bottle"
+  },
+  {
+    "id": "F_OH_FIRE_ENG_1_2BOTTLES",
+    "title": "Eng 1 fire extinguished with 2 bottles",
+    "category": "ATA 26 - Fire protection / Fire 2 bottles"
+  },
+  {
+    "id": "F_OH_FIRE_ENG_2_2BOTTLES",
+    "title": "Eng 2 fire extinguished with 2 bottles",
+    "category": "ATA 26 - Fire protection / Fire 2 bottles"
+  },
+  {
+    "id": "F_OH_FIRE_ENG1_LOOP_A",
+    "title": "Eng 1 Loop A",
+    "category": "ATA 26 - Fire protection / Loop Eng 1"
+  },
+  {
+    "id": "F_OH_FIRE_ENG1_LOOP_B",
+    "title": "Eng 1 Loop B",
+    "category": "ATA 26 - Fire protection / Loop Eng 1"
+  },
+  {
+    "id": "F_OH_FIRE_ENG2_LOOP_A",
+    "title": "Eng 2 Loop A",
+    "category": "ATA 26 - Fire protection / Loop Eng 2"
+  },
+  {
+    "id": "F_OH_FIRE_ENG2_LOOP_B",
+    "title": "Eng 2 Loop B",
+    "category": "ATA 26 - Fire protection / Loop Eng 2"
+  },
+  {
+    "id": "F_OH_FIRE_AP2_LOOP_A",
+    "title": "APU Loop A",
+    "category": "ATA 26 - Fire protection / Loop APU"
+  },
+  {
+    "id": "F_OH_FIRE_APU_LOOP_B",
+    "title": "APU Loop B",
+    "category": "ATA 26 - Fire protection / Loop APU"
+  },
+  {
+    "id": "F_FIRE_FDU1",
+    "title": "FDU 1",
+    "category": "ATA 26 - Fire protection / FDU"
+  },
+  {
+    "id": "F_FIRE_FDU2",
+    "title": "FDU 2",
+    "category": "ATA 26 - Fire protection / FDU"
+  },
+  {
+    "id": "F_FIRE_FDU3",
+    "title": "FDU 3",
+    "category": "ATA 26 - Fire protection / FDU"
+  },
+  {
+    "id": "F_FIRE_AVIONICS_SMOKE",
+    "title": "Avionics smoke detected",
+    "category": "ATA 26 - Fire protection / Avionics"
+  },
+  {
+    "id": "F_FUEL_FQI1",
+    "title": "FQI Chan 1",
+    "category": "ATA 28 - Fuel / FQI"
+  },
+  {
+    "id": "F_FUEL_FQI2",
+    "title": "FQI Chan 2",
+    "category": "ATA 28 - Fuel / FQI"
+  },
+  {
+    "id": "F_FUEL_PUMP_LEFT_1",
+    "title": "Fuel pump left 1",
+    "category": "ATA 28 - Fuel / Fuel pump left"
+  },
+  {
+    "id": "F_FUEL_PUMP_LEFT_2",
+    "title": "Fuel pump left 2",
+    "category": "ATA 28 - Fuel / Fuel pump left"
+  },
+  {
+    "id": "F_FUEL_PUMP_CENTER_1",
+    "title": "Fuel pump center 1",
+    "category": "ATA 28 - Fuel / Fuel pump center"
+  },
+  {
+    "id": "F_FUEL_PUMP_CENTER_2",
+    "title": "Fuel pump center 2",
+    "category": "ATA 28 - Fuel / Fuel pump center"
+  },
+  {
+    "id": "F_FUEL_PUMP_RIGHT_1",
+    "title": "Fuel pump right 1",
+    "category": "ATA 28 - Fuel / Fuel pump right"
+  },
+  {
+    "id": "F_FUEL_PUMP_RIGHT_2",
+    "title": "Fuel pump right 2",
+    "category": "ATA 28 - Fuel / Fuel pump right"
+  },
+  {
+    "id": "F_FUEL_HIGH_TEMP_INNER",
+    "title": "Inner tank high fuel temp ECAM",
+    "category": "ATA 28 - Fuel / Fuel temp high"
+  },
+  {
+    "id": "F_FUEL_HIGH_TEMP_OUTER",
+    "title": "Outer tank high fuel temp ECAM",
+    "category": "ATA 28 - Fuel / Fuel temp high"
+  },
+  {
+    "id": "F_FUEL_HIGH_TEMP_INNER_ADV",
+    "title": "Inner tank high fuel temp Adv",
+    "category": "ATA 28 - Fuel / Fuel temp high"
+  },
+  {
+    "id": "F_FUEL_HIGH_TEMP_OUTER_ADV",
+    "title": "Outer tank high fuel temp Adv",
+    "category": "ATA 28 - Fuel / Fuel temp high"
+  },
+  {
+    "id": "F_FUEL_LOW_TEMP_INNER",
+    "title": "Inner tank low fuel temp ECAM",
+    "category": "ATA 28 - Fuel / Fuel temp low"
+  },
+  {
+    "id": "F_FUEL_LOW_TEMP_OUTER",
+    "title": "Outer tank low fuel temp ECAM",
+    "category": "ATA 28 - Fuel / Fuel temp low"
+  },
+  {
+    "id": "F_FUEL_LOW_TEMP_INNER_ADV",
+    "title": "Inner tank low fuel temp Adv",
+    "category": "ATA 28 - Fuel / Fuel temp low"
+  },
+  {
+    "id": "F_FUEL_LOW_TEMP_OUTER_ADV",
+    "title": "Outer tank low fuel temp Adv",
+    "category": "ATA 28 - Fuel / Fuel temp low"
+  },
+  {
+    "id": "F_FUEL_XFER_VALVE_1_L",
+    "title": "Left transfer 1",
+    "category": "ATA 28 - Fuel / Fuel transfer valves"
+  },
+  {
+    "id": "F_FUEL_XFER_VALVE_2_L",
+    "title": "Left transfer 2",
+    "category": "ATA 28 - Fuel / Fuel transfer valves"
+  },
+  {
+    "id": "F_FUEL_XFER_VALVE_1_R",
+    "title": "Right transfer 1",
+    "category": "ATA 28 - Fuel / Fuel transfer valves"
+  },
+  {
+    "id": "F_FUEL_XFER_VALVE_2_R",
+    "title": "Right transfer 2",
+    "category": "ATA 28 - Fuel / Fuel transfer valves"
+  },
+  {
+    "id": "F_FUEL_ENGINE_1_VALVE",
+    "title": "Eng 1 fuel valve stuck",
+    "category": "ATA 28 - Fuel / Fuel valves"
+  },
+  {
+    "id": "F_FUEL_ENGINE_2_VALVE",
+    "title": "Eng 2 fuel valve stuck",
+    "category": "ATA 28 - Fuel / Fuel valves"
+  },
+  {
+    "id": "F_FUEL_VALVE_CROSSFEED",
+    "title": "Crossfeed valve",
+    "category": "ATA 28 - Fuel / Fuel valves"
+  },
+  {
+    "id": "F_DEFUEL_TRANSFER_VALVE",
+    "title": "Defuel/Transfer Valve",
+    "category": "ATA 28 - Fuel / Fuel valves"
+  },
+  {
+    "id": "F_FUEL_LEAK_LEFT_OUTER",
+    "title": "Fuel leak Left outer",
+    "category": "ATA 28 - Fuel / Fuel leak"
+  },
+  {
+    "id": "F_FUEL_LEAK_LEFT_INNER",
+    "title": "Fuel leak Left inner",
+    "category": "ATA 28 - Fuel / Fuel leak"
+  },
+  {
+    "id": "F_FUEL_LEAK_CENTER",
+    "title": "Fuel leak Center",
+    "category": "ATA 28 - Fuel / Fuel leak"
+  },
+  {
+    "id": "F_FUEL_LEAK_RIGHT_INNER",
+    "title": "Fuel leak Right inner",
+    "category": "ATA 28 - Fuel / Fuel leak"
+  },
+  {
+    "id": "F_FUEL_LEAK_RIGHT_OUTER",
+    "title": "Fuel leak Right outer",
+    "category": "ATA 28 - Fuel / Fuel leak"
+  },
+  {
+    "id": "F_ENG1_HP_VALVE",
+    "title": "Eng 1 hp fuel valve",
+    "category": "ATA 28 - Fuel / HP Fuel valve"
+  },
+  {
+    "id": "F_ENG2_HP_VALVE",
+    "title": "Eng 2 hp fuel valve",
+    "category": "ATA 28 - Fuel / HP Fuel valve"
+  },
+  {
+    "id": "F_HYD_LEAK_GREEN",
+    "title": "Green hydraulic leak",
+    "category": "ATA 29 - Hydraulic power / Hydraulic leak"
+  },
+  {
+    "id": "F_HYD_LEAK_BLUE",
+    "title": "Blue hydraulic leak",
+    "category": "ATA 29 - Hydraulic power / Hydraulic leak"
+  },
+  {
+    "id": "F_HYD_LEAK_YELLOW",
+    "title": "Yellow hydraulic leak",
+    "category": "ATA 29 - Hydraulic power / Hydraulic leak"
+  },
+  {
+    "id": "F_HYD_RSVR_OVERHEAT_GREEN",
+    "title": "Green reservoir overheat",
+    "category": "ATA 29 - Hydraulic power / Reservoir overheat"
+  },
+  {
+    "id": "F_HYD_RSVR_OVERHEAT_BLUE",
+    "title": "Blue reservoir overheat",
+    "category": "ATA 29 - Hydraulic power / Reservoir overheat"
+  },
+  {
+    "id": "F_HYD_RSVR_OVERHEAT_YELLOW",
+    "title": "Yellow reservoir overheat",
+    "category": "ATA 29 - Hydraulic power / Reservoir overheat"
+  },
+  {
+    "id": "F_HYD_RSVR_AIR_PRESSURE_GREEN",
+    "title": "Green low reservoir air pressure",
+    "category": "ATA 29 - Hydraulic power / Reservoir low air pressure"
+  },
+  {
+    "id": "F_HYD_RSVR_AIR_PRESSURE_BLUE",
+    "title": "Blue low reservoir air pressure",
+    "category": "ATA 29 - Hydraulic power / Reservoir low air pressure"
+  },
+  {
+    "id": "F_HYD_RSVR_AIR_PRESSURE_YELLOW",
+    "title": "Yellow low reservoir air pressure",
+    "category": "ATA 29 - Hydraulic power / Reservoir low air pressure"
+  },
+  {
+    "id": "F_HYD_LOW_GREEN",
+    "title": "Green hydraulic low level",
+    "category": "ATA 29 - Hydraulic power / Hydraulic low"
+  },
+  {
+    "id": "F_HYD_LOW_BLUE",
+    "title": "Blue hydraulic low level",
+    "category": "ATA 29 - Hydraulic power / Hydraulic low"
+  },
+  {
+    "id": "F_HYD_LOW_YELLOW",
+    "title": "Yellow hydraulic low level",
+    "category": "ATA 29 - Hydraulic power / Hydraulic low"
+  },
+  {
+    "id": "F_HYD_PUMP_ENG_1",
+    "title": "Eng 1 pump failure",
+    "category": "ATA 29 - Hydraulic power / Engine pumps"
+  },
+  {
+    "id": "F_HYD_PUMP_ENG_2",
+    "title": "Eng 2 pump failure",
+    "category": "ATA 29 - Hydraulic power / Engine pumps"
+  },
+  {
+    "id": "F_HYD_FIRE_VALVE_1",
+    "title": "Eng 1 fire valve",
+    "category": "ATA 29 - Hydraulic power / Fire valves"
+  },
+  {
+    "id": "F_HYD_FIRE_VALVE_2",
+    "title": "Eng 2 fire valve",
+    "category": "ATA 29 - Hydraulic power / Fire valves"
+  },
+  {
+    "id": "F_HYD_PTU",
+    "title": "PTU Fault",
+    "category": "ATA 29 - Hydraulic power / PTU"
+  },
+  {
+    "id": "F_HYD_PUMP_BLUE",
+    "title": "Elec hyd pump Blue failure",
+    "category": "ATA 29 - Hydraulic power / Elec pumps"
+  },
+  {
+    "id": "F_HYD_PUMP_YELLOW",
+    "title": "Elec hyd pump Yellow failure",
+    "category": "ATA 29 - Hydraulic power / Elec pumps"
+  },
+  {
+    "id": "F_HYD_PUMP_OVERHEAT_BLUE",
+    "title": "Elec blue pump overheat",
+    "category": "ATA 29 - Hydraulic power / Elec pump overheat"
+  },
+  {
+    "id": "F_HYD_PUMP_OVERHEAT_YELLOW",
+    "title": "Elec yellow pump overheat",
+    "category": "ATA 29 - Hydraulic power / Elec pump overheat"
+  },
+  {
+    "id": "F_BSCU_1",
+    "title": "BSCU Sys 1",
+    "category": "ATA 32 - Landing gear / BSCU"
+  },
+  {
+    "id": "F_BSCU_2",
+    "title": "BSCU Sys 2",
+    "category": "ATA 32 - Landing gear / BSCU"
+  },
+  {
+    "id": "F_BRAKE_ABCU",
+    "title": "ABCU",
+    "category": "ATA 32 - Landing gear / ABCU"
+  },
+  {
+    "id": "F_HYD_BSCU_1",
+    "title": "BSCU 1 brake fault",
+    "category": "ATA 32 - Landing gear / Brake fault"
+  },
+  {
+    "id": "F_HYD_BSCU_2",
+    "title": "BSCU 2 brake fault",
+    "category": "ATA 32 - Landing gear / Brake fault"
+  },
+  {
+    "id": "F_BRAKE_AUTOBRAKE",
+    "title": "Autobrake failure",
+    "category": "ATA 32 - Landing gear / Brake fault"
+  },
+  {
+    "id": "F_BRAKE_WHEEL_1",
+    "title": "Wheel brake fault 1",
+    "category": "ATA 32 - Landing gear / Wheel brake fault"
+  },
+  {
+    "id": "F_BRAKE_WHEEL_2",
+    "title": "Wheel brake fault 2",
+    "category": "ATA 32 - Landing gear / Wheel brake fault"
+  },
+  {
+    "id": "F_BRAKE_WHEEL_3",
+    "title": "Wheel brake fault 3",
+    "category": "ATA 32 - Landing gear / Wheel brake fault"
+  },
+  {
+    "id": "F_BRAKE_WHEEL_4",
+    "title": "Wheel brake fault 4",
+    "category": "ATA 32 - Landing gear / Wheel brake fault"
+  },
+  {
+    "id": "F_GEAR_TYRE_PSI_MAIN_1",
+    "title": "Tyre pressure main 1 low",
+    "category": "ATA 32 - Landing gear / Tyre pressure"
+  },
+  {
+    "id": "F_GEAR_TYRE_PSI_MAIN_2",
+    "title": "Tyre pressure main 2 low",
+    "category": "ATA 32 - Landing gear / Tyre pressure"
+  },
+  {
+    "id": "F_GEAR_TYRE_PSI_LEFT_1",
+    "title": "Tyre pressure left 1 low",
+    "category": "ATA 32 - Landing gear / Tyre pressure"
+  },
+  {
+    "id": "F_GEAR_TYRE_PSI_LEFT_2",
+    "title": "Tyre pressure left 2 low",
+    "category": "ATA 32 - Landing gear / Tyre pressure"
+  },
+  {
+    "id": "F_GEAR_TYRE_PSI_RIGHT_1",
+    "title": "Tyre pressure right 1 low",
+    "category": "ATA 32 - Landing gear / Tyre pressure"
+  },
+  {
+    "id": "F_GEAR_TYRE_PSI_RIGHT_2",
+    "title": "Tyre pressure right 2 low",
+    "category": "ATA 32 - Landing gear / Tyre pressure"
+  },
+  {
+    "id": "F_BRAKE_NWS",
+    "title": "Nose wheel steering",
+    "category": "ATA 32 - Landing gear / Steering"
+  },
+  {
+    "id": "F_MISC_LGCIU1",
+    "title": "LGCIU 1",
+    "category": "ATA 32 - Landing gear / LGCIU"
+  },
+  {
+    "id": "F_MISC_LGCIU2",
+    "title": "LGCIU 2",
+    "category": "ATA 32 - Landing gear / LGCIU"
+  },
+  {
+    "id": "F_GEAR_SAFETY_VALVE",
+    "title": "Gear safety valve",
+    "category": "ATA 32 - Landing gear / Hydraulics valves"
+  },
+  {
+    "id": "F_GEAR_LOCK_LEFT",
+    "title": "Left main gear does not lock",
+    "category": "ATA 32 - Landing gear / Gear lock"
+  },
+  {
+    "id": "F_GEAR_LOCK_NOSE",
+    "title": "Nose gear does not lock",
+    "category": "ATA 32 - Landing gear / Gear lock"
+  },
+  {
+    "id": "F_GEAR_LOCK_RIGHT",
+    "title": "Right main gear does not lock",
+    "category": "ATA 32 - Landing gear / Gear lock"
+  },
+  {
+    "id": "F_GEAR_LOCKED_UP",
+    "title": "Gear locked up",
+    "category": "ATA 32 - Landing gear / Gear failure"
+  },
+  {
+    "id": "F_GEAR_LOCKED_DOWN",
+    "title": "Gear locked down",
+    "category": "ATA 32 - Landing gear / Gear failure"
+  },
+  {
+    "id": "F_OH_NAV_IR_TOTAL_1",
+    "title": "IR1 IR failure",
+    "category": "ATA 34 - Navigation / IR fault"
+  },
+  {
+    "id": "F_OH_NAV_IR_TOTAL_2",
+    "title": "IR2 IR failure",
+    "category": "ATA 34 - Navigation / IR fault"
+  },
+  {
+    "id": "F_OH_NAV_IR_TOTAL_3",
+    "title": "IR3 IR failure",
+    "category": "ATA 34 - Navigation / IR fault"
+  },
+  {
+    "id": "F_OH_NAV_IR_POSITION_1",
+    "title": "IR1 position failure",
+    "category": "ATA 34 - Navigation / IRS position failure"
+  },
+  {
+    "id": "F_OH_NAV_IR_POSITION_2",
+    "title": "IR2 position failure",
+    "category": "ATA 34 - Navigation / IRS position failure"
+  },
+  {
+    "id": "F_OH_NAV_IR_POSITION_3",
+    "title": "IR3 position failure",
+    "category": "ATA 34 - Navigation / IRS position failure"
+  },
+  {
+    "id": "F_OH_NAV_ADR_ADR1",
+    "title": "ADR1 failure",
+    "category": "ATA 34 - Navigation / ADR fault"
+  },
+  {
+    "id": "F_OH_NAV_ADR_ADR2",
+    "title": "ADR2 failure",
+    "category": "ATA 34 - Navigation / ADR fault"
+  },
+  {
+    "id": "F_OH_NAV_ADR_ADR3",
+    "title": "ADR3 failure",
+    "category": "ATA 34 - Navigation / ADR fault"
+  },
+  {
+    "id": "F_OH_NAV_IR_ALIGNMENT_1",
+    "title": "IR1 alignment",
+    "category": "ATA 34 - Navigation / IRS Alignment"
+  },
+  {
+    "id": "F_OH_NAV_IR_ALIGNMENT_2",
+    "title": "IR2 alignment",
+    "category": "ATA 34 - Navigation / IRS Alignment"
+  },
+  {
+    "id": "F_OH_NAV_IR_ALIGNMENT_3",
+    "title": "IR3 alignment",
+    "category": "ATA 34 - Navigation / IRS Alignment"
+  },
+  {
+    "id": "F_OH_NAV_PITOT_BLOCKED_1",
+    "title": "Pitot blocked Capt",
+    "category": "ATA 34 - Navigation / Pitot blocked"
+  },
+  {
+    "id": "F_OH_NAV_PITOT_BLOCKED_2",
+    "title": "Pitot blocked F/O",
+    "category": "ATA 34 - Navigation / Pitot blocked"
+  },
+  {
+    "id": "F_OH_NAV_PITOT_BLOCKED_3",
+    "title": "Pitot blocked Stdby",
+    "category": "ATA 34 - Navigation / Pitot blocked"
+  },
+  {
+    "id": "F_NAV_IR1_PITCH_DISCREPANCY",
+    "title": "IR1 pitch discrepancy",
+    "category": "ATA 34 - Navigation / Pitch discrepancy"
+  },
+  {
+    "id": "F_NAV_IR2_PITCH_DISCREPANCY",
+    "title": "IR2 pitch discrepancy",
+    "category": "ATA 34 - Navigation / Pitch discrepancy"
+  },
+  {
+    "id": "F_NAV_IR3_PITCH_DISCREPANCY",
+    "title": "IR3 pitch discrepancy",
+    "category": "ATA 34 - Navigation / Pitch discrepancy"
+  },
+  {
+    "id": "F_NAV_IR1_BANK_DISCREPANCY",
+    "title": "IR1 bank discrepancy",
+    "category": "ATA 34 - Navigation / Bank discrepancy"
+  },
+  {
+    "id": "F_NAV_IR2_BANK_DISCREPANCY",
+    "title": "IR2 bank discrepancy",
+    "category": "ATA 34 - Navigation / Bank discrepancy"
+  },
+  {
+    "id": "F_NAV_IR3_BANK_DISCREPANCY",
+    "title": "IR3 bank discrepancy",
+    "category": "ATA 34 - Navigation / Bank discrepancy"
+  },
+  {
+    "id": "F_NAV_IR1_HDG_DISCREPANCY",
+    "title": "IR1 heading discrepancy",
+    "category": "ATA 34 - Navigation / Heading discrepancy"
+  },
+  {
+    "id": "F_NAV_IR2_HDG_DISCREPANCY",
+    "title": "IR2 heading discrepancy",
+    "category": "ATA 34 - Navigation / Heading discrepancy"
+  },
+  {
+    "id": "F_NAV_IR3_HDG_DISCREPANCY",
+    "title": "IR3 heading discrepancy",
+    "category": "ATA 34 - Navigation / Heading discrepancy"
+  },
+  {
+    "id": "F_NAV_IR_DISAGREE1",
+    "title": "IR1 IR Disagree",
+    "category": "ATA 34 - Navigation / IR Disagree"
+  },
+  {
+    "id": "F_NAV_IR_DISAGREE2",
+    "title": "IR2 IR Disagree",
+    "category": "ATA 34 - Navigation / IR Disagree"
+  },
+  {
+    "id": "F_MCDU_1",
+    "title": "MCDU 1",
+    "category": "ATA 34 - Navigation / MCDU"
+  },
+  {
+    "id": "F_MCDU_2",
+    "title": "MCDU 2",
+    "category": "ATA 34 - Navigation / MCDU"
+  },
+  {
+    "id": "F_MCDU_1_RECOVERABLE",
+    "title": "CDU 1 recoverable fault",
+    "category": "ATA 34 - Navigation / MCDU recoverable fault"
+  },
+  {
+    "id": "F_MCDU_2_RECOVERABLE",
+    "title": "CDU 2 recoverable fault",
+    "category": "ATA 34 - Navigation / MCDU recoverable fault"
+  },
+  {
+    "id": "F_FMGC_1",
+    "title": "FMGC 1",
+    "category": "ATA 34 - Navigation / FMGC"
+  },
+  {
+    "id": "F_FMGC_2",
+    "title": "FMGC 2",
+    "category": "ATA 34 - Navigation / FMGC"
+  },
+  {
+    "id": "F_GPWS",
+    "title": "GPWC",
+    "category": "ATA 34 - Navigation / GPWC"
+  },
+  {
+    "id": "F_NAV_VOR1",
+    "title": "VOR 1",
+    "category": "ATA 34 - Navigation / Radios"
+  },
+  {
+    "id": "F_NAV_VOR2",
+    "title": "VOR 2",
+    "category": "ATA 34 - Navigation / Radios"
+  },
+  {
+    "id": "F_NAV_ADF1",
+    "title": "ADF 1",
+    "category": "ATA 34 - Navigation / Radios"
+  },
+  {
+    "id": "F_NAV_ADF2",
+    "title": "ADF 2",
+    "category": "ATA 34 - Navigation / Radios"
+  },
+  {
+    "id": "F_NAV_ILS1_LOC",
+    "title": "ILS 1 LOC",
+    "category": "ATA 34 - Navigation / ILS"
+  },
+  {
+    "id": "F_NAV_ILS1_GS",
+    "title": "ILS 1 G/S",
+    "category": "ATA 34 - Navigation / ILS"
+  },
+  {
+    "id": "F_NAV_ILS2_LOC",
+    "title": "ILS 2 LOC",
+    "category": "ATA 34 - Navigation / ILS"
+  },
+  {
+    "id": "F_NAV_ILS2_GS",
+    "title": "ILS 2 G/S",
+    "category": "ATA 34 - Navigation / ILS"
+  },
+  {
+    "id": "F_NAV_LOC",
+    "title": "Localizer",
+    "category": "ATA 34 - Navigation / ILS transmitter"
+  },
+  {
+    "id": "F_NAV_GS",
+    "title": "Glideslope",
+    "category": "ATA 34 - Navigation / ILS transmitter"
+  },
+  {
+    "id": "F_NAV_GPS1",
+    "title": "GPS 1",
+    "category": "ATA 34 - Navigation / GPS"
+  },
+  {
+    "id": "F_NAV_GPS2",
+    "title": "GPS 2",
+    "category": "ATA 34 - Navigation / GPS"
+  },
+  {
+    "id": "F_NAV_RALT1",
+    "title": "Radio altimeter 1",
+    "category": "ATA 34 - Navigation / Radio altimeter"
+  },
+  {
+    "id": "F_NAV_RALT2",
+    "title": "Radio altimeter 2",
+    "category": "ATA 34 - Navigation / Radio altimeter"
+  },
+  {
+    "id": "F_NAV_ACCURACY_DOWNGRADE",
+    "title": "NAV accuracy downgrade",
+    "category": "ATA 34 - Navigation / NAV"
+  },
+  {
+    "id": "F_NAV_TCAS",
+    "title": "TCAS",
+    "category": "ATA 34 - Navigation / TCAS"
+  },
+  {
+    "id": "F_NAV_ATC1",
+    "title": "ATC 1",
+    "category": "ATA 34 - Navigation / ATC"
+  },
+  {
+    "id": "F_NAV_ATC2",
+    "title": "ATC 2",
+    "category": "ATA 34 - Navigation / ATC"
+  },
+  {
+    "id": "F_PNEUMATIC_LAV_GAL_FAN",
+    "title": "Lavatory/Galley fan",
+    "category": "ATA 36 - Pneumatic / Lavatory/Galley Fan"
+  },
+  {
+    "id": "F_PNEUMATIC_HP_VALVE_1",
+    "title": "Eng 1 HP Valve",
+    "category": "ATA 36 - Pneumatic / Pneumatic valves"
+  },
+  {
+    "id": "F_PNEUMATIC_HP_VALVE_2",
+    "title": "Eng 2 HP Valve",
+    "category": "ATA 36 - Pneumatic / Pneumatic valves"
+  },
+  {
+    "id": "F_PNEUMATIC_RAM_AIR_VALVE",
+    "title": "Ram air valve",
+    "category": "ATA 36 - Pneumatic / Pneumatic valves"
+  },
+  {
+    "id": "F_PNEUMATIC_BLEED_VALVE_1",
+    "title": "Eng 1 bleed valve",
+    "category": "ATA 36 - Pneumatic / Pneumatic valves"
+  },
+  {
+    "id": "F_PNEUMATIC_BLEED_VALVE_2",
+    "title": "Eng 2 bleed valve",
+    "category": "ATA 36 - Pneumatic / Pneumatic valves"
+  },
+  {
+    "id": "F_PNEUMATIC_HOT_AIR_VALVE",
+    "title": "Hot air valve",
+    "category": "ATA 36 - Pneumatic / Pneumatic valves"
+  },
+  {
+    "id": "F_ENG1_BLEED_LOW_TEMP",
+    "title": "Eng 1 bleed low temp",
+    "category": "ATA 36 - Pneumatic / Bleed air low temperature"
+  },
+  {
+    "id": "F_ENG2_BLEED_LOW_TEMP",
+    "title": "Eng 2 bleed low temp",
+    "category": "ATA 36 - Pneumatic / Bleed air low temperature"
+  },
+  {
+    "id": "F_PNEUMATIC_BMC_1",
+    "title": "BMC 1",
+    "category": "ATA 36 - Pneumatic / BMC"
+  },
+  {
+    "id": "F_PNEUMATIC_BMC_2",
+    "title": "BMC 2",
+    "category": "ATA 36 - Pneumatic / BMC"
+  },
+  {
+    "id": "F_PNEUMATIC_CROSS_BLEED_VALVE",
+    "title": "Crossbleed valve",
+    "category": "ATA 36 - Pneumatic / Pneumatic valve"
+  },
+  {
+    "id": "F_PNEUMATIC_APU_VALVE",
+    "title": "APU Bleed valve",
+    "category": "ATA 36 - Pneumatic / Pneumatic valve"
+  },
+  {
+    "id": "F_PNEUMATIC_PACK_VALVE_1",
+    "title": "Pack 1 flow control valve",
+    "category": "ATA 36 - Pneumatic / Pack valves"
+  },
+  {
+    "id": "F_PNEUMATIC_PACK_VALVE_2",
+    "title": "Pack 2 flow control valve",
+    "category": "ATA 36 - Pneumatic / Pack valves"
+  },
+  {
+    "id": "F_PNEUMATIC_LEAK_WING_ENG1",
+    "title": "Bleed leak wing engine 1",
+    "category": "ATA 36 - Pneumatic / Bleed leak"
+  },
+  {
+    "id": "F_PNEUMATIC_LEAK_WING_ENG2",
+    "title": "Bleed leak wing engine 2",
+    "category": "ATA 36 - Pneumatic / Bleed leak"
+  },
+  {
+    "id": "F_PNEUMATIC_LEAK_PYLON_ENG1",
+    "title": "Bleed leak pylon engine 1",
+    "category": "ATA 36 - Pneumatic / Bleed leak"
+  },
+  {
+    "id": "F_PNEUMATIC_LEAK_PYLON_ENG2",
+    "title": "Bleed leak pylon engine 2",
+    "category": "ATA 36 - Pneumatic / Bleed leak"
+  },
+  {
+    "id": "F_PNEUMATIC_LEAK_APU",
+    "title": "Bleed leak APU",
+    "category": "ATA 36 - Pneumatic / Bleed leak"
+  },
+  {
+    "id": "F_ELEC_APU_ECB",
+    "title": "ECB",
+    "category": "ATA 49 - APU / ECB"
+  },
+  {
+    "id": "F_APU_LOW_OIL",
+    "title": "APU Low oil level",
+    "category": "ATA 49 - APU / Oil"
+  },
+  {
+    "id": "F_FUEL_VALVE_APU",
+    "title": "APU fuel valve",
+    "category": "ATA 49 - APU / Fuel valves"
+  },
+  {
+    "id": "F_COMM_STUCK_PTT_CAPT",
+    "title": "Capt stuck mic",
+    "category": "ATA 23 - Communications / Stuck mic"
+  },
+  {
+    "id": "F_COMM_STUCK_PTT_FO",
+    "title": "F/O stuck mic",
+    "category": "ATA 23 - Communications / Stuck mic"
+  },
+  {
+    "id": "F_PNEUMATIC_WAI_1",
+    "title": "Left WAI Valve",
+    "category": "ATA 30 - Ice and rain protection / WAI Valves"
+  },
+  {
+    "id": "F_PNEUMATIC_WAI_2",
+    "title": "Right WAI Valve",
+    "category": "ATA 30 - Ice and rain protection / WAI Valves"
+  },
+  {
+    "id": "F_PNEUMATIC_EAI_1",
+    "title": "Eng 1 EAI Valve",
+    "category": "ATA 30 - Ice and rain protection / EAI Valves"
+  },
+  {
+    "id": "F_PNEUMATIC_EAI_2",
+    "title": "Eng 2 EAI Valve",
+    "category": "ATA 30 - Ice and rain protection / EAI Valves"
+  },
+  {
+    "id": "F_ICE_WHC_1",
+    "title": "WHC 1",
+    "category": "ATA 30 - Ice and rain protection / WHC"
+  },
+  {
+    "id": "F_ICE_WHC_2",
+    "title": "WHC 2",
+    "category": "ATA 30 - Ice and rain protection / WHC"
+  },
+  {
+    "id": "F_ICE_AOA_HEAT_CPT",
+    "title": "AOA heat Capt",
+    "category": "ATA 30 - Ice and rain protection / AOA Heat"
+  },
+  {
+    "id": "F_ICE_AOA_FO",
+    "title": "AOA heat F/O",
+    "category": "ATA 30 - Ice and rain protection / AOA Heat"
+  },
+  {
+    "id": "F_ICE_AOA_STBY",
+    "title": "AOA heat STBY",
+    "category": "ATA 30 - Ice and rain protection / AOA Heat"
+  },
+  {
+    "id": "F_ICE_TAT_HEAT_CPT",
+    "title": "TAT heat Capt",
+    "category": "ATA 30 - Ice and rain protection / TAT Heat"
+  },
+  {
+    "id": "F_ICE_TAT_FO",
+    "title": "TAT heat F/O",
+    "category": "ATA 30 - Ice and rain protection / TAT Heat"
+  },
+  {
+    "id": "F_ICE_TAT_STBY",
+    "title": "TAT heat STBY",
+    "category": "ATA 30 - Ice and rain protection / TAT Heat"
+  },
+  {
+    "id": "F_ICE_PITOT_HEAT_CPT",
+    "title": "Pitot heat Capt",
+    "category": "ATA 30 - Ice and rain protection / Pitot Heat"
+  },
+  {
+    "id": "F_ICE_PITOT_FO",
+    "title": "Pitot heat F/O",
+    "category": "ATA 30 - Ice and rain protection / Pitot Heat"
+  },
+  {
+    "id": "F_ICE_PITOT_STBY",
+    "title": "Pitot heat STBY",
+    "category": "ATA 30 - Ice and rain protection / Pitot Heat"
+  },
+  {
+    "id": "F_ICE_STAT_HEAT_CPT_L",
+    "title": "Left Static heat Capt",
+    "category": "ATA 30 - Ice and rain protection / Static Heat"
+  },
+  {
+    "id": "F_ICE_STAT_HEAT_CPT_R",
+    "title": "Right Static heat Capt",
+    "category": "ATA 30 - Ice and rain protection / Static Heat"
+  },
+  {
+    "id": "F_ICE_STAT_FO_L",
+    "title": "Left Static heat F/O",
+    "category": "ATA 30 - Ice and rain protection / Static Heat"
+  },
+  {
+    "id": "F_ICE_STAT_FO_R",
+    "title": "Right Static heat F/O",
+    "category": "ATA 30 - Ice and rain protection / Static Heat"
+  },
+  {
+    "id": "F_ICE_STAT_STBY_L",
+    "title": "Left Static heat Stby",
+    "category": "ATA 30 - Ice and rain protection / Static Heat"
+  },
+  {
+    "id": "F_ICE_STAT_STBY_R",
+    "title": "Right Static heat Stby",
+    "category": "ATA 30 - Ice and rain protection / Static Heat"
+  },
+  {
+    "id": "F_ICE_PHC1",
+    "title": "PHC 1",
+    "category": "ATA 30 - Ice and rain protection / PHC"
+  },
+  {
+    "id": "F_ICE_PHC2",
+    "title": "PHC 2",
+    "category": "ATA 30 - Ice and rain protection / PHC"
+  },
+  {
+    "id": "F_ICE_PHC3",
+    "title": "PHC 3",
+    "category": "ATA 30 - Ice and rain protection / PHC"
+  },
+  {
+    "id": "F_ICING_ENG1",
+    "title": "Icing eng 1",
+    "category": "ATA 30 - Ice and rain protection / Icing"
+  },
+  {
+    "id": "F_ICING_ENG2",
+    "title": "Icing eng 2",
+    "category": "ATA 30 - Ice and rain protection / Icing"
+  },
+  {
+    "id": "F_FC_IPPU1",
+    "title": "Ippu1",
+    "category": "ATA 27 - Flight controls / IPPU"
+  },
+  {
+    "id": "F_FC_IPPU2",
+    "title": "Ippu2",
+    "category": "ATA 27 - Flight controls / IPPU"
+  },
+  {
+    "id": "F_HYD_WTB_FLAP",
+    "title": "Flap locked",
+    "category": "ATA 27 - Flight controls / Surface lock"
+  },
+  {
+    "id": "F_HYD_WTB_SLAT",
+    "title": "Slat locked",
+    "category": "ATA 27 - Flight controls / Surface lock"
+  },
+  {
+    "id": "F_HYD_FSCC_ALIGNMENT",
+    "title": "Alignment fault",
+    "category": "ATA 27 - Flight controls / Flaps"
+  },
+  {
+    "id": "F_OH_FLT_CLT_SFCC_1",
+    "title": "SFCC 1",
+    "category": "ATA 27 - Flight controls / SFCC"
+  },
+  {
+    "id": "F_OH_FLT_CLT_SFCC_2",
+    "title": "SFCC 2",
+    "category": "ATA 27 - Flight controls / SFCC"
+  },
+  {
+    "id": "F_SFCC_1_FLAP",
+    "title": "SFCC 1 flap sys",
+    "category": "ATA 27 - Flight controls / Flap"
+  },
+  {
+    "id": "F_SFCC_2_FLAP",
+    "title": "SFCC 2 flap sys",
+    "category": "ATA 27 - Flight controls / Flap"
+  },
+  {
+    "id": "F_SFCC_1_SLAT",
+    "title": "SFCC 1 slat sys",
+    "category": "ATA 27 - Flight controls / Slat"
+  },
+  {
+    "id": "F_SFCC_2_SLAT",
+    "title": "SFCC 2 slat sys",
+    "category": "ATA 27 - Flight controls / Slat"
+  },
+  {
+    "id": "F_OH_FLT_CTL_ELAC_1",
+    "title": "ELAC 1",
+    "category": "ATA 27 - Flight controls / Nonresettable fault"
+  },
+  {
+    "id": "F_OH_FLT_CTL_ELAC_2",
+    "title": "ELAC 2",
+    "category": "ATA 27 - Flight controls / Nonresettable fault"
+  },
+  {
+    "id": "F_OH_FLT_CTL_SEC_1",
+    "title": "SEC 1",
+    "category": "ATA 27 - Flight controls / Nonresettable fault"
+  },
+  {
+    "id": "F_OH_FLT_CTL_SEC_2",
+    "title": "SEC 2",
+    "category": "ATA 27 - Flight controls / Nonresettable fault"
+  },
+  {
+    "id": "F_OH_FLT_CTL_SEC_3",
+    "title": "SEC 3",
+    "category": "ATA 27 - Flight controls / Nonresettable fault"
+  },
+  {
+    "id": "F_OH_FLT_CTL_ELAC_RECOVERABLE_1",
+    "title": "ELAC 1 resettable fault",
+    "category": "ATA 27 - Flight controls / Resettable fault"
+  },
+  {
+    "id": "F_OH_FLT_CTL_ELAC_RECOVERABLE_2",
+    "title": "ELAC 2 resettable fault",
+    "category": "ATA 27 - Flight controls / Resettable fault"
+  },
+  {
+    "id": "F_OH_FLT_CTL_SEC_RECOVERABLE_1",
+    "title": "SEC 1 resettable fault",
+    "category": "ATA 27 - Flight controls / Resettable fault"
+  },
+  {
+    "id": "F_OH_FLT_CTL_SEC_RECOVERABLE_2",
+    "title": "SEC 2 resettable fault",
+    "category": "ATA 27 - Flight controls / Resettable fault"
+  },
+  {
+    "id": "F_OH_FLT_CTL_SEC_RECOVERABLE_3",
+    "title": "SEC 3 resettable fault",
+    "category": "ATA 27 - Flight controls / Resettable fault"
+  },
+  {
+    "id": "F_FC_YAW_DAMPER_1",
+    "title": "Yaw damper channel 1",
+    "category": "ATA 27 - Flight controls / Yaw damper"
+  },
+  {
+    "id": "F_FC_YAW_DAMPER_2",
+    "title": "Yaw damper channel 2",
+    "category": "ATA 27 - Flight controls / Yaw damper"
+  },
+  {
+    "id": "F_FC_SIDESTICK_REV_PITCH_CAPT",
+    "title": "Sidestick reversal pitch Capt",
+    "category": "ATA 27 - Flight controls / Sidestick reversal"
+  },
+  {
+    "id": "F_FC_SIDESTICK_REV_ROLL_CAPT",
+    "title": "Sidestick reversal roll Capt",
+    "category": "ATA 27 - Flight controls / Sidestick reversal"
+  },
+  {
+    "id": "F_FC_SIDESTICK_REV_PITCH_FO",
+    "title": "Sidestick reversal pitch F/O",
+    "category": "ATA 27 - Flight controls / Sidestick reversal"
+  },
+  {
+    "id": "F_FC_SIDESTICK_REV_ROLL_FO",
+    "title": "Sidestick reversal roll F/O",
+    "category": "ATA 27 - Flight controls / Sidestick reversal"
+  },
+  {
+    "id": "F_FC_SIDESTICK_FAULT_CAPT",
+    "title": "Sidestick fault Capt",
+    "category": "ATA 27 - Flight controls / Sidestick"
+  },
+  {
+    "id": "F_FC_SIDESTICK_FAULT_FO",
+    "title": "Sidestick fault F/O",
+    "category": "ATA 27 - Flight controls / Sidestick"
+  },
+  {
+    "id": "B_INT_SFCDC1F",
+    "title": "FCDC 1",
+    "category": "ATA 27 - Flight controls / FCDC"
+  },
+  {
+    "id": "B_INT_SFCDC2F",
+    "title": "FCDC 2",
+    "category": "ATA 27 - Flight controls / FCDC"
+  },
+  {
+    "id": "F_FCTL_STAB_JAM",
+    "title": "Stabilizer jam",
+    "category": "ATA 27 - Flight controls / Stabilizer"
+  },
+  {
+    "id": "F_FCTL_ELEV_LR",
+    "title": "Elev L+R failure",
+    "category": "ATA 27 - Flight controls / Elev"
+  },
+  {
+    "id": "F_FCTL_ELEV_L",
+    "title": "L Elev failure",
+    "category": "ATA 27 - Flight controls / Elev"
+  },
+  {
+    "id": "F_FCTL_ELEV_R",
+    "title": "R Elev failure",
+    "category": "ATA 27 - Flight controls / Elev"
+  },
+  {
+    "id": "F_PNEUMATIC_START_VALVE_1",
+    "title": "Start valve left",
+    "category": "ATA 80 - Start faults / Start valve"
+  },
+  {
+    "id": "F_PNEUMATIC_START_VALVE_2",
+    "title": "Start valve right",
+    "category": "ATA 80 - Start faults / Start valve"
+  },
+  {
+    "id": "F_START_FAULT_1_HOT_START",
+    "title": "Eng 1 hot start",
+    "category": "ATA 80 - Start faults / Hot start"
+  },
+  {
+    "id": "F_START_FAULT_2_HOT_START",
+    "title": "Eng 2 hot start",
+    "category": "ATA 80 - Start faults / Hot start"
+  },
+  {
+    "id": "F_START_FAULT_1_HUNG_START",
+    "title": "Eng 1 hung start",
+    "category": "ATA 80 - Start faults / Stall/Hung start"
+  },
+  {
+    "id": "F_START_FAULT_2_HUNG_START",
+    "title": "Eng 2 hung start",
+    "category": "ATA 80 - Start faults / Stall/Hung start"
+  },
+  {
+    "id": "F_START_FAULT_1_NO_IGNITION",
+    "title": "Eng 1 no ignition",
+    "category": "ATA 80 - Start faults / No ignition"
+  },
+  {
+    "id": "F_START_FAULT_2_NO_IGNITION",
+    "title": "Eng 2 no ignition",
+    "category": "ATA 80 - Start faults / No ignition"
+  },
+  {
+    "id": "F_CFDIU",
+    "title": "CFDIU",
+    "category": "ATA 31 - Indicating/Recording system / CFDIU"
+  },
+  {
+    "id": "F_ECP",
+    "title": "ECP",
+    "category": "ATA 31 - Indicating/Recording system / ECP"
+  },
+  {
+    "id": "F_SDAC_1",
+    "title": "SDAC 1",
+    "category": "ATA 31 - Indicating/Recording system / SDAC"
+  },
+  {
+    "id": "F_SDAC_2",
+    "title": "SDAC 2",
+    "category": "ATA 31 - Indicating/Recording system / SDAC"
+  },
+  {
+    "id": "F_FWC1",
+    "title": "FWC 1",
+    "category": "ATA 31 - Indicating/Recording system / FWC"
+  },
+  {
+    "id": "F_FWC2",
+    "title": "FWC 2",
+    "category": "ATA 31 - Indicating/Recording system / FWC"
+  },
+  {
+    "id": "F_CVR",
+    "title": "CVR",
+    "category": "ATA 31 - Indicating/Recording system / CVR"
+  },
+  {
+    "id": "F_DISPLAY_DMC_1",
+    "title": "DMC 1",
+    "category": "ATA 31 - Indicating/Recording system / DMC"
+  },
+  {
+    "id": "F_DISPLAY_DMC_2",
+    "title": "DMC 2",
+    "category": "ATA 31 - Indicating/Recording system / DMC"
+  },
+  {
+    "id": "F_DISPLAY_DMC_3",
+    "title": "DMC 3",
+    "category": "ATA 31 - Indicating/Recording system / DMC"
+  },
+  {
+    "id": "F_DISPLAY_DCDU_CAPT",
+    "title": "DCDU Capt",
+    "category": "ATA 31 - Indicating/Recording system / DCDU"
+  },
+  {
+    "id": "F_DISPLAY_DCDU_FO",
+    "title": "DCDU FO",
+    "category": "ATA 31 - Indicating/Recording system / DCDU"
+  },
+  {
+    "id": "F_DISPLAY_DU_CAPTAIN_OUT",
+    "title": "DU Capt PFD",
+    "category": "ATA 31 - Indicating/Recording system / DU"
+  },
+  {
+    "id": "F_DISPLAY_DU_CAPTAIN_IN",
+    "title": "DU Capt ND",
+    "category": "ATA 31 - Indicating/Recording system / DU"
+  },
+  {
+    "id": "F_DISPLAY_DU_FO_IN",
+    "title": "DU F/O ND",
+    "category": "ATA 31 - Indicating/Recording system / DU"
+  },
+  {
+    "id": "F_DISPLAY_DU_FO_OUT",
+    "title": "DU F/O PFD",
+    "category": "ATA 31 - Indicating/Recording system / DU"
+  },
+  {
+    "id": "F_DISPLAY_DU_ECAM_UPPER",
+    "title": "DU ECAM Upper",
+    "category": "ATA 31 - Indicating/Recording system / DU"
+  },
+  {
+    "id": "F_DISPLAY_DU_ECAM_LOWER",
+    "title": "DU ECAM Lower",
+    "category": "ATA 31 - Indicating/Recording system / DU"
+  },
+  {
+    "id": "F_OXYGEN_CREW_LOW",
+    "title": "Crew oxygen pressure < 400",
+    "category": "ATA 35 - Oxygen / Crew oxygen 1"
+  },
+  {
+    "id": "F_OXYGEN_CREW_MED",
+    "title": "Crew oxygen pressure < 800",
+    "category": "ATA 35 - Oxygen / Crew oxygen 1"
+  },
+  {
+    "id": "F_OXYGEN_CREW2_LOW",
+    "title": "Crew oxygen 2 pressure < 400",
+    "category": "ATA 35 - Oxygen / Crew oxygen 2"
+  },
+  {
+    "id": "F_OXYGEN_CREW2_MED",
+    "title": "Crew oxygen 2 pressure < 800",
+    "category": "ATA 35 - Oxygen / Crew oxygen 2"
+  },
+  {
+    "id": "F_OXYGEN_CREW_SUPPLY_VALVE",
+    "title": "Oxygen supply valve",
+    "category": "ATA 35 - Oxygen / Crew oxygen"
+  },
+  {
+    "id": "F_OXYGEN_CREW_SUPPLY_VALVE2",
+    "title": "Oxygen supply valve 2",
+    "category": "ATA 35 - Oxygen / Crew oxygen"
+  },
+  {
+    "id": "F_INFO_ATSU",
+    "title": "ATSU",
+    "category": "ATA 46 - Information systems / ATSU"
+  },
+  {
+    "id": "F_DOOR_AVIONICS_1",
+    "title": "Forward avionics door",
+    "category": "ATA 52 - Doors / Doors left"
+  },
+  {
+    "id": "F_DOOR_AVIONICS_2",
+    "title": "Left avionics door",
+    "category": "ATA 52 - Doors / Doors left"
+  },
+  {
+    "id": "F_DOOR_AVIONICS_3",
+    "title": "Right avionics door",
+    "category": "ATA 52 - Doors / Doors left"
+  },
+  {
+    "id": "F_DOOR_FWD_ENTRY_LEFT",
+    "title": "Forward entry left door",
+    "category": "ATA 52 - Doors / Doors left"
+  },
+  {
+    "id": "F_DOOR_LEFT_WING_1",
+    "title": "Left wing 1 door",
+    "category": "ATA 52 - Doors / Doors left"
+  },
+  {
+    "id": "F_DOOR_LEFT_WING_2",
+    "title": "Left wing 2 door",
+    "category": "ATA 52 - Doors / Doors left"
+  },
+  {
+    "id": "F_DOOR_AFT_ENTRY_LEFT",
+    "title": "Aft entry left door",
+    "category": "ATA 52 - Doors / Doors left"
+  },
+  {
+    "id": "F_DOOR_FWD_ENTRY_RIGHT",
+    "title": "Forward entry right door",
+    "category": "ATA 52 - Doors / Doors right"
+  },
+  {
+    "id": "F_DOOR_AVIONICS_4",
+    "title": "Aft avionics door",
+    "category": "ATA 52 - Doors / Doors right"
+  },
+  {
+    "id": "F_DOOR_FWD_CARGO",
+    "title": "Forward cargo door",
+    "category": "ATA 52 - Doors / Doors right"
+  },
+  {
+    "id": "F_DOOR_RIGHT_WING_1",
+    "title": "Right wing 1 door",
+    "category": "ATA 52 - Doors / Doors right"
+  },
+  {
+    "id": "F_DOOR_RIGHT_WING_2",
+    "title": "Right wing 2 door",
+    "category": "ATA 52 - Doors / Doors right"
+  },
+  {
+    "id": "F_DOOR_AFT_CARGO",
+    "title": "Aft cargo door",
+    "category": "ATA 52 - Doors / Doors right"
+  },
+  {
+    "id": "F_DOOR_BULK",
+    "title": "Bulk door",
+    "category": "ATA 52 - Doors / Doors right"
+  },
+  {
+    "id": "F_DOOR_AFT_ENTRY_RIGHT",
+    "title": "Aft entry right door",
+    "category": "ATA 52 - Doors / Doors right"
+  },
+  {
+    "id": "F_ENGINE_FADEC_LEFT_A",
+    "title": "Fadec Left Channel A",
+    "category": "ATA 70 - Power plant / Fadec"
+  },
+  {
+    "id": "F_ENGINE_FADEC_LEFT_B",
+    "title": "Fadec Left Channel B",
+    "category": "ATA 70 - Power plant / Fadec"
+  },
+  {
+    "id": "F_ENGINE_FADEC_RIGHT_A",
+    "title": "Fadec Right Channel A",
+    "category": "ATA 70 - Power plant / Fadec"
+  },
+  {
+    "id": "F_ENGINE_FADEC_RIGHT_B",
+    "title": "Fadec Right Channel B",
+    "category": "ATA 70 - Power plant / Fadec"
+  },
+  {
+    "id": "F_ENG1_EIU",
+    "title": "EIU 1",
+    "category": "ATA 70 - Power plant / EIU"
+  },
+  {
+    "id": "F_ENG2_EIU",
+    "title": "EIU 2",
+    "category": "ATA 70 - Power plant / EIU"
+  },
+  {
+    "id": "F_ENGINE_1_SURGE",
+    "title": "Left surge",
+    "category": "ATA 70 - Power plant / Engine surge"
+  },
+  {
+    "id": "F_ENGINE_2_SURGE",
+    "title": "Right surge",
+    "category": "ATA 70 - Power plant / Engine surge"
+  },
+  {
+    "id": "F_ENGINE_1",
+    "title": "Eng 1 failure",
+    "category": "ATA 70 - Power plant / Engine failure"
+  },
+  {
+    "id": "F_ENGINE_2",
+    "title": "Eng 2 failure",
+    "category": "ATA 70 - Power plant / Engine failure"
+  },
+  {
+    "id": "F_ENGINE_1_DAMAGE",
+    "title": "Eng 1 failure with damage",
+    "category": "ATA 70 - Power plant / Engine failure with damage"
+  },
+  {
+    "id": "F_ENGINE_2_DAMAGE",
+    "title": "Eng 2 failure with damage",
+    "category": "ATA 70 - Power plant / Engine failure with damage"
+  },
+  {
+    "id": "F_ENGINE_1_BIRDSTRIKE",
+    "title": "Left bird strike",
+    "category": "ATA 70 - Power plant / Engine birdstrike"
+  },
+  {
+    "id": "F_ENGINE_2_BIRDSTRIKE",
+    "title": "Right bird strike",
+    "category": "ATA 70 - Power plant / Engine birdstrike"
+  },
+  {
+    "id": "F_REV_PRESS_ENG_1",
+    "title": "Left reverser pressurized",
+    "category": "ATA 70 - Power plant / Reverser pressurized"
+  },
+  {
+    "id": "F_REV_PRESS_ENG_2",
+    "title": "Right reverser pressurized",
+    "category": "ATA 70 - Power plant / Reverser pressurized"
+  },
+  {
+    "id": "F_REV_UNLOCK_ENG_1",
+    "title": "Left reverser unlocked",
+    "category": "ATA 70 - Power plant / Reverser unlocked"
+  },
+  {
+    "id": "F_REV_UNLOCK_ENG_2",
+    "title": "Right reverser unlocked",
+    "category": "ATA 70 - Power plant / Reverser unlocked"
+  },
+  {
+    "id": "F_REV_INHIBIT_ENG_1",
+    "title": "Left reverser inhibited by maint",
+    "category": "ATA 70 - Power plant / Reverser inhibited by maintenance"
+  },
+  {
+    "id": "F_REV_INHIBIT_ENG_2",
+    "title": "Right reverser inhibited by maint",
+    "category": "ATA 70 - Power plant / Reverser inhibited by maintenance"
+  },
+  {
+    "id": "F_VIB_N1_ENG_1",
+    "title": "Eng 1 high vibration N1",
+    "category": "ATA 70 - Power plant / vibration N1"
+  },
+  {
+    "id": "F_VIB_N1_ENG_2",
+    "title": "Eng 2 high vibration N1",
+    "category": "ATA 70 - Power plant / vibration N1"
+  },
+  {
+    "id": "F_VIB_N2_ENG_1",
+    "title": "Eng 1 high vibration N2",
+    "category": "ATA 70 - Power plant / vibration N2"
+  },
+  {
+    "id": "F_VIB_N2_ENG_2",
+    "title": "Eng 2 high vibration N2",
+    "category": "ATA 70 - Power plant / vibration N2"
+  },
+  {
+    "id": "F_ENG1_OIL_LEAK",
+    "title": "Left oil leak",
+    "category": "ATA 70 - Power plant / Oil leak"
+  },
+  {
+    "id": "F_ENG2_OIL_LEAK",
+    "title": "Right oil leak",
+    "category": "ATA 70 - Power plant / Oil leak"
+  },
+  {
+    "id": "F_HYD_REVERSER_SHUTOFF_VALVE_1",
+    "title": "Reverser shutoff valve left",
+    "category": "ATA 70 - Power plant / Reverser shutoff valve"
+  },
+  {
+    "id": "F_HYD_REVERSER_SHUTOFF_VALVE_2",
+    "title": "Reverser shutoff valve right",
+    "category": "ATA 70 - Power plant / Reverser shutoff valve"
+  }
+]

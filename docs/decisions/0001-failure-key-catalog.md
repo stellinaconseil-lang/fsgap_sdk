@@ -41,3 +41,14 @@ stay too coarse or grow into a copy of one vendor's catalog.
   illustrative only.
 - Two providers supporting the same semantic failure should use the same key. Key naming conventions will be
   documented with the first real catalog.
+
+## Follow-up (BLOCK 7, 0.7.0)
+
+- The first real catalog is the Fenix one: 40 keys, exactly the failures used today. Its naming conventions are
+  documented in [../fenix-failures.md](../fenix-failures.md#catalogue-and-key-policy):
+  - first segment = the system domain of the ATA chapter;
+  - then the component and the instance;
+  - the target is typed only where the contract has an exact kind.
+- The key ↔ Fenix id table for the DEC-2 migration is [../fenix-failure-mapping.md](../fenix-failure-mapping.md).
+- `FailureCommandStatus` gained `Unavailable` and `Unconfirmed`, and `FailuresUnavailableException` was added: a
+  caller must be able to tell "nothing applied" from "maybe applied", and "no failure" from "cannot tell".

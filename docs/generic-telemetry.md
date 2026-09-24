@@ -135,6 +135,9 @@ With generic telemetry, a Fenix session declares `FlightState`, `Warnings`, `Eng
 stays declared because flaps are supported even though the speed brake is masked. Without generic telemetry, the
 session declares `AircraftCapabilities.None`, as in 0.4.0.
 
+The generic telemetry has no failure logic. Fenix failures (0.7.0) go through the Fenix EFB, not SimConnect; a
+failure acts on the aircraft, and its effects appear in the telemetry like any other change ([fenix-failures.md](fenix-failures.md)).
+
 ## Live validation
 
 **LIVE TEST, 2026-09-24**, MSFS 2024, Fenix A319 CFM (C-GBIA), parked at the gate at LFMN with both engines running,

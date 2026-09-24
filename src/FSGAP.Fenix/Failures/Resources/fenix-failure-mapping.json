@@ -1,0 +1,56 @@
+{
+  "_comment": "Normalized Fenix failures (FSGAP.Fenix, BLOCK 7). Only failures that a consumer actually uses are normalized: FLIPPP scenario catalog (24), FSHANGAR live tests and fire-probe trials, fenixhangarweb (component aliases, tests, API docs). Every other entry of fenix-failure-catalog.json stays internal: it is reported as an unclassified active failure (no key) and cannot be commanded. Key policy: first segment = the system domain of the Fenix ATA chapter (air-conditioning, electrical, fire, fuel, hydraulic, ice-rain, indicating, landing-gear, navigation, pneumatic, doors, engine); the instance is part of the key; the target is typed only where the contract has an exact kind (engine, fuel pump, hydraulic system, electrical bus), otherwise aircraft. Target ids reuse the telemetry ids (fuel pump left-1, hydraulic green...). Raw Fenix ids appear only in this file and the catalog, never in a public object.",
+  "failures": [
+    { "fenixId": "F_PNEUMATIC_CPC_1", "key": "air-conditioning.cpc.1", "displayName": "Cabin pressure controller 1", "target": { "kind": "aircraft" }, "users": ["FSHANGAR live verification and tests"] },
+    { "fenixId": "F_PNEUMATIC_PACK_1_OVERHEAT", "key": "air-conditioning.pack.1.overheat", "displayName": "Pack 1 overheat", "target": { "kind": "aircraft" }, "users": ["FLIPPP Tricky", "fenixhangarweb tests"] },
+    { "fenixId": "F_PNEUMATIC_PACK_1_REG_FAULT", "key": "air-conditioning.pack.1.regulator-fault", "displayName": "Pack 1 regulator fault", "target": { "kind": "aircraft" }, "users": ["fenixhangarweb tests"] },
+
+    { "fenixId": "F_ELEC_STATIC_INVERTER", "key": "electrical.static-inverter", "displayName": "Static inverter", "target": { "kind": "aircraft" }, "users": ["FLIPPP Easy"] },
+    { "fenixId": "F_ELEC_DRIVE_FAILURE_L", "key": "electrical.generator.1", "displayName": "Generator 1 (IDG 1 drive)", "target": { "kind": "aircraft" }, "users": ["FLIPPP Tricky"] },
+    { "fenixId": "F_ELEC_DRIVE_FAILURE_R", "key": "electrical.generator.2", "displayName": "Generator 2 (IDG 2 drive)", "target": { "kind": "aircraft" }, "users": ["FLIPPP Tricky"] },
+    { "fenixId": "F_ELEC_BUS_AC_1", "key": "electrical.bus.ac-1", "displayName": "AC bus 1", "target": { "kind": "electricalBus", "id": "ac-1" }, "users": ["FLIPPP Reckless", "fenixhangarweb component aliases"] },
+    { "fenixId": "F_ELEC_BUS_AC_ESSENTIAL", "key": "electrical.bus.ac-ess", "displayName": "AC essential bus", "target": { "kind": "electricalBus", "id": "ac-ess" }, "users": ["fenixhangarweb component aliases"] },
+    { "fenixId": "F_ELEC_BUS_DC_1", "key": "electrical.bus.dc-1", "displayName": "DC bus 1", "target": { "kind": "electricalBus", "id": "dc-1" }, "users": ["FSHANGAR tests", "fenixhangarweb component aliases"] },
+    { "fenixId": "F_ELEC_BUS_DC_2", "key": "electrical.bus.dc-2", "displayName": "DC bus 2", "target": { "kind": "electricalBus", "id": "dc-2" }, "users": ["FSHANGAR tests", "fenixhangarweb component aliases"] },
+    { "fenixId": "F_ELEC_BUS_BAT", "key": "electrical.bus.dc-bat", "displayName": "DC battery bus", "target": { "kind": "electricalBus", "id": "dc-bat" }, "users": ["fenixhangarweb component aliases"] },
+
+    { "fenixId": "F_FIRE_LAVATORY_SMOKE", "key": "fire.lavatory.smoke", "displayName": "Lavatory smoke", "target": { "kind": "aircraft" }, "users": ["FLIPPP Tricky"] },
+    { "fenixId": "F_OH_FIRE_ENG1_LOOP_A", "key": "fire.engine.1.loop-a", "displayName": "Engine 1 fire detection loop A", "target": { "kind": "engine", "index": 1 }, "users": ["FLIPPP Reckless", "FSHANGAR fire-probe trials"] },
+    { "fenixId": "F_FIRE_FDU1", "key": "fire.fdu.1", "displayName": "Fire detection unit 1", "target": { "kind": "aircraft" }, "users": ["FSHANGAR fire-probe experiment (paused, never injected)"] },
+
+    { "fenixId": "F_FUEL_FQI2", "key": "fuel.fqi.channel-2", "displayName": "Fuel quantity indication channel 2", "target": { "kind": "aircraft" }, "users": ["FLIPPP Easy"] },
+    { "fenixId": "F_FUEL_PUMP_LEFT_1", "key": "fuel.pump.left-1", "displayName": "Left tank fuel pump 1", "target": { "kind": "fuelPump", "id": "left-1" }, "users": ["fenixhangarweb component aliases"] },
+    { "fenixId": "F_FUEL_PUMP_RIGHT_1", "key": "fuel.pump.right-1", "displayName": "Right tank fuel pump 1", "target": { "kind": "fuelPump", "id": "right-1" }, "users": ["fenixhangarweb component aliases"] },
+
+    { "fenixId": "F_HYD_PUMP_BLUE", "key": "hydraulic.blue.electric-pump", "displayName": "Blue electric hydraulic pump", "target": { "kind": "hydraulicSystem", "id": "blue" }, "users": ["FLIPPP Tricky"] },
+    { "fenixId": "F_HYD_PUMP_YELLOW", "key": "hydraulic.yellow.electric-pump", "displayName": "Yellow electric hydraulic pump", "target": { "kind": "hydraulicSystem", "id": "yellow" }, "users": ["FLIPPP Tricky"] },
+    { "fenixId": "F_HYD_LOW_BLUE", "key": "hydraulic.blue.low-level", "displayName": "Blue hydraulic reservoir low level", "target": { "kind": "hydraulicSystem", "id": "blue" }, "users": ["FLIPPP Tricky"] },
+    { "fenixId": "F_HYD_LOW_GREEN", "key": "hydraulic.green.low-level", "displayName": "Green hydraulic reservoir low level", "target": { "kind": "hydraulicSystem", "id": "green" }, "users": ["fenixhangarweb component aliases"] },
+    { "fenixId": "F_HYD_LEAK_BLUE", "key": "hydraulic.blue.leak", "displayName": "Blue hydraulic leak", "target": { "kind": "hydraulicSystem", "id": "blue" }, "users": ["FLIPPP Reckless"] },
+    { "fenixId": "F_HYD_LEAK_GREEN", "key": "hydraulic.green.leak", "displayName": "Green hydraulic leak", "target": { "kind": "hydraulicSystem", "id": "green" }, "users": ["fenixhangarweb component aliases"] },
+
+    { "fenixId": "F_ICE_AOA_STBY", "key": "ice-rain.aoa-heat.standby", "displayName": "Standby AOA probe heat", "target": { "kind": "aircraft" }, "users": ["FLIPPP Easy"] },
+    { "fenixId": "F_ICE_PITOT_FO", "key": "ice-rain.pitot-heat.fo", "displayName": "First officer pitot heat", "target": { "kind": "aircraft" }, "users": ["FLIPPP Tricky"] },
+
+    { "fenixId": "F_DISPLAY_DU_ECAM_LOWER", "key": "indicating.display.ecam-lower", "displayName": "Lower ECAM display unit", "target": { "kind": "aircraft" }, "users": ["FLIPPP Easy"] },
+
+    { "fenixId": "F_BRAKE_WHEEL_1", "key": "landing-gear.brake.wheel-1", "displayName": "Wheel 1 brake fault", "target": { "kind": "aircraft" }, "users": ["FLIPPP Tricky"] },
+    { "fenixId": "F_GEAR_TYRE_PSI_MAIN_1", "key": "landing-gear.tyre-pressure.main-1", "displayName": "Main tyre 1 low pressure", "target": { "kind": "aircraft" }, "users": ["FLIPPP Reckless"] },
+    { "fenixId": "F_GEAR_TYRE_PSI_RIGHT_1", "key": "landing-gear.tyre-pressure.right-1", "displayName": "Right tyre 1 low pressure", "target": { "kind": "aircraft" }, "users": ["FSHANGAR live verification and tests"] },
+
+    { "fenixId": "F_FMGC_1", "key": "navigation.fmgc.1", "displayName": "FMGC 1", "target": { "kind": "aircraft" }, "users": ["FLIPPP Easy"] },
+    { "fenixId": "F_MCDU_1_RECOVERABLE", "key": "navigation.mcdu.1.recoverable-fault", "displayName": "MCDU 1 recoverable fault", "target": { "kind": "aircraft" }, "users": ["FLIPPP Easy"] },
+    { "fenixId": "F_NAV_ADF1", "key": "navigation.adf.1", "displayName": "ADF 1", "target": { "kind": "aircraft" }, "users": ["FLIPPP Easy"] },
+    { "fenixId": "F_NAV_GPS1", "key": "navigation.gps.1", "displayName": "GPS 1", "target": { "kind": "aircraft" }, "users": ["FLIPPP Easy"] },
+    { "fenixId": "F_NAV_ILS1_LOC", "key": "navigation.ils.1.localizer", "displayName": "ILS 1 localizer", "target": { "kind": "aircraft" }, "users": ["FLIPPP Tricky"] },
+
+    { "fenixId": "F_PNEUMATIC_BLEED_VALVE_1", "key": "pneumatic.bleed-valve.1", "displayName": "Engine 1 bleed valve", "target": { "kind": "aircraft" }, "users": ["FSHANGAR live verification and tests", "fenixhangarweb API docs example"] },
+
+    { "fenixId": "F_DOOR_FWD_ENTRY_LEFT", "key": "doors.entry.forward-left", "displayName": "Forward left entry door", "target": { "kind": "aircraft" }, "users": ["fenixhangarweb component aliases"] },
+    { "fenixId": "F_DOOR_AFT_ENTRY_LEFT", "key": "doors.entry.aft-left", "displayName": "Aft left entry door", "target": { "kind": "aircraft" }, "users": ["fenixhangarweb component aliases"] },
+
+    { "fenixId": "F_ENGINE_1_SURGE", "key": "engine.1.surge", "displayName": "Engine 1 surge", "target": { "kind": "engine", "index": 1 }, "users": ["FLIPPP Reckless"] },
+    { "fenixId": "F_VIB_N1_ENG_1", "key": "engine.1.vibration.n1", "displayName": "Engine 1 high N1 vibration", "target": { "kind": "engine", "index": 1 }, "users": ["FLIPPP Reckless"] },
+    { "fenixId": "F_ENG1_EIU", "key": "engine.1.eiu", "displayName": "Engine 1 interface unit (EIU 1)", "target": { "kind": "engine", "index": 1 }, "users": ["FSHANGAR fire-probe trials"] }
+  ]
+}

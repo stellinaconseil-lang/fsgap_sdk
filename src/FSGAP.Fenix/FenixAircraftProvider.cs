@@ -2,12 +2,14 @@ using FSGAP.Abstractions;
 using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Capabilities;
 using FSGAP.Abstractions.Configuration;
+using FSGAP.Abstractions.Failures;
 using FSGAP.Abstractions.Simulator;
 using FSGAP.Abstractions.Telemetry;
 using FSGAP.Core.Failures;
 using FSGAP.Core.Sessions;
 using FSGAP.Core.Telemetry;
 using FSGAP.Fenix.Detection;
+using FSGAP.Fenix.Failures;
 using FSGAP.Fenix.Identity;
 using FSGAP.Fenix.Telemetry;
 using Microsoft.Extensions.Logging;
@@ -16,7 +18,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace FSGAP.Fenix;
 
 /// <summary>
-/// Aircraft provider for the Fenix Simulations A319, A320 and A321: recognition, normalized identity and telemetry.
+/// Aircraft provider for the Fenix Simulations A319, A320 and A321: recognition, normalized identity, telemetry and
+/// failures.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -44,7 +47,9 @@ namespace FSGAP.Fenix;
 /// </description></item>
 /// </list>
 /// <para>
-/// No failures yet: every failure command returns <c>NotSupported</c>.
+/// Failures (0.7.0): with <see cref="FenixOptions"/>, each session triggers, clears and reads Fenix failures through
+/// the local EFB, in normalized <see cref="FailureKey"/> terms only (<c>FenixFailureProvider</c>). Without it, every
+/// failure command returns <c>NotSupported</c>.
 /// </para>
 /// </remarks>
 public sealed class FenixAircraftProvider : IAircraftProvider
@@ -59,6 +64,9 @@ public sealed class FenixAircraftProvider : IAircraftProvider
     private readonly ISimulatorVariableReader? _simulatorVariables;
     private readonly IAircraftDetector? _aircraftDetector;
     private readonly TimeSpan _staleAfter;
+    private readonly FenixOptions? _fenixOptions;
+    private readonly HttpClient? _efbHttpClient;
+    private HttpClient? _ownedEfbHttpClient;
 
     /// <summary>Creates the provider.</summary>
     /// <param name="installedAircraft">
@@ -82,6 +90,15 @@ public sealed class FenixAircraftProvider : IAircraftProvider
     /// detector published).
     /// </param>
     /// <param name="telemetryOptions">Freshness limit for the Fenix values; <see cref="TelemetryOptions"/> defaults otherwise.</param>
+    /// <param name="fenixOptions">
+    /// Enables Fenix failures through the local EFB (address, timeout). Without it, sessions support no failure, as
+    /// before 0.7.0.
+    /// </param>
+    /// <param name="efbHttpClient">
+    /// Optional HTTP client for the EFB (tests, or an application's own client). Not disposed by FSGAP. By default
+    /// one client is created on first use and shared by all sessions.
+    /// </param>
+    /// <exception cref="ArgumentException">An option is invalid.</exception>
     public FenixAircraftProvider(
         IInstalledAircraftCatalog? installedAircraft = null,
         TimeProvider? timeProvider = null,
@@ -89,9 +106,14 @@ public sealed class FenixAircraftProvider : IAircraftProvider
         ITelemetryProvider? genericTelemetry = null,
         ISimulatorVariableReader? simulatorVariables = null,
         IAircraftDetector? aircraftDetector = null,
-        TelemetryOptions? telemetryOptions = null)
+        TelemetryOptions? telemetryOptions = null,
+        FenixOptions? fenixOptions = null,
+        HttpClient? efbHttpClient = null)
     {
         (telemetryOptions ?? new TelemetryOptions()).Validate();
+        fenixOptions?.Validate();
+        _fenixOptions = fenixOptions;
+        _efbHttpClient = efbHttpClient;
         _installedAircraft = installedAircraft;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _logger = (ILogger?)logger ?? NullLogger.Instance;
@@ -123,10 +145,29 @@ public sealed class FenixAircraftProvider : IAircraftProvider
 
         var installed = await FindInstalledAsync(aircraft.LiveryFolder, cancellationToken).ConfigureAwait(false);
         var identity = FenixIdentityResolver.Resolve(variant, aircraft, installed, _logger);
+        bool AircraftReplaced() => _aircraftDetector?.Current is { } loaded && !loaded.Equals(aircraft);
+
+        // Failures: only for a recognized Fenix (this method refused anything else above) and only when configured.
+        // The provider is created here, so no EFB request can exist without a Fenix session.
+        var (failures, failureCapabilities) = _fenixOptions is null
+            ? ((IFailureProvider)UnsupportedFailureProvider.Instance, FailureCapabilities.None)
+            : (new FenixFailureProvider(
+                    new FenixEfbClient(EfbHttpClient, _fenixOptions, _timeProvider),
+                    FenixFailureCatalogData.Default,
+                    AircraftReplaced,
+                    _fenixOptions,
+                    _timeProvider,
+                    _logger),
+                new FailureCapabilities { CanReadActiveFailures = true, Catalog = FenixFailureCatalogData.Default.Catalog });
+
         if (_genericTelemetry is null && _simulatorVariables is null)
         {
             return new AircraftSession(
-                ProviderId, identity, AircraftCapabilities.None, new UnavailableTelemetryProvider(_timeProvider), UnsupportedFailureProvider.Instance);
+                ProviderId,
+                identity,
+                _fenixOptions is null ? AircraftCapabilities.None : new AircraftCapabilities { Failures = failureCapabilities },
+                new UnavailableTelemetryProvider(_timeProvider),
+                failures);
         }
 
         var sections = TelemetryCapabilities.None;
@@ -150,16 +191,28 @@ public sealed class FenixAircraftProvider : IAircraftProvider
             generic => FenixTelemetryComposer.Compose(
                 generic,
                 systems?.Current ?? FenixSystemState.Empty,
-                systems?.AircraftReplaced ?? (_aircraftDetector?.Current is { } loaded && !loaded.Equals(aircraft)),
+                systems?.AircraftReplaced ?? AircraftReplaced(),
                 staleAfter),
             systems);
         return new AircraftSession(
             ProviderId,
             identity,
-            new AircraftCapabilities { Telemetry = sections },
+            new AircraftCapabilities { Telemetry = sections, Failures = failureCapabilities },
             telemetry,
-            UnsupportedFailureProvider.Instance);
+            failures);
     }
+
+    /// <summary>
+    /// The HTTP client for the EFB: the injected one, or one created on first use and shared by every session of
+    /// this provider for its whole lifetime (no client per call, no socket exhaustion). Its own timeout is disabled:
+    /// each request has <see cref="FenixOptions.RequestTimeout"/>.
+    /// </summary>
+    private HttpClient EfbHttpClient => _efbHttpClient ?? LazyInitializer.EnsureInitialized(
+        ref _ownedEfbHttpClient,
+        () => new HttpClient(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) })
+        {
+            Timeout = Timeout.InfiniteTimeSpan,
+        });
 
     private async Task<InstalledAircraft?> FindInstalledAsync(string? liveryFolder, CancellationToken cancellationToken)
     {

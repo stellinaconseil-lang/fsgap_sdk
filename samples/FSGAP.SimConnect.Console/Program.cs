@@ -4,23 +4,32 @@
 // pause/crash state, the raw aircraft descriptor reported by MSFS, what the Fenix provider makes of it (match,
 // normalized identity, catalog match) and, every two seconds, a compact view of the normalized telemetry: the Fenix
 // session's (generic telemetry with the Fenix policy applied) when a Fenix is loaded, the generic telemetry
-// otherwise, followed for a Fenix by its systems (IRS, fuel pumps, fire panel, hydraulics). Read-only: no failure
-// injection, nothing written to the simulator.
+// otherwise, followed for a Fenix by its systems (IRS, fuel pumps, fire panel, hydraulics). Read-only by default;
+// the only write is the explicit --failure-roundtrip option (a trigger always followed by its clear).
 //
-// Usage: dotnet run --project samples/FSGAP.SimConnect.Console [-- --minutes N]
+// Usage: dotnet run --project samples/FSGAP.SimConnect.Console [-- --minutes N] [--failures] [--failure-roundtrip <key>]
 using System.Diagnostics;
 using System.Globalization;
 using FSGAP.Abstractions;
 using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Configuration;
+using FSGAP.Abstractions.Failures;
 using FSGAP.Abstractions.Telemetry;
 using FSGAP.Fenix;
 using FSGAP.SimConnect;
 using FSGAP.SimConnect.Console;
 
-var runFor = args.Length == 2 && args[0] == "--minutes" && double.TryParse(args[1], CultureInfo.InvariantCulture, out var minutes)
+// Options: --minutes N (auto-stop), --failures (read-only: EFB reachability and active failures, once per Fenix
+// session), --failure-roundtrip <failure-key> (the only write: trigger, read back, clear, read back; see
+// docs/fenix-failures.md, live validation).
+static string? Arg(string[] args, string name) =>
+    Array.IndexOf(args, name) is var i and >= 0 && i + 1 < args.Length ? args[i + 1] : null;
+
+var runFor = double.TryParse(Arg(args, "--minutes"), CultureInfo.InvariantCulture, out var minutes)
     ? TimeSpan.FromMinutes(minutes)
     : Timeout.InfiniteTimeSpan;
+var readFailures = args.Contains("--failures") || args.Contains("--failure-roundtrip");
+var roundtripKey = Arg(args, "--failure-roundtrip") is { } keyText ? FailureKey.Parse(keyText) : null;
 
 using var stop = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) =>
@@ -58,7 +67,8 @@ var provider = new FenixAircraftProvider(
     genericTelemetry: simulator.Telemetry,
     simulatorVariables: simulator,
     aircraftDetector: simulator.AircraftDetector,
-    telemetryOptions: options.Telemetry);
+    telemetryOptions: options.Telemetry,
+    fenixOptions: readFailures ? new FenixOptions() : null);
 IAircraftSession? session = null;
 (string Source, ITelemetryProvider Provider) shown = ("generic", simulator.Telemetry);
 
@@ -117,6 +127,77 @@ async Task DescribeAsync(AircraftDescriptor? aircraft)
         ? "Catalog: no installed livery matches this livery folder"
         : $"Catalog: {installed.PackageName}/{installed.LiveryFolder} (registration '{installed.Identity.Registration}', tags model={installed.Identity.Model} engine={installed.Identity.EngineVariant} wingtip={installed.Identity.WingtipConfiguration})");
     Print("fenix", $"Telemetry sections: flight={declared.FlightState} warnings={declared.Warnings} engines={declared.Engines} gear={declared.LandingGear} controls={declared.FlightControls} apu={declared.Apu} irs={declared.InertialReferences} fuelPumps={declared.FuelPumps} elec={declared.Electrical} hyd={declared.Hydraulics} fire={declared.Fire}");
+    if (readFailures)
+    {
+        var failureSession = session;
+        _ = Task.Run(() => CheckFailuresAsync(failureSession));
+    }
+}
+
+async Task CheckFailuresAsync(IAircraftSession fenix)
+{
+    var capabilities = fenix.Capabilities.Failures;
+    Print("failures", $"catalog={capabilities.Catalog.Count} keys, readActive={capabilities.CanReadActiveFailures}");
+    var before = await ReadActiveAsync(fenix, "before");
+    if (roundtripKey is null || before is null)
+    {
+        return;
+    }
+
+    if (!capabilities.Catalog.TryGet(roundtripKey, out var definition))
+    {
+        Print("failures", $"round trip refused: '{roundtripKey}' is not in the catalog");
+        return;
+    }
+
+    if (before.Any(f => f.Key == roundtripKey))
+    {
+        Print("failures", $"round trip refused: '{roundtripKey}' is already active, it is left untouched");
+        return;
+    }
+
+    var command = new FailureCommand(roundtripKey, definition.SupportedTargets[0]);
+    var triggered = false;
+    try
+    {
+        var trigger = await fenix.Failures.TriggerAsync(command);
+        triggered = trigger.Status is not (FailureCommandStatus.NotSupported or FailureCommandStatus.Unavailable);
+        Print("failures", $"TRIGGER {roundtripKey} ({definition.DisplayName}) -> {trigger.Status}{(trigger.Message is null ? string.Empty : $" ({trigger.Message})")}");
+        await ReadActiveAsync(fenix, "after trigger");
+        await Task.Delay(RoundtripHold); // a realistic pace: the failure stays active for a few seconds
+    }
+    finally
+    {
+        if (triggered)
+        {
+            var clear = await fenix.Failures.ClearAsync(command);
+            Print("failures", $"CLEAR {roundtripKey} -> {clear.Status}{(clear.Message is null ? string.Empty : $" ({clear.Message})")}");
+            await ReadActiveAsync(fenix, "right after clear");
+
+            // The EFB list switches at once but Fenix applies the state asynchronously: a clear sent ~30 ms after its
+            // trigger was seen overwritten by the late trigger. The final verdict is read after a settle delay.
+            await Task.Delay(RoundtripSettle);
+            var after = await ReadActiveAsync(fenix, $"{RoundtripSettle.TotalSeconds:0} s after clear");
+            Print("failures", after is null
+                ? "final state unknown (read failed)"
+                : $"'{roundtripKey}' still active after the test: {after.Any(f => f.Key == roundtripKey)}; active failures now {after.Count} (before {before.Count})");
+        }
+    }
+}
+
+async Task<IReadOnlyCollection<AircraftFailure>?> ReadActiveAsync(IAircraftSession fenix, string when)
+{
+    try
+    {
+        var active = await fenix.Failures.GetActiveFailuresAsync();
+        Print("failures", $"active {when}: {active.Count}{(active.Count == 0 ? string.Empty : " -> " + string.Join(", ", active.Select(f => f.Key?.Value ?? $"(unclassified: {f.Description})")))}");
+        return active;
+    }
+    catch (FailuresUnavailableException ex)
+    {
+        Print("failures", $"active {when}: unavailable ({ex.Message})");
+        return null;
+    }
 }
 
 async Task PrintTelemetryAsync(CancellationToken cancellationToken)
@@ -185,3 +266,12 @@ static async Task Watch<T>(IAsyncEnumerable<T> stream, Action<T> print)
 }
 
 static void Print(string label, string message) => Console.WriteLine($"{DateTime.Now:HH:mm:ss.fff} [{label,-8}] {message}");
+
+partial class Program
+{
+    /// <summary>How long the round-trip failure stays active before it is cleared.</summary>
+    private static readonly TimeSpan RoundtripHold = TimeSpan.FromSeconds(5);
+
+    /// <summary>Delay before the final read-back of a round trip.</summary>
+    private static readonly TimeSpan RoundtripSettle = TimeSpan.FromSeconds(5);
+}
