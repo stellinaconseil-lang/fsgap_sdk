@@ -34,7 +34,7 @@ namespace FSGAP.SimConnect;
 /// <item><description>After disposal, Start throws <see cref="ObjectDisposedException"/>.</description></item>
 /// </list>
 /// </remarks>
-public sealed class SimConnectSimulator : ISimulatorConnection
+public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariableReader
 {
     /// <summary>Identity poll interval while connecting or while the aircraft is changing.</summary>
     internal static readonly TimeSpan IdentityFastInterval = TimeSpan.FromSeconds(2);
@@ -58,6 +58,7 @@ public sealed class SimConnectSimulator : ISimulatorConnection
 
     internal const string SimulatorNotRunning = "Simulator not running.";
     internal const string ConnectionLost = "Connection to the simulator was lost.";
+    internal const string SimulatorNotConnected = "The simulator is not connected.";
 
     private readonly FsgapOptions _options;
     private readonly ISimConnectSessionFactory _factory;
@@ -76,6 +77,7 @@ public sealed class SimConnectSimulator : ISimulatorConnection
     private CancellationTokenSource? _runCts;
     private Task? _runTask;
     private bool _disposed;
+    private volatile ISimConnectSession? _connectedSession;
 
     /// <summary>Creates the connection. Nothing happens until <see cref="StartAsync"/>.</summary>
     /// <param name="options">Host options; <see cref="FsgapOptions.ApplicationName"/> is the SimConnect client name.</param>
@@ -130,6 +132,33 @@ public sealed class SimConnectSimulator : ISimulatorConnection
     /// for the new one.
     /// </remarks>
     public ITelemetryProvider Telemetry => _telemetry;
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// <para>
+    /// Carried out on this transport's native connection (never a second one) as a single request: the list becomes
+    /// one data definition, registered by the library on first use per connection.
+    /// </para>
+    /// <para>
+    /// The transport knows nothing about the variables: aircraft providers own the names and their meaning. There is
+    /// no retry here; a read that fails while the connection is being lost or replaced simply throws, and the caller
+    /// polls again. Continuations never run on the native thread.
+    /// </para>
+    /// </remarks>
+    public async Task<IReadOnlyList<double>> ReadAsync(IReadOnlyList<SimulatorVariable> variables, CancellationToken cancellationToken = default)
+    {
+        VariableSetStructs.Validate(variables);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        cancellationToken.ThrowIfCancellationRequested();
+        var session = _connectedSession;
+        if (session is null || !session.IsConnected)
+        {
+            throw new InvalidOperationException(SimulatorNotConnected);
+        }
+
+        var snapshot = variables.ToArray();
+        return await session.ReadVariablesAsync(snapshot, cancellationToken).ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+    }
 
     /// <inheritdoc />
     public TimeSpan SessionElapsed
@@ -359,6 +388,7 @@ public sealed class SimConnectSimulator : ISimulatorConnection
             await TrySubscribeAsync(session, SimulatorSystemEvent.Crashed, sessionCts.Token).ConfigureAwait(false);
             var pauseSubscribed = await TrySubscribeAsync(session, SimulatorSystemEvent.Pause, sessionCts.Token).ConfigureAwait(false);
             _state.MarkConnected(pauseSubscribed);
+            _connectedSession = session;
             SetStatus(SimulatorConnectionState.Connected, null);
 
             identityTask = PollIdentityAsync(session, lost, sessionCts.Token);
@@ -375,6 +405,7 @@ public sealed class SimConnectSimulator : ISimulatorConnection
         finally
         {
             // Callbacks the native layer may still deliver for this connection are ignored from here on.
+            _connectedSession = null;
             active.Deactivate();
             session.Disconnected -= OnDisconnected;
             session.Crashed -= OnCrashed;

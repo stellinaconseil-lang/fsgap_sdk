@@ -1,0 +1,41 @@
+{
+  "_comment": "Legacy parity for the Fenix cockpit variables. 'legacy' is the RawToSemantic table of FSHANGAR FenixCockpitControlRegistry (live-proven 2026-09-12/13); 'scenarios' are cockpit states built from those encodings. Each scenario gives raw values (missing = 0) and the legacy reading of each migrated control; the test checks the normalized FSGAP model says the same thing.",
+  "legacy": {
+    "selector": { "0": "OFF", "1": "NAV", "2": "ATT" },
+    "pump": { "0": "OFF", "1": "ON" },
+    "handle": { "0": "STOWED", "1": "PULLED" },
+    "light": { "0": "OFF", "1": "ON" }
+  },
+  "scenarios": [
+    {
+      "name": "cold-and-dark",
+      "raw": {},
+      "expected": { "ir": ["OFF", "OFF", "OFF"], "pumps": ["OFF", "OFF", "OFF", "OFF", "OFF", "OFF"], "handles": ["STOWED", "STOWED", "STOWED"], "lights": ["OFF", "OFF"] }
+    },
+    {
+      "name": "preflight-irs-nav-pumps-on",
+      "raw": { "L:S_OH_NAV_IR1_MODE": 1, "L:S_OH_NAV_IR2_MODE": 1, "L:S_OH_NAV_IR3_MODE": 1, "L:S_OH_FUEL_LEFT_1": 1, "L:S_OH_FUEL_LEFT_2": 1, "L:S_OH_FUEL_CENTER_1": 1, "L:S_OH_FUEL_CENTER_2": 1, "L:S_OH_FUEL_RIGHT_1": 1, "L:S_OH_FUEL_RIGHT_2": 1 },
+      "expected": { "ir": ["NAV", "NAV", "NAV"], "pumps": ["ON", "ON", "ON", "ON", "ON", "ON"], "handles": ["STOWED", "STOWED", "STOWED"], "lights": ["OFF", "OFF"] }
+    },
+    {
+      "name": "ir3-in-att-centre-pumps-off",
+      "raw": { "L:S_OH_NAV_IR1_MODE": 1, "L:S_OH_NAV_IR2_MODE": 1, "L:S_OH_NAV_IR3_MODE": 2, "L:S_OH_FUEL_LEFT_1": 1, "L:S_OH_FUEL_LEFT_2": 1, "L:S_OH_FUEL_RIGHT_1": 1, "L:S_OH_FUEL_RIGHT_2": 1 },
+      "expected": { "ir": ["NAV", "NAV", "ATT"], "pumps": ["ON", "ON", "OFF", "OFF", "ON", "ON"], "handles": ["STOWED", "STOWED", "STOWED"], "lights": ["OFF", "OFF"] }
+    },
+    {
+      "name": "eng1-fire-test-held",
+      "raw": { "L:S_OH_NAV_IR1_MODE": 1, "L:S_OH_NAV_IR2_MODE": 1, "L:S_OH_NAV_IR3_MODE": 1, "L:I_OH_FIRE_ENG1_BUTTON": 1 },
+      "expected": { "ir": ["NAV", "NAV", "NAV"], "pumps": ["OFF", "OFF", "OFF", "OFF", "OFF", "OFF"], "handles": ["STOWED", "STOWED", "STOWED"], "lights": ["ON", "OFF"] }
+    },
+    {
+      "name": "eng2-fire-handle-pulled",
+      "raw": { "L:S_OH_FIRE_ENG2_BUTTON": 1, "L:I_OH_FIRE_ENG2_BUTTON": 1 },
+      "expected": { "ir": ["OFF", "OFF", "OFF"], "pumps": ["OFF", "OFF", "OFF", "OFF", "OFF", "OFF"], "handles": ["STOWED", "PULLED", "STOWED"], "lights": ["OFF", "ON"] }
+    },
+    {
+      "name": "apu-fire-handle-pulled",
+      "raw": { "L:S_OH_FIRE_APU_BUTTON": 1 },
+      "expected": { "ir": ["OFF", "OFF", "OFF"], "pumps": ["OFF", "OFF", "OFF", "OFF", "OFF", "OFF"], "handles": ["STOWED", "STOWED", "PULLED"], "lights": ["OFF", "OFF"] }
+    }
+  ]
+}

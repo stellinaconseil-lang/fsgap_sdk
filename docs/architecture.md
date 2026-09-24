@@ -1,6 +1,6 @@
 # FSGAP_SDK architecture
 
-This document records the principles FSGAP_SDK is built on, the current design (version 0.4.0) and targets that are
+This document records the principles FSGAP_SDK is built on, the current design (version 0.6.0) and targets that are
 planned but not implemented. Individual decisions are recorded as ADRs in [decisions/](decisions/README.md). The
 BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 
@@ -8,10 +8,10 @@ BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 
 | Assembly | Role | Depends on | Status |
 |---|---|---|---|
-| `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.5.0 |
-| `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.5.0 |
-| `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321: recognition, normalized identity, installed livery catalog ([details](fenix-identity-and-catalog.md)), generic-telemetry policy ([details](generic-telemetry.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.5.0 |
-| `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)), generic telemetry ([details](generic-telemetry.md)) | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.5.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
+| `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.6.0 |
+| `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.6.0 |
+| `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321: recognition, normalized identity, installed livery catalog ([details](fenix-identity-and-catalog.md)), generic-telemetry policy and system telemetry ([details](fenix-system-telemetry.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.6.0 |
+| `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)), generic telemetry ([details](generic-telemetry.md)), batched variable reader | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.6.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
 
 ```text
 FSGAP.Abstractions  <-  FSGAP.Core  <-  FSGAP.Fenix
@@ -221,9 +221,28 @@ snapshot per interval, always the latest.
 - An aircraft change or a stop resets the snapshot to Unavailable. A read issued for the previous aircraft is
   dropped. After a connection loss, the values turn Unknown once `StaleAfter` has passed, streams included.
 - The transport knows no aircraft. A provider composes on it with `TransformedTelemetryProvider` (Core):
-  `FSGAP.Fenix` masks the generic values known to be wrong on Fenix (the speed brake). BLOCK 6 will add the Fenix
-  values at the same composition point.
+  `FSGAP.Fenix` masks the generic values known to be wrong on Fenix (the speed brake), then lays its own values over
+  the masked snapshot (0.6.0, below).
 - Details, SimVar list, conversions and the Fenix policy table: [generic-telemetry.md](generic-telemetry.md).
+
+### Aircraft-specific variables and the Fenix system overlay (0.6.0)
+
+- **Reader.** `ISimulatorVariableReader` (Abstractions, read-only) lets a provider read named simulator
+  variables without referencing the simulator library.
+  - `SimConnectSimulator` implements it on its single connection.
+  - Each list is one batched request: a struct is emitted at runtime and read through SimConnect.NET's public
+    `GetAsync<T>`.
+  - Native connections: still **1**.
+- **Fenix session.**
+  - It polls 14 proven cockpit LVARs every second and 2 hydraulic SimVars every 5 s: ADIRS modes, fuel pump
+    switches, fire handles and fire warning lights, green/blue pressure.
+  - It polls only while its own aircraft is loaded, and discards everything when another aircraft appears.
+  - The polling stops with the session. Without a Fenix session, there is no Fenix read.
+- **Composition.** Generic snapshot, then the Fenix mask, then the Fenix overlay, then freshness, in one
+  `TransformedTelemetryProvider`, which now owns the polling and stops it on dispose.
+- **Contract extension.** `EngineTelemetry.FireHandlePulled` and `FireWarningLit`, and `ApuTelemetry.FireHandlePulled`.
+  They are neutral fire panel states; a lit warning also means "test", so `FireDetected` stays Unavailable.
+- Details and the inventory of the 39 legacy LVARs: [fenix-system-telemetry.md](fenix-system-telemetry.md).
 
 ### Simulator observation
 
@@ -281,7 +300,7 @@ A trigger or clear outside the catalog returns `NotSupported` without contacting
 
 `UnavailableTelemetryProvider` and `UnsupportedFailureProvider` (Core) let a provider open an honest session before
 its telemetry or failures are implemented. `FSGAP.Fenix` uses `UnsupportedFailureProvider`, and
-`UnavailableTelemetryProvider` when it is given no generic telemetry.
+`UnavailableTelemetryProvider` when it is given neither generic telemetry nor a variable reader.
 
 ### Plugin loading
 

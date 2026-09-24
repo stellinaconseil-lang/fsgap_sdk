@@ -62,6 +62,8 @@ public static class TelemetryFreshness
                 EgtCelsius = E(e.EgtCelsius),
                 FuelFlowKilogramsPerHour = E(e.FuelFlowKilogramsPerHour),
                 FireDetected = E(e.FireDetected),
+                FireHandlePulled = E(e.FireHandlePulled),
+                FireWarningLit = E(e.FireWarningLit),
             }).ToArray(),
             Apu = a with
             {
@@ -70,6 +72,7 @@ public static class TelemetryFreshness
                 MasterSwitchOn = E(a.MasterSwitchOn),
                 BleedOn = E(a.BleedOn),
                 FireDetected = E(a.FireDetected),
+                FireHandlePulled = E(a.FireHandlePulled),
             },
             InertialReferences = telemetry.InertialReferences
                 .Select(i => i with { Mode = E(i.Mode), Aligned = E(i.Aligned), Fault = E(i.Fault) }).ToArray(),

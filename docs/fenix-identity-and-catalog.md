@@ -3,8 +3,9 @@
 `FSGAP.Fenix` (since 0.4.0) recognizes the Fenix Simulations A319/A320/A321, produces a normalized
 `AircraftIdentity`, and keeps a catalog of the Fenix liveries installed locally, which it uses to resolve
 registrations. Since 0.5.0 a session can expose the generic SimConnect telemetry through a Fenix masking policy
-([generic-telemetry.md](generic-telemetry.md#fenix-policy)). It does not read LVARs or failures; those come in later
-blocks.
+([generic-telemetry.md](generic-telemetry.md#fenix-policy)), and since 0.6.0 the proven Fenix systems (ADIRS, fuel
+pumps, fire panel, hydraulics: [fenix-system-telemetry.md](fenix-system-telemetry.md)). It does not handle failures;
+they come in BLOCK 7.
 
 ```text
 FSGAP.SimConnect                         FSGAP.Fenix

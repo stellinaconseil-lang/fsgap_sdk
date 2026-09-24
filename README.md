@@ -1,6 +1,6 @@
 # FSGAP_SDK
 
-Version 0.5.0. It provides:
+Version 0.6.0. It provides:
 
 - contracts for aircraft providers, telemetry and failures;
 - normalized failure keys;
@@ -11,12 +11,14 @@ Version 0.5.0. It provides:
   that resolves registrations (`FSGAP.Fenix`);
 - **a real MSFS SimConnect transport** (`FSGAP.SimConnect`): automatic connection and reconnection, pause and
   crash state, detection of the loaded aircraft, and **generic flight telemetry** (flight state, position at 1 Hz,
-  attitude, speeds, engines, gear, flaps, flight-envelope warnings) read on that same single connection;
-- **Fenix telemetry policy**: a Fenix session exposes the generic telemetry with the values known to be wrong on
-  Fenix masked as unavailable.
+  attitude, speeds, engines, gear, flaps, flight-envelope warnings) read on that same single connection, plus a
+  read-only, batched reader of named simulator variables on that connection (`ISimulatorVariableReader`);
+- **Fenix telemetry**: a Fenix session exposes the generic telemetry with the values known to be wrong on Fenix
+  masked, plus the proven Fenix systems: ADIRS modes, fuel pump switches, fire panel (handles, fire warning lights)
+  and green/blue hydraulic pressure.
 
-Fenix-specific systems (APU, ADIRS, fuel pumps, fire, electrical, hydraulics: LVARs) and failures are not
-implemented yet. See `docs/generic-telemetry.md`.
+Fenix failures (BLOCK 7), the APU operating state and the electrical system are not implemented yet. See
+`docs/generic-telemetry.md` and `docs/fenix-system-telemetry.md`.
 
 ## What is FSGAP?
 
@@ -101,6 +103,7 @@ tests/                  xUnit tests, one project per library (none needs MSFS)
 samples/                FSGAP.SimConnect.Console: live validation tool (not a package)
 docs/architecture.md    principles, design and future targets
 docs/generic-telemetry.md  the generic telemetry: SimVars, groups, cadences, conversions, Fenix policy
+docs/fenix-system-telemetry.md  the Fenix system telemetry: variables, transport, overlay, LVAR inventory
 docs/decisions/         architecture decision records (ADRs)
 docs/audits/            BLOCK 1 audit of the existing Fenix/MSFS integrations, mapping and extraction plan
 ```
@@ -118,7 +121,11 @@ var aircraft = await simulator.AircraftDetector.WaitForAircraftAsync();   // TIT
 var registry = new AircraftProviderRegistry();
 var fenixLiveries = new FenixInstalledAircraftCatalog(options);   // finds MSFS 2024 from UserCfg.opt
 await fenixLiveries.RefreshAsync();                                 // read-only scan, cached under DataDirectory
-registry.Register(new FenixAircraftProvider(fenixLiveries, genericTelemetry: simulator.Telemetry));
+registry.Register(new FenixAircraftProvider(
+    fenixLiveries,
+    genericTelemetry: simulator.Telemetry,          // generic MSFS telemetry
+    simulatorVariables: simulator,                  // Fenix variables, read on the same connection
+    aircraftDetector: simulator.AircraftDetector)); // stop reading when another aircraft is loaded
 
 var resolution = registry.Resolve(aircraft);
 if (resolution.IsResolved)
@@ -129,6 +136,12 @@ if (resolution.IsResolved)
     {
         var telemetry = await session.Telemetry.GetSnapshotAsync();
         if (telemetry.Flight.IndicatedAirspeedKnots.TryGetValue(out var ias)) { /* a fresh reading, not a default */ }
+    }
+
+    if (session.Capabilities.Telemetry.InertialReferences)
+    {
+        var telemetry = await session.Telemetry.GetSnapshotAsync();
+        var allInNav = telemetry.InertialReferences.All(ir => ir.Mode.TryGetValue(out var mode) && mode == InertialReferenceMode.Navigation);
     }
 
     // Keys come from the provider's catalog (session.Capabilities.Failures.Catalog), never from a vendor id.

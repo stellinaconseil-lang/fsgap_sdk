@@ -11,7 +11,7 @@ providers. Since 0.5.0 it also reads the generic flight telemetry on the same co
 A single public type:
 
 ```csharp
-public sealed class SimConnectSimulator : ISimulatorConnection   // + IAsyncDisposable
+public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariableReader   // + IAsyncDisposable
 {
     public SimConnectSimulator(FsgapOptions options, ILogger<SimConnectSimulator>? logger = null, TimeProvider? timeProvider = null);
 
@@ -20,6 +20,9 @@ public sealed class SimConnectSimulator : ISimulatorConnection   // + IAsyncDisp
     public ISimulatorStateProvider State { get; }        // pause, crashes
     public IAircraftDetector AircraftDetector { get; }   // loaded aircraft
     public ITelemetryProvider Telemetry { get; }         // generic flight telemetry (0.5.0)
+
+    // 0.6.0: read-only, batched read of named variables on this connection (used by aircraft providers)
+    public Task<IReadOnlyList<double>> ReadAsync(IReadOnlyList<SimulatorVariable> variables, CancellationToken cancellationToken = default);
 
     public Task StartAsync(CancellationToken cancellationToken = default);
     public Task StopAsync(CancellationToken cancellationToken = default);

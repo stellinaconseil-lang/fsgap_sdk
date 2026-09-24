@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using FSGAP.Abstractions.Simulator;
 using FSGAP.SimConnect.Native;
 
 namespace FSGAP.SimConnect.Tests.Fakes;
@@ -138,6 +139,32 @@ internal sealed class FakeSession : ISimConnectSession
 
             return Task.FromResult(_groups.TryGetValue(typeof(TGroup), out var vars) ? (TGroup)vars : default);
         }
+    }
+
+    /// <summary>Values returned by <see cref="ReadVariablesAsync"/>, by variable name. Missing names read 0.</summary>
+    public ConcurrentDictionary<string, double> Variables { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Every variable list read, in order.</summary>
+    public ConcurrentQueue<IReadOnlyList<SimulatorVariable>> VariableReads { get; } = new();
+
+    /// <summary>When set, <see cref="ReadVariablesAsync"/> waits for it before answering (a slow native read).</summary>
+    public TaskCompletionSource? VariableReadGate { get; set; }
+
+    public async Task<double[]> ReadVariablesAsync(IReadOnlyList<SimulatorVariable> variables, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        VariableReads.Enqueue(variables);
+        if (VariableReadGate is { } gate)
+        {
+            await gate.Task.WaitAsync(cancellationToken);
+        }
+
+        if (!_connected)
+        {
+            throw new InvalidOperationException("Connection closed.");
+        }
+
+        return variables.Select(v => Variables.TryGetValue(v.Name, out var value) ? value : 0.0).ToArray();
     }
 
     public Task<RawAircraftIdentity> ReadAircraftIdentityAsync(CancellationToken cancellationToken)

@@ -23,7 +23,7 @@ public sealed record TelemetryCapabilities
     /// <summary>Engine readings.</summary>
     public bool Engines { get; init; }
 
-    /// <summary>APU readings.</summary>
+    /// <summary>APU operating readings (available, running, master, bleed). The APU fire handle is under <see cref="Fire"/>.</summary>
     public bool Apu { get; init; }
 
     /// <summary>Inertial reference units.</summary>
@@ -38,7 +38,10 @@ public sealed record TelemetryCapabilities
     /// <summary>Hydraulic systems.</summary>
     public bool Hydraulics { get; init; }
 
-    /// <summary>Fire detection zones and engine/APU fire detection.</summary>
+    /// <summary>
+    /// Fire: detection zones, engine/APU fire detection, and the fire panel state (fire handles, fire warning
+    /// lights). A provider may support the panel state while fire detection itself stays unavailable.
+    /// </summary>
     public bool Fire { get; init; }
 
     /// <summary>Landing gear handle and units.</summary>

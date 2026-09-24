@@ -85,11 +85,18 @@ public class ArchitectureTests
         // transport, and nothing outside the native seam holds a SimConnect.NET client or a factory of its own.
         var client = typeof(global::SimConnect.NET.SimConnectClient);
         var factories = Transport.GetTypes().Where(t => !t.IsInterface && typeof(ISimConnectSessionFactory).IsAssignableFrom(t));
-        var holdersOfClient = Transport.GetTypes().Where(t => InstanceFields(t).Any(f => f.FieldType == client)).Select(t => Outermost(t).Name).Distinct().Order();
+        var holdersOfClient = Transport.GetTypes().Where(t => InstanceFields(t).Any(f => f.FieldType == client)).Select(t => Outermost(t).Name).Distinct().ToArray();
         var holdersOfFactory = Transport.GetTypes().Where(t => InstanceFields(t).Any(f => f.FieldType == typeof(ISimConnectSessionFactory))).Select(t => Outermost(t).Name).Distinct();
 
         Assert.Equal([typeof(SimConnectNetSessionFactory)], factories);
-        Assert.Equal([nameof(SimConnectNetSession), nameof(SimConnectNetSessionFactory)], holdersOfClient);
+        // BLOCK 6: VariableSetStructs reads a runtime variable list through the session's client (a parameter captured by
+        // its async state machine), inside the native seam; it creates no client.
+        // Compiler-generated state machines only keep a local in a field in some builds (Debug hoists it, Release may
+        // not), so the rule is an inclusion: every holder belongs to the native seam, and the session always holds one.
+        Assert.Subset(
+            new HashSet<string> { nameof(SimConnectNetSession), nameof(SimConnectNetSessionFactory), nameof(VariableSetStructs) },
+            holdersOfClient.ToHashSet());
+        Assert.Contains(nameof(SimConnectNetSession), holdersOfClient);
         Assert.Equal([nameof(SimConnectSimulator)], holdersOfFactory);
     }
 
@@ -103,6 +110,37 @@ public class ArchitectureTests
 
     /// <summary>Compiler-generated state machines and closures count as the type that declares them.</summary>
     private static Type Outermost(Type type) => type.DeclaringType is { } outer ? Outermost(outer) : type;
+
+    [Fact]
+    public void No_fenix_variable_name_exists_in_the_transport_core_or_abstractions()
+    {
+        // BLOCK 6: Fenix variable names live in FSGAP.Fenix only. Checked on the compiled binaries (string literals and
+        // metadata), so no name can slip in through a constant.
+        string[] fenixMarkers = ["S_OH_", "I_OH_", "S_MIP_", "I_MIP_", "I_ENG_FIRE", "L:S_", "L:I_"];
+        Assembly[] assemblies = [Transport, typeof(IAircraftProvider).Assembly, typeof(ObservableState<>).Assembly];
+
+        foreach (var assembly in assemblies)
+        {
+            var bytes = File.ReadAllBytes(assembly.Location);
+            foreach (var marker in fenixMarkers)
+            {
+                Assert.True(
+                    bytes.AsSpan().IndexOf(System.Text.Encoding.Unicode.GetBytes(marker)) < 0
+                    && bytes.AsSpan().IndexOf(System.Text.Encoding.UTF8.GetBytes(marker)) < 0,
+                    $"{assembly.GetName().Name} contains '{marker}'.");
+            }
+        }
+    }
+
+    [Fact]
+    public void The_transport_reads_simulator_variables_without_a_second_client()
+    {
+        // The variable reader is the transport itself, not a separate connection object.
+        Assert.True(typeof(Abstractions.Simulator.ISimulatorVariableReader).IsAssignableFrom(typeof(SimConnectSimulator)));
+        Assert.DoesNotContain(
+            Transport.GetTypes(),
+            t => t != typeof(SimConnectSimulator) && !t.IsInterface && typeof(Abstractions.Simulator.ISimulatorVariableReader).IsAssignableFrom(t));
+    }
 
     private static IEnumerable<FieldInfo> InstanceFields(Type type) =>
         type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);

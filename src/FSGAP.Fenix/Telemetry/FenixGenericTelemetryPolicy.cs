@@ -28,13 +28,14 @@ namespace FSGAP.Fenix.Telemetry;
 /// </description></item>
 /// <item><description>
 /// <b>Not read generically, so nothing to mask:</b> the other SimVars the audit lists as wrong on Fenix (APU RPM,
-/// starter and generator, engine anti-ice, slats, yellow hydraulics, BAT2). Their sections stay Unavailable until
-/// the Fenix-specific values of BLOCK 6.
+/// starter and generator, engine anti-ice, slats, yellow hydraulics, BAT2). Where FSGAP.Fenix has a proven Fenix
+/// source, <see cref="FenixTelemetryComposer"/> supplies the value instead (green and blue hydraulics); otherwise it
+/// stays Unavailable (APU operating state, yellow hydraulics, batteries).
 /// </description></item>
 /// </list>
 /// <para>
-/// BLOCK 6 adds Fenix values by extending <see cref="Apply"/> into an overlay: generic snapshot in, masked and then
-/// completed snapshot out. The composition point does not change.
+/// The mask runs first in <see cref="FenixTelemetryComposer.Compose"/>, which then lays the Fenix-specific sections
+/// over the masked generic snapshot.
 /// </para>
 /// </remarks>
 internal static class FenixGenericTelemetryPolicy
@@ -43,16 +44,42 @@ internal static class FenixGenericTelemetryPolicy
     /// What a Fenix session declares when it has generic telemetry underneath: the sections the policy keeps at
     /// least partly. Flight controls stays declared, because the flaps are supported although the speed brake is not.
     /// </summary>
-    internal static AircraftCapabilities Capabilities { get; } = new()
+    internal static TelemetryCapabilities GenericSections { get; } = new()
     {
-        Telemetry = new TelemetryCapabilities
-        {
-            FlightState = true,
-            Warnings = true,
-            Engines = true,
-            LandingGear = true,
-            FlightControls = true,
-        },
+        FlightState = true,
+        Warnings = true,
+        Engines = true,
+        LandingGear = true,
+        FlightControls = true,
+    };
+
+    /// <summary>
+    /// What the Fenix-specific reads add: inertial reference modes, fuel pump switches, green/blue hydraulic
+    /// pressure, and the fire panel (handles, engine fire lights). Not <c>Apu</c> (no proven source for the APU's
+    /// operating state), not <c>Electrical</c> (no contract field for the one reliable battery reading).
+    /// </summary>
+    internal static TelemetryCapabilities SystemSections { get; } = new()
+    {
+        InertialReferences = true,
+        FuelPumps = true,
+        Hydraulics = true,
+        Fire = true,
+    };
+
+    /// <summary>The union of two section sets.</summary>
+    internal static TelemetryCapabilities Union(TelemetryCapabilities a, TelemetryCapabilities b) => new()
+    {
+        FlightState = a.FlightState || b.FlightState,
+        Warnings = a.Warnings || b.Warnings,
+        Engines = a.Engines || b.Engines,
+        Apu = a.Apu || b.Apu,
+        InertialReferences = a.InertialReferences || b.InertialReferences,
+        FuelPumps = a.FuelPumps || b.FuelPumps,
+        Electrical = a.Electrical || b.Electrical,
+        Hydraulics = a.Hydraulics || b.Hydraulics,
+        Fire = a.Fire || b.Fire,
+        LandingGear = a.LandingGear || b.LandingGear,
+        FlightControls = a.FlightControls || b.FlightControls,
     };
 
     /// <summary>Returns the snapshot with every value known to be wrong on Fenix made Unavailable.</summary>

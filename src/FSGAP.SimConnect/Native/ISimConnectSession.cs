@@ -51,6 +51,13 @@ internal interface ISimConnectSession : IAsyncDisposable
     /// <typeparam name="TGroup">A struct whose fields carry SimVar attributes.</typeparam>
     Task<TGroup> ReadTelemetryGroupAsync<TGroup>(CancellationToken cancellationToken)
         where TGroup : struct;
+
+    /// <summary>
+    /// Reads a runtime list of variables as a single native request (see <see cref="VariableSetStructs"/>), for
+    /// <see cref="Abstractions.Simulator.ISimulatorVariableReader"/>.
+    /// </summary>
+    /// <returns>One value per variable, in list order.</returns>
+    Task<double[]> ReadVariablesAsync(IReadOnlyList<Abstractions.Simulator.SimulatorVariable> variables, CancellationToken cancellationToken);
 }
 
 /// <summary>Opens native connections.</summary>

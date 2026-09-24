@@ -1,4 +1,4 @@
-# Generic flight telemetry (FSGAP.SimConnect, 0.5.0)
+# Generic flight telemetry (FSGAP.SimConnect, since 0.5.0)
 
 `SimConnectSimulator.Telemetry` is an `ITelemetryProvider` for whatever aircraft is loaded in MSFS. It reads stock
 SimVars only. It never reads LVARs, never calls a vendor API, and does not know what aircraft it is reading.
@@ -78,8 +78,9 @@ Every conversion lives in `TelemetryConversions`, and every mapping in `GenericT
 tested, including against golden fixtures (parked, taxi, takeoff, climb, cruise, approach, landing, gear in transit,
 flaps handle ahead of surfaces, overspeed) that recompute the audited applications' formulas.
 
-Everything outside these groups stays **Unavailable**: APU, inertial references, fuel pumps, electrical,
-hydraulics and fire zones.
+In the generic telemetry, everything outside these groups stays **Unavailable**: APU, inertial references, fuel
+pumps, electrical, hydraulics and fire zones. Aircraft providers may supply some of them from their own sources
+(Fenix: [fenix-system-telemetry.md](fenix-system-telemetry.md)).
 
 ## Snapshot, freshness and streaming
 
@@ -113,8 +114,8 @@ hydraulics and fire zones.
 The transport knows no aircraft. `FSGAP.Fenix` composes on it with Core's `TransformedTelemetryProvider`:
 
 ```csharp
-new FenixAircraftProvider(catalog, genericTelemetry: simulator.Telemetry)
-// session.Telemetry = generic snapshot → FenixGenericTelemetryPolicy.Apply → Fenix snapshot
+new FenixAircraftProvider(catalog, genericTelemetry: simulator.Telemetry /* , simulatorVariables, aircraftDetector (0.6.0) */)
+// session.Telemetry = generic snapshot → FenixGenericTelemetryPolicy.Apply → Fenix overlay (0.6.0) → Fenix snapshot
 ```
 
 | Generic value | Fenix session | Reason |
@@ -126,9 +127,11 @@ new FenixAircraftProvider(catalog, genericTelemetry: simulator.Telemetry)
 | Flaps handle and trailing-edge surfaces | **accepted** | surfaces verified on Fenix (audit §1.5) |
 | `SpeedBrakeDeploymentPercent` | **masked → Unavailable** | `SPOILERS LEFT/RIGHT POSITION` has the wrong scale on Fenix (audit §1.5) |
 | APU (RPM, starter, generator), engine anti-ice, slats, yellow hydraulics, BAT2 | not read generically; nothing to mask | "confirmed wrong on Fenix" in the audit |
-| APU, IRS, fuel pumps, fire, hydraulics, electrical | **deferred to BLOCK 6** (Fenix values) | Unavailable until then |
+| IRS, fuel pumps, fire panel, green/blue hydraulics | **supplied by the Fenix overlay since 0.6.0** | see [fenix-system-telemetry.md](fenix-system-telemetry.md) |
+| APU operating state, electrical, yellow hydraulics | no validated Fenix source | Unavailable |
 
-A Fenix session declares `FlightState`, `Warnings`, `Engines`, `LandingGear` and `FlightControls`; `FlightControls`
+With generic telemetry, a Fenix session declares `FlightState`, `Warnings`, `Engines`, `LandingGear` and
+`FlightControls` (plus the system sections of 0.6.0 when it also has a variable reader); `FlightControls`
 stays declared because flaps are supported even though the speed brake is masked. Without generic telemetry, the
 session declares `AircraftCapabilities.None`, as in 0.4.0.
 

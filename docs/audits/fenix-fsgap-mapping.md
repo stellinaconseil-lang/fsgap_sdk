@@ -38,6 +38,19 @@ proposals for later blocks.
 > - Still open: G-T4/G-T5/G-T6, the rest of G-T8, APU bleed (not verified on Fenix) and generic
 >   hydraulics/electrical. The Fenix rows are BLOCK 6.
 
+> **Status after BLOCK 6 (version 0.6.0).** In the rows of §1.2–§1.6 marked FSGAP.Fenix, the ones implemented are:
+>
+> - ADIRS modes: `InertialReferences[1..3].Mode`;
+> - pump switches: `FuelPumps[left-1..right-2].IsOn`, switch position only (G-C1);
+> - fire handles and engine fire pushbutton lights: the new neutral fields `FireHandlePulled` and `FireWarningLit`;
+> - `HYDRAULIC PRESSURE:1/2`: green and blue `PressurePsi`.
+>
+> Still Unavailable, with no validated source: `FireDetected`, `FireZones`, IR aligned and fault, pump fault, the
+> APU operating state, yellow hydraulics, batteries and buses.
+>
+> FIRE TEST, agent and MASTER WARNING pushbuttons (counters) stay deferred (G-C2). The ENG FIRE TEST probe (G-C3) is
+> classified diagnostic only and is not ported. Full LVAR inventory: [../fenix-system-telemetry.md](../fenix-system-telemetry.md).
+
 Column meanings:
 
 - **Source:** FSH = FSHANGAR client, FLP = FLIPPP client, both = identical or near-identical code in both.

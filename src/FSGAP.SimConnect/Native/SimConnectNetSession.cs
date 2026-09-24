@@ -1,3 +1,4 @@
+using FSGAP.Abstractions.Simulator;
 using SimConnect.NET;
 using SimConnect.NET.Events;
 
@@ -5,7 +6,8 @@ namespace FSGAP.SimConnect.Native;
 
 /// <summary>
 /// <see cref="ISimConnectSessionFactory"/> backed by SimConnect.NET. Together with
-/// <see cref="SimConnectNetSession"/>, this is the only code in FSGAP that touches SimConnect.NET types.
+/// <see cref="SimConnectNetSession"/>, the request structs and <see cref="VariableSetStructs"/>, this is the only code in
+/// FSGAP that touches SimConnect.NET types.
 /// </summary>
 internal sealed class SimConnectNetSessionFactory : ISimConnectSessionFactory
 {
@@ -71,6 +73,9 @@ internal sealed class SimConnectNetSession : ISimConnectSession
     public Task<TGroup> ReadTelemetryGroupAsync<TGroup>(CancellationToken cancellationToken)
         where TGroup : struct =>
         _client.SimVars.GetAsync<TGroup>(0, cancellationToken);
+
+    public Task<double[]> ReadVariablesAsync(IReadOnlyList<SimulatorVariable> variables, CancellationToken cancellationToken) =>
+        VariableSetStructs.For(variables)(_client, cancellationToken);
 
     public async ValueTask DisposeAsync()
     {

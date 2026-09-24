@@ -4,7 +4,8 @@
 // pause/crash state, the raw aircraft descriptor reported by MSFS, what the Fenix provider makes of it (match,
 // normalized identity, catalog match) and, every two seconds, a compact view of the normalized telemetry: the Fenix
 // session's (generic telemetry with the Fenix policy applied) when a Fenix is loaded, the generic telemetry
-// otherwise. Read-only: no failure injection, nothing written to the simulator.
+// otherwise, followed for a Fenix by its systems (IRS, fuel pumps, fire panel, hydraulics). Read-only: no failure
+// injection, nothing written to the simulator.
 //
 // Usage: dotnet run --project samples/FSGAP.SimConnect.Console [-- --minutes N]
 using System.Diagnostics;
@@ -49,8 +50,15 @@ foreach (var error in scan.Errors)
 
 await using var simulator = new SimConnectSimulator(options, new ConsoleLogger<SimConnectSimulator>());
 
-// The Fenix provider composes on the transport's generic telemetry: one native connection for everything.
-var provider = new FenixAircraftProvider(catalog, logger: new ConsoleLogger<FenixAircraftProvider>(), genericTelemetry: simulator.Telemetry);
+// The Fenix provider composes on the transport: generic telemetry, Fenix variables read through the transport, and
+// the transport's aircraft detector. One native connection for everything.
+var provider = new FenixAircraftProvider(
+    catalog,
+    logger: new ConsoleLogger<FenixAircraftProvider>(),
+    genericTelemetry: simulator.Telemetry,
+    simulatorVariables: simulator,
+    aircraftDetector: simulator.AircraftDetector,
+    telemetryOptions: options.Telemetry);
 IAircraftSession? session = null;
 (string Source, ITelemetryProvider Provider) shown = ("generic", simulator.Telemetry);
 
@@ -126,9 +134,15 @@ async Task PrintTelemetryAsync(CancellationToken cancellationToken)
             var g = t.LandingGear;
             var c = t.FlightControls;
             Print($"t.{source}", $"GND={B(f.OnGround)} LAT={D(f.LatitudeDegrees, "F5")} LON={D(f.LongitudeDegrees, "F5")} ALT={D(f.AltitudeFeet, "F0")} AGL={D(f.HeightAboveGroundFeet, "F0")} RA={D(f.RadioAltitudeFeet, "F0")} IAS={D(f.IndicatedAirspeedKnots, "F0")} GS={D(f.GroundSpeedKnots, "F0")} VS={D(f.VerticalSpeedFeetPerMinute, "F0")} TD={D(f.TouchdownVerticalSpeedFeetPerMinute, "F0")}");
-            Print($"t.{source}", $"HDG={D(f.HeadingMagneticDegrees, "F0")} PITCH={D(f.PitchDegrees, "+0.0;-0.0")} BANK={D(f.BankDegrees, "+0.0;-0.0")} G={D(f.GLoad, "F2")} WARN ovs={B(w.Overspeed)} flap={B(w.FlapSpeedExceeded)} gear={B(w.GearSpeedExceeded)} stall={B(w.Stall)}");
+            Print($"t.{source}", $"HDG={D(f.HeadingMagneticDegrees, "F0")} PITCH={D(f.PitchDegrees, "+0.0;-0.0;0.0")} BANK={D(f.BankDegrees, "+0.0;-0.0;0.0")} G={D(f.GLoad, "F2")} WARN ovs={B(w.Overspeed)} flap={B(w.FlapSpeedExceeded)} gear={B(w.GearSpeedExceeded)} stall={B(w.Stall)}");
             Print($"t.{source}", t.Engines.Count == 0 ? "ENG n/a" : string.Join(" | ", t.Engines.Select(e => $"ENG{e.Index} run={B(e.Running)} N1={D(e.N1Percent, "F1")} N2={D(e.N2Percent, "F1")} EGT={D(e.EgtCelsius, "F0")} FF={D(e.FuelFlowKilogramsPerHour, "F0")}kg/h fire={B(e.FireDetected)}")));
             Print($"t.{source}", $"GEAR handle={B(g.HandleDown)} {string.Join(' ', g.Units.Select(u => $"{u.Id}={D(u.ExtensionPercent, "F0")}"))} FLAPS handle={D(c.FlapsHandlePercent, "F0")} {string.Join(' ', c.FlapSurfaces.Select(s => $"{s.Id}={D(s.ExtensionPercent, "F0")}"))} SPDBRK={D(c.SpeedBrakeDeploymentPercent, "F0")} (generic {D(generic.FlightControls.SpeedBrakeDeploymentPercent, "F0")})");
+            if (source == "fenix")
+            {
+                // Fenix systems: only what the session supports, in normalized terms (never variable names).
+                Print("fenix.sys", $"IRS {Join(t.InertialReferences.Select(i => $"IR{i.Index}={Mode(i.Mode)}"))}   PUMPS {Join(t.FuelPumps.Select(p => $"{p.Id}={OnOff(p.IsOn)}"))}");
+                Print("fenix.sys", $"FIRE {Join(t.Engines.Select(e => $"ENG{e.Index} handle={Handle(e.FireHandlePulled)} warning={OnOff(e.FireWarningLit)}"))}  APU handle={Handle(t.Apu.FireHandlePulled)}   HYD {Join(t.HydraulicSystems.Select(h => $"{h.Id}={(h.PressurePsi.IsKnown ? D(h.PressurePsi, "F0") + " psi" : D(h.PressurePsi, "F0"))}"))}");
+            }
         }
     }
     catch (OperationCanceledException)
@@ -139,6 +153,18 @@ async Task PrintTelemetryAsync(CancellationToken cancellationToken)
 
 static string D(TelemetryValue<double> v, string format) =>
     v.IsKnown ? v.Value.ToString(format, CultureInfo.InvariantCulture) : v.State == ValueState.Unknown ? "unk" : "n/a";
+
+static string Join(IEnumerable<string> parts) => parts.Any() ? string.Join(' ', parts) : "n/a";
+
+static string OnOff(TelemetryValue<bool> v) =>
+    v.IsKnown ? (v.Value ? "ON" : "off") : v.State == ValueState.Unknown ? "unk" : "n/a";
+
+static string Handle(TelemetryValue<bool> v) =>
+    v.IsKnown ? (v.Value ? "PULLED" : "stowed") : v.State == ValueState.Unknown ? "unk" : "n/a";
+
+static string Mode(TelemetryValue<InertialReferenceMode> v) =>
+    v.IsKnown ? v.Value switch { InertialReferenceMode.Navigation => "NAV", InertialReferenceMode.Attitude => "ATT", InertialReferenceMode.Off => "OFF", _ => v.Value.ToString() }
+    : v.State == ValueState.Unknown ? "unk" : "n/a";
 
 static string B(TelemetryValue<bool> v) =>
     v.IsKnown ? (v.Value ? "Y" : "N") : v.State == ValueState.Unknown ? "unk" : "n/a";

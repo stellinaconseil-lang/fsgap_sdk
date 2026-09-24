@@ -17,4 +17,10 @@ public sealed record ApuTelemetry
 
     /// <summary>Whether the APU fire detection reports a fire.</summary>
     public TelemetryValue<bool> FireDetected { get; init; }
+
+    /// <summary>
+    /// Whether the APU fire handle (fire pushbutton) is pulled / released. A crew action on the fire panel, not a
+    /// fire indication. Covered by <c>TelemetryCapabilities.Fire</c>, not <c>TelemetryCapabilities.Apu</c>.
+    /// </summary>
+    public TelemetryValue<bool> FireHandlePulled { get; init; }
 }

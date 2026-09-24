@@ -326,7 +326,56 @@ Original plan:
   - Every mapping-document row marked "Generic provider" is implemented or explicitly deferred (P3).
   - Live checklist: a full taxi / takeoff / landing with values compared against the legacy CSV diagnostic export.
 
-## BLOCK 6 — Fenix systems telemetry (LVARs)
+## BLOCK 6 — Fenix systems telemetry (LVARs) — DONE (version 0.6.0)
+
+**Delivered** (details in [../fenix-system-telemetry.md](../fenix-system-telemetry.md)):
+
+- `ISimulatorVariableReader` (Abstractions, read-only), implemented by `SimConnectSimulator` on its single connection.
+  - Each list is one batched request, through a struct emitted at runtime and SimConnect.NET's public `GetAsync<T>`.
+  - The Fenix names never enter FSGAP.SimConnect.
+- A Fenix session polls:
+  - 14 proven LVARs every 1 s: IR1–3 modes, 6 pump switches, 3 fire handles, 2 engine fire lights;
+  - `HYDRAULIC PRESSURE:1/2` every 5 s.
+- Polling rules:
+  - it happens only inside a session, so only for an aircraft the recognizer accepts;
+  - it is gated on the detector: no read with nothing loaded; everything discarded, with a new generation, when
+    another aircraft appears;
+  - it stops with the session.
+- The overlay goes through the BLOCK 5 composition point (`TransformedTelemetryProvider`, which now owns the
+  polling), with Core freshness.
+- Contract: `EngineTelemetry.FireHandlePulled` and `FireWarningLit`, `ApuTelemetry.FireHandlePulled`.
+- Capabilities: + `InertialReferences`, `FuelPumps`, `Hydraulics`, `Fire`.
+- 76 tests added: mapping, composition, lifecycle, legacy parity fixtures, reader, architecture and failure
+  boundary.
+
+**Deviations from the plan below, and why:**
+
+- **Not all 39 LVARs.** 14 are migrated, 15 deferred, 8 discovery-only and 2 unknown. The full classification is in
+  the inventory.
+  - The FIRE TEST, agent and MASTER WARNING pushbuttons are counters, so crew-action events (G-C2, still deferred).
+  - The agent lights only fed the probe.
+- **Cockpit monitor and `EngFireTestProbe` not ported.**
+  - Both produce logs only, and the probe never achieved failure correlation.
+  - The BLOCK 6 specification requires diagnostics not to reach the business API, and no consumer subscribes to
+    them.
+  - The probe is classified DIAGNOSTIC ONLY; D2 disappears with it.
+- **1 s instead of 10 Hz.** 10 Hz only served sub-second FIRE TEST counter presses, which are not exposed.
+- **Fire panel instead of fire detection.** Handles and lights are exposed as neutral fields (new contract fields).
+  `FireDetected` stays Unavailable.
+- **Green/blue hydraulics added.** These are stock SimVars whose index meaning is Fenix knowledge, ECAM-verified in
+  the audit. Yellow stays Unavailable.
+- **APU and electrical deferred.** There is no validated source for the APU operating state, and no contract field
+  for the one reliable battery voltage.
+
+**Live validation (2026-09-24):** LIVE TEST, MSFS 2024, Fenix A319 parked with both engines running, sample read-only.
+
+- Both groups were read without error on the single connection, through the emitted struct.
+- IR1–3 NAV, the six pumps ON, three handles stowed, lights off.
+- Green 2805 psi, blue 2812 psi.
+- **Not tested live:** changes of the switches and selectors, a pulled handle, a FIRE TEST (no manual cockpit
+  interaction during this block). These are AUTOMATED ONLY (legacy parity fixtures).
+
+**Original plan:**
 
 - **Goal:** expose the proven Fenix cockpit states through normalized telemetry.
 - **Scope:**
