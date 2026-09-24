@@ -14,4 +14,7 @@ public sealed record HydraulicSystemTelemetry
 
     /// <summary>System pressure, in psi.</summary>
     public TelemetryValue<double> PressurePsi { get; init; }
+
+    /// <summary>Reservoir fluid quantity, in percent of full.</summary>
+    public TelemetryValue<double> ReservoirPercent { get; init; }
 }

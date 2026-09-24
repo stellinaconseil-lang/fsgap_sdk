@@ -1,12 +1,13 @@
-# Fenix system telemetry (FSGAP.Fenix, 0.6.0)
+# Fenix system telemetry (FSGAP.Fenix, since 0.6.0; reservoirs and BAT1 in 0.9.0)
 
 A Fenix session combines the simulator's generic telemetry ([generic-telemetry.md](generic-telemetry.md)) with the
 Fenix-specific systems that the audited applications had already proven live: ADIRS mode selectors, fuel pump
-switches, the fire panel, and green/blue hydraulic pressure.
+switches, the fire panel, green/blue hydraulic pressure and, since 0.9.0, green/blue reservoir quantity and the BAT1
+voltage.
 
 ```text
 generic AircraftTelemetry (FSGAP.SimConnect)
-      │  FenixGenericTelemetryPolicy: mask what is wrong on Fenix (speed brake)
+      │  FenixGenericTelemetryPolicy: mask what is wrong or unverified on Fenix (speed brake; APU bleed since 0.9.0)
       ▼
 masked generic snapshot  ◄── Fenix overlay (FenixSystemState, polled by the session)
       │  FenixTelemetryComposer + TelemetryFreshness
@@ -52,12 +53,12 @@ the EFB, documented in [fenix-failures.md](fenix-failures.md).
 | Group | Variables | Cadence | Why |
 |---|---|---|---|
 | COCKPIT | 14 LVARs: IR1–3 mode, 6 pump switches, ENG1/ENG2/APU fire handles, ENG1/ENG2 fire pushbutton lights | 1 s | Legacy used 10 Hz only to catch sub-second FIRE TEST presses on counters, which FSGAP does not expose. A selector, a pump switch, a latched handle or a lit fire warning stays in its state for seconds. |
-| HYDRAULICS | 2 stock SimVars: `HYDRAULIC PRESSURE:1` (green), `:2` (blue), Psi | 5 s | The audited applications' systems cadence; a slow quantity. |
+| SYSTEMS (named HYDRAULICS before 0.9.0) | 5 stock SimVars: `HYDRAULIC PRESSURE:1/2` (Psi), `HYDRAULIC RESERVOIR PERCENT:1/2` (Percent), `ELECTRICAL BATTERY VOLTAGE:1` (Volts) | 5 s | The audited applications' systems cadence; slow quantities. Stock SimVars, but their index meaning is Fenix knowledge (see below), so they are read here and not by the generic groups. |
 
-- **Added native activity.** 1 + 0.2 = **1.2 batched reads/s**, carrying 16 variables. These reads exist only while
-  a Fenix session lives and the attached Fenix is loaded.
-- **Total with BLOCK 5.** About 1.7 generic group reads/s, plus 0.2–0.5 identity reads/s, plus 1.2 Fenix reads/s,
-  so **about 3.1–3.4 native reads per second**.
+- **Added native activity.** 1 + 0.2 = **1.2 batched reads/s**, carrying 19 variables. 0.9.0 widened the systems
+  request; it added no request. These reads exist only while a Fenix session lives and the attached Fenix is loaded.
+- **Total with the generic telemetry.** About 1.8 generic group reads/s (0.9.0), plus 0.2–0.5 identity reads/s, plus
+  1.2 Fenix reads/s, so **about 3.2–3.5 native reads per second**.
 - **Legacy comparison.** 10 reads/s of 39 LVARs for every aircraft, plus the identity, systems and position
   groups.
 
@@ -72,7 +73,12 @@ the EFB, documented in [fenix-failures.md](fenix-failures.md).
 | `Engines[n].FireDetected`, `Apu.FireDetected` | — | — | **Unavailable.** No source distinguishes a fire from a test. |
 | `Apu.FireHandlePulled` | `L:S_OH_FIRE_APU_BUTTON` | 0 → false, 1 → true | — |
 | `HydraulicSystems["green"/"blue"].PressurePsi` | `HYDRAULIC PRESSURE:1/2` (Psi) | as read (cross-checked against the Fenix ECAM) | `Pressurized`: Unavailable (no validated threshold) |
-| `HydraulicSystems["yellow"]` | — | present, all values Unavailable | Index 3 reads 0 psi while the ECAM shows 3000 |
+| `HydraulicSystems["green"/"blue"].ReservoirPercent` (0.9.0) | `HYDRAULIC RESERVOIR PERCENT:1/2` (Percent) | as read; same index-to-circuit mapping as the pressure | — |
+| `HydraulicSystems["yellow"]` | — | present, all values Unavailable | Index 3 reads 0 psi while the ECAM shows 3000; it is not read for the reservoir either |
+| `Batteries["bat-1"].VoltageVolts` (0.9.0) | `ELECTRICAL BATTERY VOLTAGE:1` (Volts) | as read (matches the ECAM ELEC page, FSHANGAR 2026-08-31) | — |
+| `Batteries["bat-2"]` (0.9.0) | — | present, voltage Unavailable | Index 2 does not read BAT2 on Fenix |
+
+A non-finite reading (NaN, infinity) of a systems variable is Unknown, never a number.
 
 **Contract extension (minimal).** `EngineTelemetry.FireHandlePulled`, `EngineTelemetry.FireWarningLit` and
 `ApuTelemetry.FireHandlePulled` are new. They are neutral fire panel states: the only honest way to expose what the
@@ -82,10 +88,10 @@ fire panel state.
 ## Composition, freshness, lifecycle
 
 - **Overlay.**
-  - Sections only Fenix feeds (IRs, pumps, hydraulics) replace the generic sections, which are empty.
+  - Sections only Fenix feeds (IRs, pumps, hydraulics, batteries) replace the generic sections, which are empty.
   - Fire panel fields merge into `Engines` by index, adding an entry if the generic engines have not arrived yet.
   - Where both sources could exist, a Fenix value that is not Unavailable wins; otherwise the generic value stays.
-  - The generic speed brake stays masked; no Fenix source replaces it.
+  - The generic speed brake and APU bleed stay masked; no Fenix source replaces them.
 - **Partial updates.** A group read replaces only its own sections of an immutable `FenixSystemState`.
 - **ObservedAt.** Every Fenix value carries its own receive time.
 - **Freshness.**
@@ -105,15 +111,15 @@ fire panel state.
 The session is attached with the descriptor the detector published. `FenixAircraftProvider` takes the detector as
 `aircraftDetector` to know when that aircraft is no longer the loaded one.
 
-## Capabilities of a Fenix session (0.6.0)
+## Capabilities of a Fenix session (0.9.0)
 
 With generic telemetry and a variable reader:
-- `FlightState`, `Warnings`, `Engines`, `LandingGear`, `FlightControls`;
-- `InertialReferences`, `FuelPumps`, `Hydraulics`, `Fire`.
+- `FlightState`, `Warnings`, `Engines`, `LandingGear`, `FlightControls`, `Pressurization`, `Environment`;
+- `InertialReferences`, `FuelPumps`, `Hydraulics`, `Fire`, and `Electrical` since 0.9.0 (BAT1 voltage; the
+  electrical buses stay empty).
 
 Not declared:
-- `Apu`: no proven source for master, running, available or bleed;
-- `Electrical`: no contract field for the one reliable battery reading;
+- `Apu`: no proven source for master, running or available, and the generic bleed is masked until verified on Fenix;
 - no failures in the telemetry sections; failures are a separate capability since 0.7.0 ([fenix-failures.md](fenix-failures.md)).
 
 ## Inventory of the 39 legacy cockpit LVARs
@@ -167,14 +173,16 @@ read-only.
 cockpit monitor's edge logs, or the fire-test probe.
 
 Stock SimVars with Fenix semantics, also migrated:
-- `HYDRAULIC PRESSURE:1/2` (PRODUCTION, 5 s).
+- `HYDRAULIC PRESSURE:1/2` (PRODUCTION, 5 s);
+- `HYDRAULIC RESERVOIR PERCENT:1/2` (PRODUCTION since 0.9.0, 5 s; G-T9);
+- `ELECTRICAL BATTERY VOLTAGE:1` (PRODUCTION since 0.9.0, 5 s; G-T9).
 
 Stock SimVars with Fenix semantics, not migrated:
 - `HYDRAULIC PRESSURE:3`: DEAD on Fenix, wrong;
-- `ELECTRICAL BATTERY VOLTAGE:1`: DEFERRED, no contract field;
-- `ELECTRICAL BATTERY VOLTAGE:2`: DEAD, wrong;
-- `HYDRAULIC RESERVOIR PERCENT:1/2`: DEFERRED, G-T9;
-- `PNEUMATICS APU BLEED AIR`: DEFERRED, never verified on Fenix.
+- `ELECTRICAL BATTERY VOLTAGE:2`: DEAD, wrong.
+
+`PNEUMATICS APU BLEED AIR` is read by the generic telemetry since 0.9.0 and **masked** on a Fenix session until it is
+verified with the APU bleed on ([generic-telemetry.md](generic-telemetry.md#fenix-policy)).
 
 ## ENG FIRE TEST probe: DIAGNOSTIC ONLY
 
@@ -193,7 +201,17 @@ and agent lights it needs stay out of the poll.
   practice, and no consumer uses test events.
 - `FireDetected` stays Unavailable for engines and the APU, and `FireZones` stays empty (no cargo or lavatory
   detection source).
-- The APU operating state, IR alignment and fault, pump low pressure, electrical buses and batteries have no source.
+- The APU operating state, IR alignment and fault, pump low pressure, electrical buses and BAT2 have no source.
 - `Pressurized` has no validated threshold.
 - **Stream cadence.** The session stream is driven by the generic stream: 1 s cadence while the generic FAST group
   flows. With no generic telemetry, the stream falls back to Core's polling stream at the requested interval.
+
+## Live validation (0.9.0 additions)
+
+**LIVE TEST, 2026-09-24**, MSFS 2024, Fenix A319 CFM, parked at LFMN, engines running, read-only:
+- green reservoir 97 %, blue reservoir 97 % (pressures 2816 / 2823 psi), yellow n/a;
+- BAT1 28.0 V, BAT2 n/a;
+- `Electrical` declared, `Apu` not declared, APU bleed n/a on the session while the generic reads 0.
+
+**Not verified live:** a reservoir quantity away from its normal level (a leak) and a BAT1 voltage under load or on
+charge. Both would need a failure or a cockpit action.

@@ -52,6 +52,29 @@ public class TelemetryTransportTests
     }
 
     [Fact]
+    public async Task Environment_group_is_read_about_every_ten_seconds_and_published()
+    {
+        await using var h = new Harness(pollTelemetry: true);
+        var session = h.Factory.SimulatorPresent(Identity.Of("Test Airliner"));
+        session.SetGroup(new EnvironmentGroupVars { OutsideAirTemperatureCelsius = -40.0, WindDirectionDegreesTrue = 250.0, WindSpeedKnots = 60.0, PrecipitationMask = 8.0 });
+        await h.Simulator.StartAsync();
+        await AdvanceUntilAsync(h, t => t.Environment.Precipitation.IsKnown);
+        var before = session.GroupReads<EnvironmentGroupVars>();
+
+        for (var i = 0; i < 20; i++)
+        {
+            await StepAsync(h, TimeSpan.FromSeconds(1));
+        }
+
+        Assert.Equal(TimeSpan.FromSeconds(10), SimConnectSimulator.EnvironmentGroupInterval);
+        Assert.InRange(session.GroupReads<EnvironmentGroupVars>() - before, 1, 3);
+        var snapshot = await h.Simulator.Telemetry.GetSnapshotAsync();
+        Assert.Equal(-40.0, snapshot.Environment.OutsideAirTemperatureCelsius.Value);
+        Assert.Equal(PrecipitationType.Snow, snapshot.Environment.Precipitation.Value);
+        Assert.Single(h.Factory.Sessions);
+    }
+
+    [Fact]
     public async Task A_failing_group_is_isolated_and_its_values_expire_while_the_others_continue()
     {
         await using var h = new Harness(pollTelemetry: true);

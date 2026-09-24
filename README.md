@@ -1,6 +1,6 @@
 # FSGAP_SDK
 
-Version 0.8.0. It provides:
+Version 0.9.0. It provides:
 
 - contracts for aircraft providers, telemetry and failures;
 - normalized failure keys;
@@ -11,17 +11,20 @@ Version 0.8.0. It provides:
   that resolves registrations (`FSGAP.Fenix`);
 - **a real MSFS SimConnect transport** (`FSGAP.SimConnect`): automatic connection and reconnection, pause and
   crash state, detection of the loaded aircraft, and **generic flight telemetry** (flight state, position at 1 Hz,
-  attitude, speeds, engines, gear, flaps, flight-envelope warnings) read on that same single connection, plus a
+  attitude, speeds, angle of attack, weight, body accelerations, engines with oil, starter, thrust lever and reverser,
+  gear, brakes, steering, flaps, control surface deflections, flight-envelope warnings, APU bleed, cabin
+  pressurization, weather) read on that same single connection, plus a
   read-only, batched reader of named simulator variables on that connection (`ISimulatorVariableReader`);
 - **Fenix telemetry**: a Fenix session exposes the generic telemetry with the values known to be wrong on Fenix
   masked, plus the proven Fenix systems: ADIRS modes, fuel pump switches, fire panel (handles, fire warning lights)
-  and green/blue hydraulic pressure;
+  green/blue hydraulic pressure and reservoir, and the BAT1 voltage;
 - **Fenix failures** through the local Fenix EFB: a normalized catalog of 40 failure keys (the failures the
   applications use today), trigger, clear and read of the active failures, never exposing a Fenix id;
 - **a simulator airport service** (`IAirportService`): the nearest airports to any coordinate, from the simulator's own
   facility list, on the same single connection.
 
-Parking search, flight loading, the APU operating state and the electrical system are not implemented yet. See
+Parking search, flight loading, the APU operating state and the electrical buses are not implemented yet. 0.9.0 closes
+the generic telemetry gaps that blocked moving FSHANGAR onto FSGAP; that migration is the next step. See
 `docs/generic-telemetry.md`, `docs/fenix-system-telemetry.md`, `docs/fenix-failures.md` and
 `docs/simulator-airport-service.md`.
 

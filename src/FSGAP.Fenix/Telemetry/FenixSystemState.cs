@@ -23,8 +23,11 @@ internal sealed record FenixSystemState
     /// <summary>APU fire handle, from the cockpit group.</summary>
     internal TelemetryValue<bool> ApuFireHandlePulled { get; init; }
 
-    /// <summary>Green, blue and yellow circuits, from the hydraulics group.</summary>
+    /// <summary>Green, blue and yellow circuits, from the systems group.</summary>
     internal IReadOnlyList<HydraulicSystemTelemetry> HydraulicSystems { get; init; } = [];
+
+    /// <summary>BAT1 and BAT2, from the systems group.</summary>
+    internal IReadOnlyList<BatteryTelemetry> Batteries { get; init; } = [];
 }
 
 /// <summary>Fire panel state for one engine.</summary>

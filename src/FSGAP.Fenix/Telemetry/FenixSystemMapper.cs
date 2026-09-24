@@ -31,7 +31,7 @@ internal static class FenixSystemMapper
         ("right-2", "Right tank pump 2", FenixVariables.CockpitIndex.FuelRight2),
     ];
 
-    /// <summary>Applies a cockpit group read: replaces IRs, pumps and fire panel, keeps hydraulics.</summary>
+    /// <summary>Applies a cockpit group read: replaces IRs, pumps and fire panel, keeps hydraulics and batteries.</summary>
     /// <exception cref="ArgumentException"><paramref name="raw"/> does not have one value per cockpit variable.</exception>
     internal static FenixSystemState ApplyCockpit(FenixSystemState current, IReadOnlyList<double> raw, DateTimeOffset observedAt)
     {
@@ -64,21 +64,46 @@ internal static class FenixSystemMapper
         };
     }
 
-    /// <summary>Applies a hydraulics group read: replaces the hydraulic systems, keeps the rest.</summary>
-    /// <exception cref="ArgumentException"><paramref name="raw"/> does not have one value per hydraulics variable.</exception>
-    internal static FenixSystemState ApplyHydraulics(FenixSystemState current, IReadOnlyList<double> raw, DateTimeOffset observedAt)
+    /// <summary>Applies a systems group read: replaces the hydraulic systems and batteries, keeps the rest.</summary>
+    /// <exception cref="ArgumentException"><paramref name="raw"/> does not have one value per systems variable.</exception>
+    internal static FenixSystemState ApplySystems(FenixSystemState current, IReadOnlyList<double> raw, DateTimeOffset observedAt)
     {
-        RequireCount(raw, FenixVariables.Hydraulics.Count);
+        RequireCount(raw, FenixVariables.Systems.Count);
+        double At(FenixVariables.SystemsIndex index) => raw[(int)index];
+
         return current with
         {
             HydraulicSystems =
             [
-                Circuit("green", "Green", raw[(int)FenixVariables.HydraulicsIndex.GreenPressure], observedAt),
-                Circuit("blue", "Blue", raw[(int)FenixVariables.HydraulicsIndex.BluePressure], observedAt),
+                Circuit(
+                    "green",
+                    "Green",
+                    At(FenixVariables.SystemsIndex.GreenPressure),
+                    At(FenixVariables.SystemsIndex.GreenReservoir),
+                    observedAt),
+                Circuit(
+                    "blue",
+                    "Blue",
+                    At(FenixVariables.SystemsIndex.BluePressure),
+                    At(FenixVariables.SystemsIndex.BlueReservoir),
+                    observedAt),
 
                 // Present so consumers see the circuit exists, but with no value: the only generic source (index 3)
                 // is confirmed wrong on Fenix, and no Fenix variable for it was ever validated.
                 new HydraulicSystemTelemetry { Id = "yellow", Name = "Yellow" },
+            ],
+            Batteries =
+            [
+                new BatteryTelemetry
+                {
+                    Id = "bat-1",
+                    Name = "Battery 1",
+                    VoltageVolts = Finite(At(FenixVariables.SystemsIndex.Battery1Voltage), observedAt),
+                },
+
+                // Same reasoning as the yellow circuit: BAT2 exists, but its only generic source (index 2) is
+                // confirmed wrong on Fenix.
+                new BatteryTelemetry { Id = "bat-2", Name = "Battery 2" },
             ],
         };
     }
@@ -103,13 +128,18 @@ internal static class FenixSystemMapper
     private static InertialReferenceTelemetry Ir(int index, double raw, DateTimeOffset observedAt) =>
         new() { Index = index, Mode = IrMode(raw, observedAt) };
 
-    private static HydraulicSystemTelemetry Circuit(string id, string name, double psi, DateTimeOffset observedAt) =>
+    private static HydraulicSystemTelemetry Circuit(string id, string name, double psi, double reservoirPercent, DateTimeOffset observedAt) =>
         new()
         {
             Id = id,
             Name = name,
-            PressurePsi = double.IsFinite(psi) ? TelemetryValue<double>.Known(psi, observedAt) : TelemetryValue<double>.Unknown,
+            PressurePsi = Finite(psi, observedAt),
+            ReservoirPercent = Finite(reservoirPercent, observedAt),
         };
+
+    /// <summary>A measured quantity: Known when finite, Unknown otherwise (the variable answered with no number).</summary>
+    private static TelemetryValue<double> Finite(double raw, DateTimeOffset observedAt) =>
+        double.IsFinite(raw) ? TelemetryValue<double>.Known(raw, observedAt) : TelemetryValue<double>.Unknown;
 
     private static void RequireCount(IReadOnlyList<double> raw, int expected)
     {

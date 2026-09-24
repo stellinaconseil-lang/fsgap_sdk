@@ -63,6 +63,9 @@ internal sealed class FakeVariableReader : ISimulatorVariableReader
 
         Values["HYDRAULIC PRESSURE:1"] = 3000;
         Values["HYDRAULIC PRESSURE:2"] = 2990;
+        Values["HYDRAULIC RESERVOIR PERCENT:1"] = 99;
+        Values["HYDRAULIC RESERVOIR PERCENT:2"] = 98;
+        Values["ELECTRICAL BATTERY VOLTAGE:1"] = 28.2;
         return this;
     }
 }

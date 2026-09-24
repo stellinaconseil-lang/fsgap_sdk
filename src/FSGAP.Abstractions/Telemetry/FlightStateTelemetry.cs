@@ -50,4 +50,22 @@ public sealed record FlightStateTelemetry
 
     /// <summary>Vertical load factor, in g (1.0 in level flight).</summary>
     public TelemetryValue<double> GLoad { get; init; }
+
+    /// <summary>Angle of attack, in degrees, as the simulator reports it.</summary>
+    public TelemetryValue<double> AngleOfAttackDegrees { get; init; }
+
+    /// <summary>Gross weight of the aircraft (empty weight, fuel and payload), in kilograms.</summary>
+    public TelemetryValue<double> GrossWeightKilograms { get; init; }
+
+    /// <summary>
+    /// Acceleration along the aircraft's lateral body axis, in g. Body axes follow the simulator's convention: X to
+    /// the right, Y up, Z forward.
+    /// </summary>
+    public TelemetryValue<double> BodyAccelerationXG { get; init; }
+
+    /// <summary>Acceleration along the aircraft's vertical body axis (Y, up), in g.</summary>
+    public TelemetryValue<double> BodyAccelerationYG { get; init; }
+
+    /// <summary>Acceleration along the aircraft's longitudinal body axis (Z, forward), in g.</summary>
+    public TelemetryValue<double> BodyAccelerationZG { get; init; }
 }

@@ -82,4 +82,16 @@ internal static class TelemetryConversions
 
     /// <summary>Whether the gear handle percentage means "handle down".</summary>
     internal static bool IsGearHandleDown(double handlePercent) => handlePercent >= GearHandleDownThresholdPercent;
+
+    /// <summary>
+    /// <c>AMBIENT PRECIP STATE</c> is a bit mask (SDK: 2 = none, 4 = rain, 8 = snow). Any other value is not
+    /// interpreted: <see langword="null"/>, reported as Unknown.
+    /// </summary>
+    internal static Abstractions.Telemetry.PrecipitationType? PrecipitationFromMask(double mask) => mask switch
+    {
+        2.0 => Abstractions.Telemetry.PrecipitationType.None,
+        4.0 => Abstractions.Telemetry.PrecipitationType.Rain,
+        8.0 => Abstractions.Telemetry.PrecipitationType.Snow,
+        _ => null,
+    };
 }

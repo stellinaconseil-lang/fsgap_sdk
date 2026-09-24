@@ -23,6 +23,21 @@ public sealed record EngineTelemetry
     /// <summary>Fuel flow, in kilograms per hour.</summary>
     public TelemetryValue<double> FuelFlowKilogramsPerHour { get; init; }
 
+    /// <summary>Whether the engine starter is engaged.</summary>
+    public TelemetryValue<bool> StarterActive { get; init; }
+
+    /// <summary>Oil temperature, in degrees Celsius.</summary>
+    public TelemetryValue<double> OilTemperatureCelsius { get; init; }
+
+    /// <summary>Oil pressure, in psi.</summary>
+    public TelemetryValue<double> OilPressurePsi { get; init; }
+
+    /// <summary>Thrust/throttle lever position, in percent of its travel, as the simulator reports it.</summary>
+    public TelemetryValue<double> ThrottleLeverPercent { get; init; }
+
+    /// <summary>Whether reverse thrust is engaged.</summary>
+    public TelemetryValue<bool> ReverserEngaged { get; init; }
+
     /// <summary>Whether the engine fire detection reports a fire.</summary>
     public TelemetryValue<bool> FireDetected { get; init; }
 

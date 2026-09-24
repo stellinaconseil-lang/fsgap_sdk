@@ -32,7 +32,7 @@ public class FenixTelemetryCompositionTests
         raw[(int)FenixVariables.CockpitIndex.FuelLeft1] = 1;
         raw[(int)FenixVariables.CockpitIndex.Eng1FireHandle] = 1;
         var state = FenixSystemMapper.ApplyCockpit(FenixSystemState.Empty, raw, at);
-        return FenixSystemMapper.ApplyHydraulics(state, [3000, 2990], at);
+        return FenixSystemMapper.ApplySystems(state, [3000, 2990, 99, 98, 28.1], at);
     }
 
     [Fact]
@@ -60,6 +60,10 @@ public class FenixTelemetryCompositionTests
         Assert.Equal(InertialReferenceMode.Navigation, composed.InertialReferences[0].Mode.Value);
         Assert.True(composed.FuelPumps[0].IsOn.Value);
         Assert.Equal(3000.0, composed.HydraulicSystems[0].PressurePsi.Value);
+        Assert.Equal(99.0, composed.HydraulicSystems[0].ReservoirPercent.Value);
+        Assert.Equal(["bat-1", "bat-2"], composed.Batteries.Select(b => b.Id));
+        Assert.Equal(28.1, composed.Batteries[0].VoltageVolts.Value);
+        Assert.Equal(ValueState.Unavailable, composed.Batteries[1].VoltageVolts.State);
         Assert.True(composed.Engines[0].FireHandlePulled.Value);
         Assert.Equal(82.0, composed.Engines[0].N1Percent.Value);
         Assert.Equal(81.5, composed.Engines[1].N1Percent.Value);

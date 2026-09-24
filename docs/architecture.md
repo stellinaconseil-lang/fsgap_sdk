@@ -1,6 +1,6 @@
 # FSGAP_SDK architecture
 
-This document records the principles FSGAP_SDK is built on, the current design (version 0.8.0) and targets that are
+This document records the principles FSGAP_SDK is built on, the current design (version 0.9.0) and targets that are
 planned but not implemented. Individual decisions are recorded as ADRs in [decisions/](decisions/README.md). The
 BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 
@@ -8,10 +8,10 @@ BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 
 | Assembly | Role | Depends on | Status |
 |---|---|---|---|
-| `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.8.0 |
-| `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.8.0 |
-| `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321: recognition, normalized identity, installed livery catalog ([details](fenix-identity-and-catalog.md)), generic-telemetry policy and system telemetry ([details](fenix-system-telemetry.md)), failures through the EFB ([details](fenix-failures.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.8.0 |
-| `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)), generic telemetry ([details](generic-telemetry.md)), batched variable reader, airport service ([details](simulator-airport-service.md)) | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.8.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
+| `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.9.0 |
+| `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.9.0 |
+| `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321: recognition, normalized identity, installed livery catalog ([details](fenix-identity-and-catalog.md)), generic-telemetry policy and system telemetry ([details](fenix-system-telemetry.md)), failures through the EFB ([details](fenix-failures.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.9.0 |
+| `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)), generic telemetry ([details](generic-telemetry.md)), batched variable reader, airport service ([details](simulator-airport-service.md)) | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.9.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
 
 ```text
 FSGAP.Abstractions  <-  FSGAP.Core  <-  FSGAP.Fenix
@@ -101,7 +101,8 @@ read failures, so an empty result always means "no active failure" and never "ca
 `IAircraftSession.Capabilities` declares what the provider can do for this aircraft.
 
 - `Telemetry` has one flag per section: `FlightState`, `Warnings`, `Engines`, `Apu`, `InertialReferences`,
-  `FuelPumps`, `Electrical`, `Hydraulics`, `Fire`, `LandingGear`, `FlightControls`.
+  `FuelPumps`, `Electrical`, `Hydraulics`, `Fire`, `LandingGear`, `FlightControls`, and since 0.9.0
+  `Pressurization` and `Environment`.
 - `Failures` has `CanReadActiveFailures` and the provider's **`FailureCatalog`**. Each definition has a
   `FailureKey`, a display name, a coarse `FailureCategory`, supported targets and supported operations.
   - `CanTrigger(key)` and `CanClear(key)` answer per failure.
@@ -170,7 +171,7 @@ Provider ids are unique, case-insensitively.
 
 ### Collections for multiple systems
 
-Engines, inertial references, fuel pumps, electrical buses, hydraulic systems, fire zones, **gear units** and
+Engines, inertial references, fuel pumps, electrical buses, batteries, hydraulic systems, fire zones, **gear units** and
 **flap surfaces** are read-only collections. The model contains no fixed "left/right/nose" or "ADIRS 1/2/3"
 properties. Units are part of property names.
 
@@ -179,21 +180,25 @@ properties. Units are part of property names.
 `AircraftTelemetry` contains:
 
 - `Flight`: position, altitudes (MSL, **height above ground**, radio altitude), speeds, **touchdown vertical
-  speed**, attitude, G.
+  speed**, attitude, G; since 0.9.0 angle of attack, gross weight and body accelerations.
 - `Warnings`: overspeed, flap speed, gear speed, stall. They must be sampled at ≥ 1 Hz.
-- `Engines[]`.
+- `Engines[]` (oil, starter, thrust lever and reverser since 0.9.0).
 - `Apu`.
 - `InertialReferences[]`.
 - `FuelPumps[]`.
-- `ElectricalBuses[]`.
-- `HydraulicSystems[]`.
+- `ElectricalBuses[]`, and `Batteries[]` since 0.9.0.
+- `HydraulicSystems[]` (reservoir quantity since 0.9.0).
 - `FireZones[]`.
-- `LandingGear`: the **handle** (the pilot's command) and `Units[]` (the actual extension of each gear unit).
+- `LandingGear`: the **handle** (the pilot's command) and `Units[]` (the actual extension of each gear unit); wheel
+  brakes, steering input and antiskid since 0.9.0.
 - `FlightControls`: the **flap handle** (the command) and `FlapSurfaces[]` (the actual positions), plus speed
-  brake.
+  brake; control surface deflections since 0.9.0.
+- `Pressurization` (cabin altitude and rate) and `Environment` (outside air temperature, wind, precipitation), since
+  0.9.0.
 
-Only the needs observed in FSHANGAR and FLIPPP are modelled. The P2 and P3 gaps of the audit mapping are
-deliberately left out.
+Only the needs observed in FSHANGAR and FLIPPP are modelled. Until 0.8.0 the P2 and P3 gaps of the audit mapping were
+left out. 0.9.0 adds the ones FSHANGAR actually uploads (G-T4, G-T5, G-T6, the rest of G-T8, G-T9, G-T10, G-T11
+without structural icing), so that FSHANGAR can move onto FSGAP without losing data.
 
 ### Telemetry: snapshot and stream
 
@@ -201,12 +206,14 @@ deliberately left out.
 `PollingTelemetryStream` (Core) implements streaming for snapshot-only providers and takes a `TimeProvider` for
 tests.
 
-**Cadences of the SimConnect generic telemetry (0.5.0):**
+**Cadences of the SimConnect generic telemetry (0.5.0, extended in 0.9.0):**
 
 - FAST, 1 s: flight state **including position** ([ADR 0005](decisions/0005-position-update-rate.md)), attitude,
-  speeds and the flight-envelope warnings;
-- NORMAL, 2 s: gear and flight controls;
-- SLOW, 5 s: engines;
+  speeds and the flight-envelope warnings; angle of attack, weight, body accelerations and control surface
+  deflections;
+- NORMAL, 2 s: gear, brakes, steering, antiskid and flight controls;
+- SLOW, 5 s: engines, APU bleed, cabin pressurization;
+- ENVIRONMENT, 10 s (0.9.0): weather;
 - all of them below the staleness limit (15 s by default).
 
 Consumers downsample if they need less. `StreamAsync` honours `TelemetryStreamOptions.Interval`: at most one
@@ -214,14 +221,15 @@ snapshot per interval, always the latest.
 
 ### Generic telemetry and aircraft policies (0.5.0)
 
-- `SimConnectSimulator.Telemetry` reads the generic MSFS SimVars in three batched groups **on the transport's
+- `SimConnectSimulator.Telemetry` reads the generic MSFS SimVars in four batched groups (three before 0.9.0) **on the transport's
   single native connection**: no second SimConnect client, one native request per group read.
 - Every group read replaces its own sections of one immutable snapshot. A failing group is isolated: its values
   expire, the others keep flowing, the connection stays up.
 - An aircraft change or a stop resets the snapshot to Unavailable. A read issued for the previous aircraft is
   dropped. After a connection loss, the values turn Unknown once `StaleAfter` has passed, streams included.
 - The transport knows no aircraft. A provider composes on it with `TransformedTelemetryProvider` (Core):
-  `FSGAP.Fenix` masks the generic values known to be wrong on Fenix (the speed brake), then lays its own values over
+  `FSGAP.Fenix` masks the generic values known to be wrong or unverified on Fenix (the speed brake; the APU bleed
+  since 0.9.0), then lays its own values over
   the masked snapshot (0.6.0, below).
 - Details, SimVar list, conversions and the Fenix policy table: [generic-telemetry.md](generic-telemetry.md).
 
@@ -234,8 +242,8 @@ snapshot per interval, always the latest.
     `GetAsync<T>`.
   - Native connections: still **1**.
 - **Fenix session.**
-  - It polls 14 proven cockpit LVARs every second and 2 hydraulic SimVars every 5 s: ADIRS modes, fuel pump
-    switches, fire handles and fire warning lights, green/blue pressure.
+  - It polls 14 proven cockpit LVARs every second and 5 systems SimVars every 5 s (2 before 0.9.0): ADIRS modes,
+    fuel pump switches, fire handles and fire warning lights, green/blue pressure and reservoir, BAT1 voltage.
   - It polls only while its own aircraft is loaded, and discards everything when another aircraft appears.
   - The polling stops with the session. Without a Fenix session, there is no Fenix read.
 - **Composition.** Generic snapshot, then the Fenix mask, then the Fenix overlay, then freshness, in one

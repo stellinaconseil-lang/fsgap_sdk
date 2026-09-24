@@ -16,7 +16,7 @@ namespace FSGAP.Fenix.Telemetry;
 /// <para>
 /// <b>Priority, field by field where both sources exist:</b> a Fenix value that is not Unavailable wins; otherwise
 /// the generic value (after the mask) stays; otherwise Unavailable. Sections only Fenix feeds (inertial
-/// references, fuel pumps, hydraulic systems) are simply replaced by the Fenix sections. Everything else in the
+/// references, fuel pumps, hydraulic systems, batteries) are simply replaced by the Fenix sections. Everything else in the
 /// generic snapshot is left untouched.
 /// </para>
 /// <para>
@@ -47,6 +47,7 @@ internal static class FenixTelemetryComposer
             InertialReferences = fenix.InertialReferences,
             FuelPumps = fenix.FuelPumps,
             HydraulicSystems = fenix.HydraulicSystems,
+            Batteries = fenix.Batteries,
             Engines = MergeEngines(masked.Engines, fenix.EngineFirePanels),
             Apu = masked.Apu with { FireHandlePulled = Prefer(fenix.ApuFireHandlePulled, masked.Apu.FireHandlePulled) },
         };

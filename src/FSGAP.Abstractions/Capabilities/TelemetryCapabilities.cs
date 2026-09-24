@@ -32,7 +32,7 @@ public sealed record TelemetryCapabilities
     /// <summary>Fuel pumps.</summary>
     public bool FuelPumps { get; init; }
 
-    /// <summary>Electrical buses.</summary>
+    /// <summary>Electrical buses and batteries.</summary>
     public bool Electrical { get; init; }
 
     /// <summary>Hydraulic systems.</summary>
@@ -44,9 +44,15 @@ public sealed record TelemetryCapabilities
     /// </summary>
     public bool Fire { get; init; }
 
-    /// <summary>Landing gear handle and units.</summary>
+    /// <summary>Landing gear handle and units, wheel brakes and steering.</summary>
     public bool LandingGear { get; init; }
 
-    /// <summary>Flap handle, flap surfaces and speed brake.</summary>
+    /// <summary>Flap handle, flap surfaces, speed brake and control surface deflections.</summary>
     public bool FlightControls { get; init; }
+
+    /// <summary>Cabin pressurization.</summary>
+    public bool Pressurization { get; init; }
+
+    /// <summary>Weather around the aircraft.</summary>
+    public bool Environment { get; init; }
 }

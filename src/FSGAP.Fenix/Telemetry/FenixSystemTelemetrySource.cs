@@ -69,7 +69,7 @@ internal sealed class FenixSystemTelemetrySource : IAsyncDisposable
         _groups =
         [
             new Group("cockpit", FenixVariables.Cockpit, FenixVariables.CockpitInterval, FenixSystemMapper.ApplyCockpit),
-            new Group("hydraulics", FenixVariables.Hydraulics, FenixVariables.HydraulicsInterval, FenixSystemMapper.ApplyHydraulics),
+            new Group("systems", FenixVariables.Systems, FenixVariables.SystemsInterval, FenixSystemMapper.ApplySystems),
         ];
     }
 

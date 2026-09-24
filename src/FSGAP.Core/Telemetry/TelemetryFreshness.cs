@@ -27,6 +27,8 @@ public static class TelemetryFreshness
         var a = telemetry.Apu;
         var gear = telemetry.LandingGear;
         var controls = telemetry.FlightControls;
+        var pressurization = telemetry.Pressurization;
+        var environment = telemetry.Environment;
 
         return telemetry with
         {
@@ -46,6 +48,11 @@ public static class TelemetryFreshness
                 PitchDegrees = E(f.PitchDegrees),
                 BankDegrees = E(f.BankDegrees),
                 GLoad = E(f.GLoad),
+                AngleOfAttackDegrees = E(f.AngleOfAttackDegrees),
+                GrossWeightKilograms = E(f.GrossWeightKilograms),
+                BodyAccelerationXG = E(f.BodyAccelerationXG),
+                BodyAccelerationYG = E(f.BodyAccelerationYG),
+                BodyAccelerationZG = E(f.BodyAccelerationZG),
             },
             Warnings = w with
             {
@@ -64,6 +71,11 @@ public static class TelemetryFreshness
                 FireDetected = E(e.FireDetected),
                 FireHandlePulled = E(e.FireHandlePulled),
                 FireWarningLit = E(e.FireWarningLit),
+                StarterActive = E(e.StarterActive),
+                OilTemperatureCelsius = E(e.OilTemperatureCelsius),
+                OilPressurePsi = E(e.OilPressurePsi),
+                ThrottleLeverPercent = E(e.ThrottleLeverPercent),
+                ReverserEngaged = E(e.ReverserEngaged),
             }).ToArray(),
             Apu = a with
             {
@@ -79,11 +91,17 @@ public static class TelemetryFreshness
             FuelPumps = telemetry.FuelPumps.Select(p => p with { IsOn = E(p.IsOn), Fault = E(p.Fault) }).ToArray(),
             ElectricalBuses = telemetry.ElectricalBuses.Select(b => b with { Powered = E(b.Powered) }).ToArray(),
             HydraulicSystems = telemetry.HydraulicSystems
-                .Select(h => h with { Pressurized = E(h.Pressurized), PressurePsi = E(h.PressurePsi) }).ToArray(),
+                .Select(h => h with { Pressurized = E(h.Pressurized), PressurePsi = E(h.PressurePsi), ReservoirPercent = E(h.ReservoirPercent) })
+                .ToArray(),
+            Batteries = telemetry.Batteries.Select(b => b with { VoltageVolts = E(b.VoltageVolts) }).ToArray(),
             FireZones = telemetry.FireZones.Select(z => z with { FireDetected = E(z.FireDetected) }).ToArray(),
             LandingGear = gear with
             {
                 HandleDown = E(gear.HandleDown),
+                BrakeLeftPercent = E(gear.BrakeLeftPercent),
+                BrakeRightPercent = E(gear.BrakeRightPercent),
+                SteeringInputPercent = E(gear.SteeringInputPercent),
+                AntiskidActive = E(gear.AntiskidActive),
                 Units = gear.Units.Select(u => u with { ExtensionPercent = E(u.ExtensionPercent) }).ToArray(),
             },
             FlightControls = controls with
@@ -91,6 +109,23 @@ public static class TelemetryFreshness
                 FlapsHandlePercent = E(controls.FlapsHandlePercent),
                 FlapSurfaces = controls.FlapSurfaces.Select(s => s with { ExtensionPercent = E(s.ExtensionPercent) }).ToArray(),
                 SpeedBrakeDeploymentPercent = E(controls.SpeedBrakeDeploymentPercent),
+                AileronLeftDeflectionPercent = E(controls.AileronLeftDeflectionPercent),
+                AileronRightDeflectionPercent = E(controls.AileronRightDeflectionPercent),
+                ElevatorDeflectionPercent = E(controls.ElevatorDeflectionPercent),
+                RudderDeflectionPercent = E(controls.RudderDeflectionPercent),
+            },
+            Pressurization = pressurization with
+            {
+                CabinAltitudeFeet = E(pressurization.CabinAltitudeFeet),
+                CabinAltitudeRateFeetPerMinute = E(pressurization.CabinAltitudeRateFeetPerMinute),
+            },
+            Environment = environment with
+            {
+                OutsideAirTemperatureCelsius = E(environment.OutsideAirTemperatureCelsius),
+                WindDirectionDegreesTrue = E(environment.WindDirectionDegreesTrue),
+                WindSpeedKnots = E(environment.WindSpeedKnots),
+                Precipitation = E(environment.Precipitation),
+                PrecipitationRateMillimeters = E(environment.PrecipitationRateMillimeters),
             },
         };
     }

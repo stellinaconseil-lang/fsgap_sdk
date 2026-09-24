@@ -523,6 +523,27 @@ removes the reason FSHANGAR needed a second connection.
 
 ## BLOCK 9 — FSHANGAR migration
 
+> **Status: step 1 DONE (FSGAP 0.9.0); the migration itself is the next block.** Preparing the migration showed that
+> FSGAP 0.8.0 could not carry every field FSHANGAR uploads to fenixhangarweb (wear-v2 and the native-flight
+> analyzer). Migrating on it would have been an upload regression. The user split the block: first FSGAP 0.9.0,
+> which extends the generic contract (G-T4, G-T5, G-T6, rest of G-T8, G-T9, G-T10, G-T11; APU bleed), then a separate
+> block for the FSHANGAR migration. fenixhangarclient, fenixhangarweb and FLIPPP were not modified. Details:
+> [../generic-telemetry.md](../generic-telemetry.md), [fenix-fsgap-mapping.md](fenix-fsgap-mapping.md).
+>
+> Inputs for the migration block, from the 0.9.0 live probe:
+>
+> - Drop FSHANGAR's brake ×100: FSGAP brakes are already 0–100.
+> - On a Fenix session `Apu.BleedOn` is Unavailable until verified; FSHANGAR uploads the unverified stock value
+>   today. Decide what the upload sends meanwhile (null, or a verification first).
+> - `LandingGear.SteeringInputPercent` read −99.99 % parked on the test setup; check it in the cockpit before relying
+>   on it.
+> - FSHANGAR's per-index fields map to FSGAP collections: `HydReservoirPctGreen/Blue` → `HydraulicSystems["green"/"blue"].ReservoirPercent`,
+>   `BatteryVoltageBat1` → `Batteries["bat-1"].VoltageVolts`, and the precipitation mask → the `PrecipitationType` enum
+>   (the upload must map it back if the server expects the mask).
+> - The server side is on hold at the user's request.
+
+**Original plan:**
+
 - **Goal:** FSHANGAR consumes only FSGAP APIs for simulator and aircraft access.
 - **Scope:**
   - Replace `SimConnectDataSource`, `LiveTelemetryMapper`, the merge, the identity and registration resolution,

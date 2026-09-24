@@ -49,6 +49,11 @@ internal static class GenericTelemetryMapper
             PitchDegrees = Number(TelemetryConversions.SimPitchToNoseUpDegrees(vars.PitchDegrees)),
             BankDegrees = Number(TelemetryConversions.SimBankToRightWingDownDegrees(vars.BankDegrees)),
             GLoad = Number(vars.GLoad),
+            AngleOfAttackDegrees = Number(vars.AngleOfAttackDegrees),
+            GrossWeightKilograms = Number(vars.GrossWeightKilograms),
+            BodyAccelerationXG = Number(vars.BodyAccelerationXG),
+            BodyAccelerationYG = Number(vars.BodyAccelerationYG),
+            BodyAccelerationZG = Number(vars.BodyAccelerationZG),
         };
     }
 
@@ -87,6 +92,10 @@ internal static class GenericTelemetryMapper
         return new LandingGearTelemetry
         {
             HandleDown = TelemetryValue<bool>.Known(TelemetryConversions.IsGearHandleDown(vars.GearHandlePercent), observedAt),
+            BrakeLeftPercent = TelemetryValue<double>.Known(vars.BrakeLeftPercent, observedAt),
+            BrakeRightPercent = TelemetryValue<double>.Known(vars.BrakeRightPercent, observedAt),
+            SteeringInputPercent = TelemetryValue<double>.Known(vars.SteeringInputPercent, observedAt),
+            AntiskidActive = TelemetryValue<bool>.Known(TelemetryConversions.ToBoolean(vars.AntiskidActive), observedAt),
 
             // MSFS "center" gear is the nose gear on tricycle aircraft, which is every aircraft the consumers fly.
             // Ids follow the contract's conventional keys.
@@ -127,6 +136,75 @@ internal static class GenericTelemetryMapper
     }
 
     /// <summary>
+    /// Maps the 1 Hz group's control surface deflections. The configuration fields of the section stay at their
+    /// default: they come from the configuration group, see <see cref="WithDeflections"/>.
+    /// </summary>
+    internal static FlightControlsTelemetry ToControlDeflections(in FastGroupVars vars, DateTimeOffset observedAt) => new()
+    {
+        AileronLeftDeflectionPercent = TelemetryValue<double>.Known(vars.AileronLeftPercent, observedAt),
+        AileronRightDeflectionPercent = TelemetryValue<double>.Known(vars.AileronRightPercent, observedAt),
+        ElevatorDeflectionPercent = TelemetryValue<double>.Known(vars.ElevatorPercent, observedAt),
+        RudderDeflectionPercent = TelemetryValue<double>.Known(vars.RudderPercent, observedAt),
+    };
+
+    /// <summary>
+    /// Flight controls is fed by two groups at different rates: <paramref name="current"/> with the deflections of
+    /// <paramref name="deflections"/>, every configuration field kept.
+    /// </summary>
+    internal static FlightControlsTelemetry WithDeflections(FlightControlsTelemetry current, FlightControlsTelemetry deflections) =>
+        current with
+        {
+            AileronLeftDeflectionPercent = deflections.AileronLeftDeflectionPercent,
+            AileronRightDeflectionPercent = deflections.AileronRightDeflectionPercent,
+            ElevatorDeflectionPercent = deflections.ElevatorDeflectionPercent,
+            RudderDeflectionPercent = deflections.RudderDeflectionPercent,
+        };
+
+    /// <summary>
+    /// <paramref name="current"/> with the configuration fields (flaps, speed brake) of
+    /// <paramref name="configuration"/>, every deflection kept.
+    /// </summary>
+    internal static FlightControlsTelemetry WithConfiguration(FlightControlsTelemetry current, FlightControlsTelemetry configuration) =>
+        current with
+        {
+            FlapsHandlePercent = configuration.FlapsHandlePercent,
+            FlapSurfaces = configuration.FlapSurfaces,
+            SpeedBrakeDeploymentPercent = configuration.SpeedBrakeDeploymentPercent,
+        };
+
+    /// <summary>
+    /// Maps the engine group's APU bleed. The other APU values have no generic source the audit trusted, so they
+    /// stay as they are (Unavailable in the generic snapshot).
+    /// </summary>
+    /// <remarks>
+    /// <c>PNEUMATICS APU BLEED AIR</c> is read because FSHANGAR reads it; FSHANGAR never verified it against the
+    /// Fenix, so its value on that aircraft is unconfirmed.
+    /// </remarks>
+    internal static TelemetryValue<bool> ToApuBleed(in SlowGroupVars vars, DateTimeOffset observedAt) =>
+        TelemetryValue<bool>.Known(TelemetryConversions.ToBoolean(vars.ApuBleedOn), observedAt);
+
+    /// <summary>Maps the engine group's cabin pressurization. Rate converted from feet per second.</summary>
+    internal static PressurizationTelemetry ToPressurization(in SlowGroupVars vars, DateTimeOffset observedAt) => new()
+    {
+        CabinAltitudeFeet = TelemetryValue<double>.Known(vars.CabinAltitudeFeet, observedAt),
+        CabinAltitudeRateFeetPerMinute = TelemetryValue<double>.Known(
+            TelemetryConversions.FeetPerSecondToFeetPerMinute(vars.CabinAltitudeRateFeetPerSecond),
+            observedAt),
+    };
+
+    /// <summary>Maps the weather group. An undocumented precipitation mask is Unknown, never guessed.</summary>
+    internal static EnvironmentTelemetry ToEnvironment(in EnvironmentGroupVars vars, DateTimeOffset observedAt) => new()
+    {
+        OutsideAirTemperatureCelsius = TelemetryValue<double>.Known(vars.OutsideAirTemperatureCelsius, observedAt),
+        WindDirectionDegreesTrue = TelemetryValue<double>.Known(vars.WindDirectionDegreesTrue, observedAt),
+        WindSpeedKnots = TelemetryValue<double>.Known(vars.WindSpeedKnots, observedAt),
+        Precipitation = TelemetryConversions.PrecipitationFromMask(vars.PrecipitationMask) is { } precipitation
+            ? TelemetryValue<PrecipitationType>.Known(precipitation, observedAt)
+            : TelemetryValue<PrecipitationType>.Unknown,
+        PrecipitationRateMillimeters = TelemetryValue<double>.Known(vars.PrecipitationRateMillimeters, observedAt),
+    };
+
+    /// <summary>
     /// Maps the engine group.
     /// </summary>
     /// <remarks>
@@ -145,6 +223,11 @@ internal static class GenericTelemetryMapper
                 vars.Engine1N2Percent,
                 vars.Engine1EgtCelsius,
                 vars.Engine1FuelFlowPoundsPerHour,
+                vars.Engine1StarterActive,
+                vars.Engine1OilTemperatureCelsius,
+                vars.Engine1OilPressurePsi,
+                vars.Engine1ThrottleLeverPercent,
+                vars.Engine1ReverserEngaged,
                 observedAt),
             Engine(
                 2,
@@ -153,6 +236,11 @@ internal static class GenericTelemetryMapper
                 vars.Engine2N2Percent,
                 vars.Engine2EgtCelsius,
                 vars.Engine2FuelFlowPoundsPerHour,
+                vars.Engine2StarterActive,
+                vars.Engine2OilTemperatureCelsius,
+                vars.Engine2OilPressurePsi,
+                vars.Engine2ThrottleLeverPercent,
+                vars.Engine2ReverserEngaged,
                 observedAt),
         ];
     }
@@ -164,6 +252,11 @@ internal static class GenericTelemetryMapper
         double n2,
         double egt,
         double fuelFlowPph,
+        double starter,
+        double oilTemperature,
+        double oilPressure,
+        double throttle,
+        double reverser,
         DateTimeOffset observedAt) => new()
         {
             Index = index,
@@ -174,6 +267,11 @@ internal static class GenericTelemetryMapper
             FuelFlowKilogramsPerHour = TelemetryValue<double>.Known(
                 TelemetryConversions.PoundsPerHourToKilogramsPerHour(fuelFlowPph),
                 observedAt),
+            StarterActive = TelemetryValue<bool>.Known(TelemetryConversions.ToBoolean(starter), observedAt),
+            OilTemperatureCelsius = TelemetryValue<double>.Known(oilTemperature, observedAt),
+            OilPressurePsi = TelemetryValue<double>.Known(oilPressure, observedAt),
+            ThrottleLeverPercent = TelemetryValue<double>.Known(throttle, observedAt),
+            ReverserEngaged = TelemetryValue<bool>.Known(TelemetryConversions.ToBoolean(reverser), observedAt),
 
             // FireDetected stays Unavailable: the audit found no generic SimVar for it, and the Fenix LVAR
             // candidates also light during a fire test, so they cannot yet distinguish a real fire from a check.

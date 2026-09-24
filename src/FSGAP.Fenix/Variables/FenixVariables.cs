@@ -8,8 +8,8 @@ namespace FSGAP.Fenix.Variables;
 /// <remarks>
 /// <para>
 /// Every name here was proven live against MSFS 2024 and a real Fenix A320 by the audited applications (FSHANGAR
-/// <c>FenixCockpitControlRegistry</c>, 2026-09-12 and 2026-09-13; hydraulic pressures cross-checked against the
-/// Fenix ECAM on 2026-08-31). None is guessed. The full inventory of the 39 legacy cockpit variables, with the
+/// <c>FenixCockpitControlRegistry</c>, 2026-09-12 and 2026-09-13; hydraulic pressures and reservoirs and the BAT1
+/// voltage cross-checked against the Fenix ECAM on 2026-08-31). None is guessed. The full inventory of the 39 legacy cockpit variables, with the
 /// reason each one is or is not read, is in docs/fenix-system-telemetry.md.
 /// </para>
 /// <para>
@@ -22,7 +22,10 @@ namespace FSGAP.Fenix.Variables;
 /// brief FIRE TEST presses on counters, which FSGAP does not expose; one second is well inside the time a selector,
 /// a pump switch, a fire handle or a lit fire warning stays in a state.
 /// </description></item>
-/// <item><description><see cref="Hydraulics"/>, every five seconds: pressures, as the audited applications read them.</description></item>
+/// <item><description>
+/// <see cref="Systems"/>, every five seconds: hydraulic pressures and reservoirs and the BAT1 voltage, as the audited
+/// applications read them.
+/// </description></item>
 /// </list>
 /// <para>Read-only: nothing here is ever written.</para>
 /// </remarks>
@@ -34,8 +37,8 @@ internal static class FenixVariables
     /// <summary>Cockpit group cadence.</summary>
     internal static readonly TimeSpan CockpitInterval = TimeSpan.FromSeconds(1);
 
-    /// <summary>Hydraulics group cadence.</summary>
-    internal static readonly TimeSpan HydraulicsInterval = TimeSpan.FromSeconds(5);
+    /// <summary>Systems group cadence.</summary>
+    internal static readonly TimeSpan SystemsInterval = TimeSpan.FromSeconds(5);
 
     /// <summary>Position of each variable in <see cref="Cockpit"/>.</summary>
     internal enum CockpitIndex
@@ -83,14 +86,23 @@ internal static class FenixVariables
         Eng2FireLight,
     }
 
-    /// <summary>Position of each variable in <see cref="Hydraulics"/>.</summary>
-    internal enum HydraulicsIndex
+    /// <summary>Position of each variable in <see cref="Systems"/>.</summary>
+    internal enum SystemsIndex
     {
         /// <summary>Green circuit pressure (index 1 of the stock SimVar, ECAM-verified on Fenix).</summary>
         GreenPressure,
 
         /// <summary>Blue circuit pressure (index 2, ECAM-verified on Fenix).</summary>
         BluePressure,
+
+        /// <summary>Green reservoir quantity, percent (index 1, same circuit mapping as the pressure).</summary>
+        GreenReservoir,
+
+        /// <summary>Blue reservoir quantity, percent (index 2).</summary>
+        BlueReservoir,
+
+        /// <summary>BAT1 voltage (index 1, ECAM-verified on Fenix).</summary>
+        Battery1Voltage,
     }
 
     /// <summary>Cockpit switch and light states, in <see cref="CockpitIndex"/> order.</summary>
@@ -113,14 +125,28 @@ internal static class FenixVariables
     ];
 
     /// <summary>
-    /// Hydraulic pressures, in <see cref="HydraulicsIndex"/> order. Stock SimVars, but their index-to-circuit meaning
-    /// is Fenix knowledge: index 3 does <b>not</b> map to the Fenix yellow circuit (it reads 0 psi while the ECAM
-    /// shows 3000), so it is not read at all.
+    /// Hydraulic and battery readings, in <see cref="SystemsIndex"/> order. Stock SimVars, but their index meaning is
+    /// Fenix knowledge, which is why they are read here and not by the generic groups.
     /// </summary>
-    internal static IReadOnlyList<SimulatorVariable> Hydraulics { get; } =
+    /// <remarks>
+    /// <list type="bullet">
+    /// <item><description>
+    /// Hydraulics: index 1 is green and 2 is blue. Index 3 does <b>not</b> map to the Fenix yellow circuit (it reads
+    /// 0 psi while the ECAM shows 3000), so it is not read at all, for pressure or reservoir.
+    /// </description></item>
+    /// <item><description>
+    /// Batteries: index 1 is BAT1 (matches the ECAM ELEC page). Index 2 does <b>not</b> read BAT2 on Fenix, so it is
+    /// not read.
+    /// </description></item>
+    /// </list>
+    /// </remarks>
+    internal static IReadOnlyList<SimulatorVariable> Systems { get; } =
     [
         new("HYDRAULIC PRESSURE:1", "Psi"),
         new("HYDRAULIC PRESSURE:2", "Psi"),
+        new("HYDRAULIC RESERVOIR PERCENT:1", "Percent"),
+        new("HYDRAULIC RESERVOIR PERCENT:2", "Percent"),
+        new("ELECTRICAL BATTERY VOLTAGE:1", "Volts"),
     ];
 
     private static SimulatorVariable Local(string name) => new(name, LocalUnit);

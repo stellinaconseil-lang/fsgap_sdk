@@ -29,6 +29,7 @@ public sealed record AircraftTelemetry
     private readonly IReadOnlyList<FuelPumpTelemetry> _fuelPumps = [];
     private readonly IReadOnlyList<ElectricalBusTelemetry> _electricalBuses = [];
     private readonly IReadOnlyList<HydraulicSystemTelemetry> _hydraulicSystems = [];
+    private readonly IReadOnlyList<BatteryTelemetry> _batteries = [];
     private readonly IReadOnlyList<FireZoneTelemetry> _fireZones = [];
 
     /// <summary>Time at which the snapshot was taken.</summary>
@@ -91,11 +92,24 @@ public sealed record AircraftTelemetry
         init => _fireZones = ReadOnlyCopy.Of(value, nameof(FireZones));
     }
 
-    /// <summary>Landing gear handle and units.</summary>
+    /// <summary>Batteries. The assigned collection is copied.</summary>
+    public IReadOnlyList<BatteryTelemetry> Batteries
+    {
+        get => _batteries;
+        init => _batteries = ReadOnlyCopy.Of(value, nameof(Batteries));
+    }
+
+    /// <summary>Landing gear handle and units, wheel brakes, steering.</summary>
     public LandingGearTelemetry LandingGear { get; init; } = new();
 
-    /// <summary>Flap handle, flap surfaces and speed brake.</summary>
+    /// <summary>Flap handle, flap surfaces, speed brake and control surface deflections.</summary>
     public FlightControlsTelemetry FlightControls { get; init; } = new();
+
+    /// <summary>Cabin pressurization.</summary>
+    public PressurizationTelemetry Pressurization { get; init; } = new();
+
+    /// <summary>Weather around the aircraft.</summary>
+    public EnvironmentTelemetry Environment { get; init; } = new();
 
     /// <summary>Creates a snapshot in which every value is unavailable and every collection is empty.</summary>
     public static AircraftTelemetry Unavailable(DateTimeOffset timestamp) => new() { Timestamp = timestamp };

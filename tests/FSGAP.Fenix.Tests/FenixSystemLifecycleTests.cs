@@ -41,7 +41,7 @@ public class FenixSystemLifecycleTests
 
         public int CockpitReads => Reader.ReadsOf(FenixVariables.Cockpit);
 
-        public int HydraulicsReads => Reader.ReadsOf(FenixVariables.Hydraulics);
+        public int SystemsReads => Reader.ReadsOf(FenixVariables.Systems);
 
         /// <summary>Advances simulated time one second at a time, letting the loops run after each step.</summary>
         public async Task SecondsAsync(int seconds)
@@ -60,7 +60,7 @@ public class FenixSystemLifecycleTests
         var rig = new Rig(A319);
 
         await using var session = await rig.Provider.AttachAsync(A319);
-        await Ready(session, t => t.InertialReferences.Count == 3 && t.HydraulicSystems.Count == 3);
+        await Ready(session, t => t.InertialReferences.Count == 3 && t.HydraulicSystems.Count == 3 && t.Batteries.Count == 2);
         var t = await session.Telemetry.GetSnapshotAsync();
 
         Assert.Equal([InertialReferenceMode.Navigation, InertialReferenceMode.Navigation, InertialReferenceMode.Navigation], t.InertialReferences.Select(i => i.Mode.Value));
@@ -68,11 +68,15 @@ public class FenixSystemLifecycleTests
         Assert.All(t.Engines, e => Assert.False(e.FireHandlePulled.Value));
         Assert.False(t.Apu.FireHandlePulled.Value);
         Assert.Equal(3000.0, t.HydraulicSystems[0].PressurePsi.Value);
+        Assert.Equal(99.0, t.HydraulicSystems[0].ReservoirPercent.Value);
+        Assert.Equal(28.2, t.Batteries[0].VoltageVolts.Value);
+        Assert.Equal(ValueState.Unavailable, t.Batteries[1].VoltageVolts.State);
 
+        // 0.9.0: Electrical is declared now that the contract can carry the one proven battery reading (BAT1).
         var declared = session.Capabilities.Telemetry;
         Assert.True(declared.FlightState && declared.Engines && declared.InertialReferences && declared.FuelPumps && declared.Hydraulics && declared.Fire);
+        Assert.True(declared.Electrical && declared.Pressurization && declared.Environment);
         Assert.False(declared.Apu);
-        Assert.False(declared.Electrical);
         Assert.Same(FailureCapabilities.None, session.Capabilities.Failures);
     }
 
@@ -106,16 +110,16 @@ public class FenixSystemLifecycleTests
     }
 
     [Fact]
-    public async Task Cockpit_is_read_every_second_and_hydraulics_every_five()
+    public async Task Cockpit_is_read_every_second_and_systems_every_five()
     {
         var rig = new Rig(A319);
         await using var session = await rig.Provider.AttachAsync(A319);
-        await Wait.UntilAsync(() => rig.CockpitReads >= 1 && rig.HydraulicsReads >= 1, "first reads");
+        await Wait.UntilAsync(() => rig.CockpitReads >= 1 && rig.SystemsReads >= 1, "first reads");
 
         await rig.SecondsAsync(10);
 
         Assert.InRange(rig.CockpitReads, 10, 12);
-        Assert.InRange(rig.HydraulicsReads, 2, 4);
+        Assert.InRange(rig.SystemsReads, 2, 4);
     }
 
     [Fact]

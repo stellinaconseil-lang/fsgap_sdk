@@ -38,6 +38,8 @@ public class CapabilitiesTests
         Assert.False(capabilities.Telemetry.FlightState);
         Assert.False(capabilities.Telemetry.LandingGear);
         Assert.False(capabilities.Telemetry.Warnings);
+        Assert.False(capabilities.Telemetry.Pressurization);
+        Assert.False(capabilities.Telemetry.Environment);
         Assert.False(capabilities.Failures.CanReadActiveFailures);
         Assert.False(capabilities.Failures.CanTriggerAny);
         Assert.False(capabilities.Failures.CanClearAny);

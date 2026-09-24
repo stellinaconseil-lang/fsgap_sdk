@@ -195,4 +195,130 @@ public class TelemetryMappingTests
         Assert.False(engines[1].Running.Value);
         Assert.Equal(25.0, engines[1].EgtCelsius.Value);
     }
+
+    [Fact]
+    public void Flight_state_carries_angle_of_attack_weight_and_body_accelerations()
+    {
+        var flight = GenericTelemetryMapper.ToFlightState(
+            new FastGroupVars { AngleOfAttackDegrees = 3.2, GrossWeightKilograms = 64250.0, BodyAccelerationXG = 0.01, BodyAccelerationYG = -0.98, BodyAccelerationZG = 0.12 },
+            At);
+
+        Assert.Equal(3.2, flight.AngleOfAttackDegrees.Value);
+        Assert.Equal(64250.0, flight.GrossWeightKilograms.Value);
+        Assert.Equal(0.01, flight.BodyAccelerationXG.Value);
+        Assert.Equal(-0.98, flight.BodyAccelerationYG.Value);
+        Assert.Equal(0.12, flight.BodyAccelerationZG.Value);
+        Assert.Equal(At, flight.BodyAccelerationZG.ObservedAt);
+    }
+
+    [Fact]
+    public void Deflections_and_configuration_each_replace_only_their_own_flight_control_fields()
+    {
+        var deflections = GenericTelemetryMapper.ToControlDeflections(
+            new FastGroupVars { AileronLeftPercent = -12.0, AileronRightPercent = 11.5, ElevatorPercent = -20.0, RudderPercent = 3.0 }, At);
+        var configuration = GenericTelemetryMapper.ToFlightControls(new NormalGroupVars { FlapsHandlePercent = 50.0, FlapsLeftPercent = 42.0 }, At);
+
+        Assert.Equal(ValueState.Unavailable, deflections.FlapsHandlePercent.State);
+        Assert.Empty(deflections.FlapSurfaces);
+        Assert.Equal(ValueState.Unavailable, configuration.RudderDeflectionPercent.State);
+
+        var both = GenericTelemetryMapper.WithConfiguration(GenericTelemetryMapper.WithDeflections(new FlightControlsTelemetry(), deflections), configuration);
+        var reversed = GenericTelemetryMapper.WithDeflections(GenericTelemetryMapper.WithConfiguration(new FlightControlsTelemetry(), configuration), deflections);
+
+        foreach (var c in new[] { both, reversed })
+        {
+            Assert.Equal(-12.0, c.AileronLeftDeflectionPercent.Value);
+            Assert.Equal(11.5, c.AileronRightDeflectionPercent.Value);
+            Assert.Equal(-20.0, c.ElevatorDeflectionPercent.Value);
+            Assert.Equal(3.0, c.RudderDeflectionPercent.Value);
+            Assert.Equal(50.0, c.FlapsHandlePercent.Value);
+            Assert.Equal(42.0, c.FlapSurfaces[0].ExtensionPercent.Value);
+        }
+    }
+
+    [Fact]
+    public void Brakes_are_passed_through_in_percent_steering_and_antiskid_mapped()
+    {
+        // 0.9.0 live probe: "Percent" returns 0–100 through this transport (99.9999 with the parking brake set).
+        var gear = GenericTelemetryMapper.ToLandingGear(
+            new NormalGroupVars { BrakeLeftPercent = 99.9998688697815, BrakeRightPercent = 35.0, SteeringInputPercent = -99.99, AntiskidActive = 1.0 }, At);
+
+        Assert.Equal(99.9998688697815, gear.BrakeLeftPercent.Value);
+        Assert.Equal(35.0, gear.BrakeRightPercent.Value);
+        Assert.Equal(-99.99, gear.SteeringInputPercent.Value);
+        Assert.True(gear.AntiskidActive.Value);
+    }
+
+    [Fact]
+    public void Engines_carry_oil_starter_thrust_lever_and_reverser()
+    {
+        var engines = GenericTelemetryMapper.ToEngines(
+            new SlowGroupVars
+            {
+                Engine1StarterActive = 1.0, Engine1OilTemperatureCelsius = 111.0, Engine1OilPressurePsi = 77.0, Engine1ThrottleLeverPercent = 12.0, Engine1ReverserEngaged = 0.0,
+                Engine2StarterActive = 0.0, Engine2OilTemperatureCelsius = 40.0, Engine2OilPressurePsi = 0.0, Engine2ThrottleLeverPercent = -20.0, Engine2ReverserEngaged = 1.0,
+            },
+            At);
+
+        Assert.True(engines[0].StarterActive.Value);
+        Assert.Equal(111.0, engines[0].OilTemperatureCelsius.Value);
+        Assert.Equal(77.0, engines[0].OilPressurePsi.Value);
+        Assert.Equal(12.0, engines[0].ThrottleLeverPercent.Value);
+        Assert.False(engines[0].ReverserEngaged.Value);
+        Assert.False(engines[1].StarterActive.Value);
+        Assert.Equal(40.0, engines[1].OilTemperatureCelsius.Value);
+        Assert.Equal(0.0, engines[1].OilPressurePsi.Value);
+        Assert.Equal(-20.0, engines[1].ThrottleLeverPercent.Value);
+        Assert.True(engines[1].ReverserEngaged.Value);
+    }
+
+    [Fact]
+    public void Apu_bleed_and_cabin_pressurization_come_from_the_engine_group()
+    {
+        var vars = new SlowGroupVars { ApuBleedOn = 1.0, CabinAltitudeFeet = 7400.0, CabinAltitudeRateFeetPerSecond = -5.0 };
+
+        var bleed = GenericTelemetryMapper.ToApuBleed(vars, At);
+        var cabin = GenericTelemetryMapper.ToPressurization(vars, At);
+
+        Assert.True(bleed.Value);
+        Assert.Equal(7400.0, cabin.CabinAltitudeFeet.Value);
+        Assert.Equal(-300.0, cabin.CabinAltitudeRateFeetPerMinute.Value);
+    }
+
+    [Theory]
+    [InlineData(2.0, PrecipitationType.None)]
+    [InlineData(4.0, PrecipitationType.Rain)]
+    [InlineData(8.0, PrecipitationType.Snow)]
+    public void Precipitation_mask_maps_the_documented_bits(double mask, PrecipitationType expected)
+    {
+        var environment = GenericTelemetryMapper.ToEnvironment(new EnvironmentGroupVars { PrecipitationMask = mask }, At);
+
+        Assert.Equal(expected, environment.Precipitation.Value);
+        Assert.Equal(At, environment.Precipitation.ObservedAt);
+    }
+
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(6.0)]
+    [InlineData(3.0)]
+    [InlineData(16.0)]
+    public void An_undocumented_precipitation_mask_is_unknown_not_guessed(double mask)
+    {
+        var environment = GenericTelemetryMapper.ToEnvironment(new EnvironmentGroupVars { PrecipitationMask = mask }, At);
+
+        Assert.Equal(ValueState.Unknown, environment.Precipitation.State);
+    }
+
+    [Fact]
+    public void Environment_passes_weather_through()
+    {
+        var environment = GenericTelemetryMapper.ToEnvironment(
+            new EnvironmentGroupVars { OutsideAirTemperatureCelsius = -56.5, WindDirectionDegreesTrue = 270.0, WindSpeedKnots = 85.0, PrecipitationMask = 4.0, PrecipitationRateMillimeters = 2.5 },
+            At);
+
+        Assert.Equal(-56.5, environment.OutsideAirTemperatureCelsius.Value);
+        Assert.Equal(270.0, environment.WindDirectionDegreesTrue.Value);
+        Assert.Equal(85.0, environment.WindSpeedKnots.Value);
+        Assert.Equal(2.5, environment.PrecipitationRateMillimeters.Value);
+    }
 }

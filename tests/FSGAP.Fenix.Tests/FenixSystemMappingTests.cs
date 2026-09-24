@@ -117,25 +117,54 @@ public class FenixSystemMappingTests
     }
 
     [Fact]
-    public void Hydraulics_report_green_and_blue_pressure_and_leave_yellow_unavailable()
+    public void Hydraulics_report_green_and_blue_pressure_and_reservoir_and_leave_yellow_unavailable()
     {
-        var state = FenixSystemMapper.ApplyHydraulics(FenixSystemState.Empty, [2933.29, 2896.07], At);
+        var state = FenixSystemMapper.ApplySystems(FenixSystemState.Empty, [2933.29, 2896.07, 99.2, 98.7, 28.1], At);
 
         Assert.Equal(["green", "blue", "yellow"], state.HydraulicSystems.Select(h => h.Id));
         Assert.Equal(2933.29, state.HydraulicSystems[0].PressurePsi.Value);
         Assert.Equal(2896.07, state.HydraulicSystems[1].PressurePsi.Value);
+        Assert.Equal(99.2, state.HydraulicSystems[0].ReservoirPercent.Value);
+        Assert.Equal(98.7, state.HydraulicSystems[1].ReservoirPercent.Value);
+        Assert.Equal(At, state.HydraulicSystems[0].ReservoirPercent.ObservedAt);
         Assert.Equal(ValueState.Unavailable, state.HydraulicSystems[2].PressurePsi.State);
+        Assert.Equal(ValueState.Unavailable, state.HydraulicSystems[2].ReservoirPercent.State);
         Assert.All(state.HydraulicSystems, h => Assert.Equal(ValueState.Unavailable, h.Pressurized.State));
+    }
+
+    [Fact]
+    public void Batteries_report_bat1_voltage_and_leave_bat2_unavailable()
+    {
+        var state = FenixSystemMapper.ApplySystems(FenixSystemState.Empty, [3000, 3000, 99, 99, 28.1], At);
+
+        Assert.Equal(["bat-1", "bat-2"], state.Batteries.Select(b => b.Id));
+        Assert.Equal(28.1, state.Batteries[0].VoltageVolts.Value);
+        Assert.Equal(At, state.Batteries[0].VoltageVolts.ObservedAt);
+        Assert.Equal(ValueState.Unavailable, state.Batteries[1].VoltageVolts.State);
+    }
+
+    [Theory]
+    [InlineData(double.NaN)]
+    [InlineData(double.PositiveInfinity)]
+    public void A_non_finite_systems_reading_is_unknown_not_a_number(double raw)
+    {
+        var state = FenixSystemMapper.ApplySystems(FenixSystemState.Empty, [raw, 3000, raw, 99, raw], At);
+
+        Assert.Equal(ValueState.Unknown, state.HydraulicSystems[0].PressurePsi.State);
+        Assert.Equal(ValueState.Unknown, state.HydraulicSystems[0].ReservoirPercent.State);
+        Assert.Equal(ValueState.Unknown, state.Batteries[0].VoltageVolts.State);
+        Assert.True(state.HydraulicSystems[1].PressurePsi.IsKnown);
     }
 
     [Fact]
     public void A_group_read_replaces_only_its_own_sections()
     {
-        var withHydraulics = FenixSystemMapper.ApplyHydraulics(FenixSystemState.Empty, [3000, 3000], At);
+        var withSystems = FenixSystemMapper.ApplySystems(FenixSystemState.Empty, [3000, 3000, 99, 99, 28], At);
 
-        var both = FenixSystemMapper.ApplyCockpit(withHydraulics, Cockpit(), At.AddSeconds(1));
+        var both = FenixSystemMapper.ApplyCockpit(withSystems, Cockpit(), At.AddSeconds(1));
 
-        Assert.Same(withHydraulics.HydraulicSystems, both.HydraulicSystems);
+        Assert.Same(withSystems.HydraulicSystems, both.HydraulicSystems);
+        Assert.Same(withSystems.Batteries, both.Batteries);
         Assert.Equal(At.AddSeconds(1), both.InertialReferences[0].Mode.ObservedAt);
         Assert.Equal(At, both.HydraulicSystems[0].PressurePsi.ObservedAt);
     }
@@ -144,18 +173,24 @@ public class FenixSystemMappingTests
     public void A_raw_list_of_the_wrong_length_is_rejected()
     {
         Assert.Throws<ArgumentException>(() => FenixSystemMapper.ApplyCockpit(FenixSystemState.Empty, [1.0], At));
-        Assert.Throws<ArgumentException>(() => FenixSystemMapper.ApplyHydraulics(FenixSystemState.Empty, [1.0, 2.0, 3.0], At));
+        Assert.Throws<ArgumentException>(() => FenixSystemMapper.ApplySystems(FenixSystemState.Empty, [1.0, 2.0, 3.0], At));
     }
 
     [Fact]
     public void Variable_groups_are_fixed_distinct_and_read_only_names()
     {
         Assert.Equal(14, FenixVariables.Cockpit.Count);
-        Assert.Equal(2, FenixVariables.Hydraulics.Count);
+        Assert.Equal(5, FenixVariables.Systems.Count);
+        Assert.Equal(Enum.GetValues<FenixVariables.SystemsIndex>().Length, FenixVariables.Systems.Count);
+        Assert.Equal(FenixVariables.Systems.Count, FenixVariables.Systems.Select(v => v.Name).Distinct().Count());
+
+        // The index meaning is Fenix knowledge: index 3 (yellow) and battery index 2 (BAT2) are wrong on Fenix.
+        Assert.DoesNotContain(FenixVariables.Systems, v => v.Name.EndsWith(":3", StringComparison.Ordinal));
+        Assert.DoesNotContain(FenixVariables.Systems, v => v.Name == "ELECTRICAL BATTERY VOLTAGE:2");
         Assert.Equal(Enum.GetValues<Idx>().Length, FenixVariables.Cockpit.Count);
         Assert.Equal(FenixVariables.Cockpit.Count, FenixVariables.Cockpit.Select(v => v.Name).Distinct().Count());
         Assert.All(FenixVariables.Cockpit, v => Assert.StartsWith("L:", v.Name, StringComparison.Ordinal));
         Assert.Equal(TimeSpan.FromSeconds(1), FenixVariables.CockpitInterval);
-        Assert.Equal(TimeSpan.FromSeconds(5), FenixVariables.HydraulicsInterval);
+        Assert.Equal(TimeSpan.FromSeconds(5), FenixVariables.SystemsInterval);
     }
 }

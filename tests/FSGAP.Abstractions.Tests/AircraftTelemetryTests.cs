@@ -25,8 +25,43 @@ public class AircraftTelemetryTests
         Assert.Empty(telemetry.ElectricalBuses);
         Assert.Empty(telemetry.HydraulicSystems);
         Assert.Empty(telemetry.FireZones);
+        Assert.Empty(telemetry.Batteries);
         Assert.Empty(telemetry.LandingGear.Units);
         Assert.Empty(telemetry.FlightControls.FlapSurfaces);
+    }
+
+    [Fact]
+    public void The_0_9_fields_and_sections_default_to_unavailable()
+    {
+        var telemetry = AircraftTelemetry.Unavailable(Timestamp);
+
+        Assert.Equal(ValueState.Unavailable, telemetry.Flight.AngleOfAttackDegrees.State);
+        Assert.Equal(ValueState.Unavailable, telemetry.Flight.GrossWeightKilograms.State);
+        Assert.Equal(ValueState.Unavailable, telemetry.Flight.BodyAccelerationYG.State);
+        Assert.Equal(ValueState.Unavailable, telemetry.LandingGear.BrakeLeftPercent.State);
+        Assert.Equal(ValueState.Unavailable, telemetry.LandingGear.AntiskidActive.State);
+        Assert.Equal(ValueState.Unavailable, telemetry.FlightControls.RudderDeflectionPercent.State);
+        Assert.Equal(ValueState.Unavailable, telemetry.Pressurization.CabinAltitudeFeet.State);
+        Assert.Equal(ValueState.Unavailable, telemetry.Pressurization.CabinAltitudeRateFeetPerMinute.State);
+        Assert.Equal(ValueState.Unavailable, telemetry.Environment.OutsideAirTemperatureCelsius.State);
+        Assert.Equal(ValueState.Unavailable, telemetry.Environment.Precipitation.State);
+        Assert.Equal(ValueState.Unavailable, new EngineTelemetry { Index = 1 }.OilPressurePsi.State);
+        Assert.Equal(ValueState.Unavailable, new EngineTelemetry { Index = 1 }.ReverserEngaged.State);
+        Assert.Equal(ValueState.Unavailable, new HydraulicSystemTelemetry { Id = "green", Name = "Green" }.ReservoirPercent.State);
+        Assert.Equal(ValueState.Unavailable, new BatteryTelemetry { Id = "bat-1", Name = "Battery 1" }.VoltageVolts.State);
+    }
+
+    [Fact]
+    public void Batteries_are_copied_and_read_only_like_every_other_collection()
+    {
+        var batteries = new List<BatteryTelemetry> { new() { Id = "bat-1", Name = "Battery 1", VoltageVolts = TelemetryValue<double>.Known(28.0, Timestamp) } };
+        var telemetry = AircraftTelemetry.Unavailable(Timestamp) with { Batteries = batteries };
+
+        batteries.Add(new BatteryTelemetry { Id = "bat-2", Name = "Battery 2" });
+
+        Assert.Equal("bat-1", Assert.Single(telemetry.Batteries).Id);
+        Assert.Throws<NotSupportedException>(() => Assert.IsAssignableFrom<IList<BatteryTelemetry>>(telemetry.Batteries).Clear());
+        Assert.Throws<ArgumentNullException>(() => AircraftTelemetry.Unavailable(Timestamp) with { Batteries = null! });
     }
 
     [Fact]

@@ -44,6 +44,60 @@ public class TelemetrySourceTests
     }
 
     [Fact]
+    public async Task Flight_controls_keep_the_deflections_and_the_configuration_from_their_two_groups()
+    {
+        var clock = new TestClock();
+        var source = new TelemetrySource(clock, StaleAfter);
+
+        source.ApplyFast(new FastGroupVars { RudderPercent = 4.0 }, clock.GetUtcNow(), source.Generation);
+        clock.Advance(TimeSpan.FromSeconds(1));
+        source.ApplyNormal(new NormalGroupVars { FlapsHandlePercent = 25.0 }, clock.GetUtcNow(), source.Generation);
+        clock.Advance(TimeSpan.FromSeconds(1));
+        source.ApplyFast(new FastGroupVars { RudderPercent = 5.0 }, clock.GetUtcNow(), source.Generation);
+
+        var controls = (await source.GetSnapshotAsync()).FlightControls;
+        Assert.Equal(5.0, controls.RudderDeflectionPercent.Value);
+        Assert.Equal(TestClock.Start.AddSeconds(2), controls.RudderDeflectionPercent.ObservedAt);
+        Assert.Equal(25.0, controls.FlapsHandlePercent.Value);
+        Assert.Equal(TestClock.Start.AddSeconds(1), controls.FlapsHandlePercent.ObservedAt);
+    }
+
+    [Fact]
+    public async Task Engine_group_sets_only_the_apu_bleed_and_the_cabin_and_weather_has_its_own_group()
+    {
+        var clock = new TestClock();
+        var source = new TelemetrySource(clock, StaleAfter);
+
+        source.ApplySlow(new SlowGroupVars { ApuBleedOn = 1.0, CabinAltitudeFeet = 6000.0, CabinAltitudeRateFeetPerSecond = 5.0 }, clock.GetUtcNow(), source.Generation);
+        source.ApplyEnvironment(new EnvironmentGroupVars { WindSpeedKnots = 12.0, PrecipitationMask = 2.0 }, clock.GetUtcNow(), source.Generation);
+
+        var snapshot = await source.GetSnapshotAsync();
+        Assert.True(snapshot.Apu.BleedOn.Value);
+        Assert.Equal(ValueState.Unavailable, snapshot.Apu.Running.State);
+        Assert.Equal(ValueState.Unavailable, snapshot.Apu.Available.State);
+        Assert.Equal(6000.0, snapshot.Pressurization.CabinAltitudeFeet.Value);
+        Assert.Equal(300.0, snapshot.Pressurization.CabinAltitudeRateFeetPerMinute.Value);
+        Assert.Equal(12.0, snapshot.Environment.WindSpeedKnots.Value);
+        Assert.Equal(PrecipitationType.None, snapshot.Environment.Precipitation.Value);
+        Assert.Empty(snapshot.Batteries);
+        Assert.Equal(ValueState.Unavailable, snapshot.Flight.IndicatedAirspeedKnots.State);
+    }
+
+    [Fact]
+    public async Task Weather_expires_like_every_other_group()
+    {
+        var clock = new TestClock();
+        var source = new TelemetrySource(clock, StaleAfter);
+
+        source.ApplyEnvironment(new EnvironmentGroupVars { OutsideAirTemperatureCelsius = 15.0, PrecipitationMask = 4.0 }, clock.GetUtcNow(), source.Generation);
+        clock.Advance(StaleAfter + TimeSpan.FromSeconds(1));
+
+        var snapshot = await source.GetSnapshotAsync();
+        Assert.Equal(ValueState.Unknown, snapshot.Environment.OutsideAirTemperatureCelsius.State);
+        Assert.Equal(ValueState.Unknown, snapshot.Environment.Precipitation.State);
+    }
+
+    [Fact]
     public async Task A_published_snapshot_is_never_modified_afterwards()
     {
         var clock = new TestClock();

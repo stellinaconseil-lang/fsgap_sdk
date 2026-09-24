@@ -51,6 +51,27 @@ proposals for later blocks.
 > FIRE TEST, agent and MASTER WARNING pushbuttons (counters) stay deferred (G-C2). The ENG FIRE TEST probe (G-C3) is
 > classified diagnostic only and is not ported. Full LVAR inventory: [../fenix-system-telemetry.md](../fenix-system-telemetry.md).
 
+> **Status after the FSGAP 0.9.0 step of BLOCK 9.** The telemetry gaps FSHANGAR uploads are closed, so FSHANGAR can
+> move onto FSGAP without losing data. No application or server was changed; the FSHANGAR migration is the next block.
+>
+> | Gap | Status | Where |
+> |---|---|---|
+> | G-T4 | **DONE**: `Flight.AngleOfAttackDegrees`, `GrossWeightKilograms` | generic FAST |
+> | G-T5 | **DONE**: `Flight.BodyAccelerationXG/YG/ZG` | generic FAST |
+> | G-T6 | **DONE**: `Engines[n].OilTemperatureCelsius`, `OilPressurePsi`, `StarterActive`, `ThrottleLeverPercent`, `ReverserEngaged` | generic SLOW |
+> | G-T8 (rest) | **DONE**: control surface deflections (`FlightControls`); brakes, steering, antiskid on `LandingGear` (no separate `BrakesTelemetry` section) | generic FAST / NORMAL |
+> | G-T9 | **DONE**: `HydraulicSystems[].ReservoirPercent` (green, blue) and `Batteries[]` (BAT1; BAT2 present, Unavailable) | FSGAP.Fenix only, index meaning is Fenix knowledge |
+> | G-T10 | **DONE**: `Pressurization` section | generic SLOW |
+> | G-T11 | **DONE except structural icing** (never read by either app): `Environment` section | new generic ENVIRONMENT group, 10 s |
+> | APU bleed (§1.3) | read generically into `Apu.BleedOn`; **masked on Fenix** until verified with the APU bleed on | generic SLOW, `FenixGenericTelemetryPolicy` |
+>
+> Two findings from the read-only live probe of 2026-09-24 change rows of the table below:
+>
+> - §1.5 `BrakeLeft/RightFraction ×100`: through FSGAP, "Percent" returns 0–100 (99.9999 with the parking brake
+>   set); the ×100 is **not** applied. FSHANGAR's ×100 must be dropped when it migrates.
+> - §1.5 `SteerInputPct`: reads −99.99 % parked with no input on the test setup. It is passed through, and the
+>   anomaly is documented in [../generic-telemetry.md](../generic-telemetry.md#live-validation).
+
 > **Status after BLOCK 7 (version 0.7.0).** §3 (failures) is implemented in `FSGAP.Fenix`:
 >
 > - G-F1/G-F6: 40 normalized keys, the failures the applications use today;

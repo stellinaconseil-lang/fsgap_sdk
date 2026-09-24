@@ -83,22 +83,55 @@ internal sealed class TelemetrySource : ITelemetryProvider
     {
         var flight = GenericTelemetryMapper.ToFlightState(vars, observedAt);
         var warnings = GenericTelemetryMapper.ToWarnings(vars, observedAt);
-        Publish(current => current with { Flight = flight, Warnings = warnings }, observedAt, generation);
+        var deflections = GenericTelemetryMapper.ToControlDeflections(vars, observedAt);
+        Publish(
+            current => current with
+            {
+                Flight = flight,
+                Warnings = warnings,
+                FlightControls = GenericTelemetryMapper.WithDeflections(current.FlightControls, deflections),
+            },
+            observedAt,
+            generation);
     }
 
-    /// <summary>Merges the gear, flaps and speed-brake group.</summary>
+    /// <summary>Merges the gear, brakes, flaps and speed-brake group.</summary>
     internal void ApplyNormal(in NormalGroupVars vars, DateTimeOffset observedAt, int generation)
     {
         var gear = GenericTelemetryMapper.ToLandingGear(vars, observedAt);
         var controls = GenericTelemetryMapper.ToFlightControls(vars, observedAt);
-        Publish(current => current with { LandingGear = gear, FlightControls = controls }, observedAt, generation);
+        Publish(
+            current => current with
+            {
+                LandingGear = gear,
+                FlightControls = GenericTelemetryMapper.WithConfiguration(current.FlightControls, controls),
+            },
+            observedAt,
+            generation);
     }
 
-    /// <summary>Merges the engine group.</summary>
+    /// <summary>Merges the engine, APU bleed and cabin pressurization group.</summary>
     internal void ApplySlow(in SlowGroupVars vars, DateTimeOffset observedAt, int generation)
     {
         var engines = GenericTelemetryMapper.ToEngines(vars, observedAt);
-        Publish(current => current with { Engines = engines }, observedAt, generation);
+        var apuBleed = GenericTelemetryMapper.ToApuBleed(vars, observedAt);
+        var pressurization = GenericTelemetryMapper.ToPressurization(vars, observedAt);
+        Publish(
+            current => current with
+            {
+                Engines = engines,
+                Apu = current.Apu with { BleedOn = apuBleed },
+                Pressurization = pressurization,
+            },
+            observedAt,
+            generation);
+    }
+
+    /// <summary>Merges the weather group.</summary>
+    internal void ApplyEnvironment(in EnvironmentGroupVars vars, DateTimeOffset observedAt, int generation)
+    {
+        var environment = GenericTelemetryMapper.ToEnvironment(vars, observedAt);
+        Publish(current => current with { Environment = environment }, observedAt, generation);
     }
 
     /// <summary>

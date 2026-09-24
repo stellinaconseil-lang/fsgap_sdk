@@ -46,6 +46,43 @@ public class FenixTelemetryPolicyTests
     }
 
     [Fact]
+    public void Apu_bleed_is_masked_until_verified_on_fenix_and_the_0_9_generic_sections_are_kept()
+    {
+        var generic = Generic() with
+        {
+            Apu = new ApuTelemetry { BleedOn = TelemetryValue<bool>.Known(true, At) },
+            Pressurization = new PressurizationTelemetry { CabinAltitudeFeet = TelemetryValue<double>.Known(7000.0, At) },
+            Environment = new EnvironmentTelemetry { Precipitation = TelemetryValue<PrecipitationType>.Known(PrecipitationType.Rain, At) },
+            LandingGear = new LandingGearTelemetry { BrakeLeftPercent = TelemetryValue<double>.Known(60.0, At), SteeringInputPercent = TelemetryValue<double>.Known(-99.99, At) },
+            FlightControls = new FlightControlsTelemetry { RudderDeflectionPercent = TelemetryValue<double>.Known(2.0, At) },
+        };
+
+        var fenix = FenixGenericTelemetryPolicy.Apply(generic);
+
+        Assert.Equal(ValueState.Unavailable, fenix.Apu.BleedOn.State);
+        Assert.Equal(generic.Pressurization, fenix.Pressurization);
+        Assert.Equal(generic.Environment, fenix.Environment);
+        Assert.Equal(generic.LandingGear, fenix.LandingGear);
+        Assert.Equal(2.0, fenix.FlightControls.RudderDeflectionPercent.Value);
+        Assert.False(FenixGenericTelemetryPolicy.GenericSections.Apu);
+    }
+
+    [Fact]
+    public void Union_covers_every_telemetry_capability_flag()
+    {
+        // Guards against a new TelemetryCapabilities flag silently dropped by the union (0.9.0 added two).
+        var flags = typeof(TelemetryCapabilities).GetProperties().Where(p => p.PropertyType == typeof(bool)).ToArray();
+        Assert.NotEmpty(flags);
+        foreach (var flag in flags)
+        {
+            var one = new TelemetryCapabilities();
+            flag.SetValue(one, true);
+            Assert.True((bool)flag.GetValue(FenixGenericTelemetryPolicy.Union(one, TelemetryCapabilities.None))!, flag.Name);
+            Assert.True((bool)flag.GetValue(FenixGenericTelemetryPolicy.Union(TelemetryCapabilities.None, one))!, flag.Name);
+        }
+    }
+
+    [Fact]
     public void The_generic_snapshot_itself_is_not_modified()
     {
         var generic = Generic();
@@ -72,6 +109,7 @@ public class FenixTelemetryPolicyTests
 
         var declared = session.Capabilities.Telemetry;
         Assert.True(declared.FlightState && declared.Warnings && declared.Engines && declared.LandingGear && declared.FlightControls);
+        Assert.True(declared.Pressurization && declared.Environment);
         Assert.False(declared.Apu || declared.InertialReferences || declared.FuelPumps || declared.Electrical || declared.Hydraulics || declared.Fire);
         Assert.Same(FailureCapabilities.None, session.Capabilities.Failures);
     }

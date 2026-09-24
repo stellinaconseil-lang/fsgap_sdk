@@ -22,4 +22,16 @@ public sealed record FlightControlsTelemetry
 
     /// <summary>Speed brake / spoiler deployment, in percent of full deployment.</summary>
     public TelemetryValue<double> SpeedBrakeDeploymentPercent { get; init; }
+
+    /// <summary>Left aileron deflection, in percent of its travel, signed as the simulator reports it.</summary>
+    public TelemetryValue<double> AileronLeftDeflectionPercent { get; init; }
+
+    /// <summary>Right aileron deflection, in percent of its travel, signed as the simulator reports it.</summary>
+    public TelemetryValue<double> AileronRightDeflectionPercent { get; init; }
+
+    /// <summary>Elevator deflection (one combined value), in percent of its travel, signed as the simulator reports it.</summary>
+    public TelemetryValue<double> ElevatorDeflectionPercent { get; init; }
+
+    /// <summary>Rudder deflection, in percent of its travel, signed as the simulator reports it.</summary>
+    public TelemetryValue<double> RudderDeflectionPercent { get; init; }
 }

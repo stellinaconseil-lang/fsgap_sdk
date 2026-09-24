@@ -4,7 +4,7 @@
 // pause/crash state, the raw aircraft descriptor reported by MSFS, what the Fenix provider makes of it (match,
 // normalized identity, catalog match) and, every two seconds, a compact view of the normalized telemetry: the Fenix
 // session's (generic telemetry with the Fenix policy applied) when a Fenix is loaded, the generic telemetry
-// otherwise, followed for a Fenix by its systems (IRS, fuel pumps, fire panel, hydraulics). Read-only by default;
+// otherwise, followed for a Fenix by its systems (IRS, fuel pumps, fire panel, hydraulics, batteries). Read-only by default;
 // the only write is the explicit --failure-roundtrip option (a trigger always followed by its clear).
 //
 // Usage: dotnet run --project samples/FSGAP.SimConnect.Console [-- --minutes N] [--failures] [--failure-roundtrip <key>] [--nearest-airport]
@@ -263,13 +263,17 @@ async Task PrintTelemetryAsync(CancellationToken cancellationToken)
             var c = t.FlightControls;
             Print($"t.{source}", $"GND={B(f.OnGround)} LAT={D(f.LatitudeDegrees, "F5")} LON={D(f.LongitudeDegrees, "F5")} ALT={D(f.AltitudeFeet, "F0")} AGL={D(f.HeightAboveGroundFeet, "F0")} RA={D(f.RadioAltitudeFeet, "F0")} IAS={D(f.IndicatedAirspeedKnots, "F0")} GS={D(f.GroundSpeedKnots, "F0")} VS={D(f.VerticalSpeedFeetPerMinute, "F0")} TD={D(f.TouchdownVerticalSpeedFeetPerMinute, "F0")}");
             Print($"t.{source}", $"HDG={D(f.HeadingMagneticDegrees, "F0")} PITCH={D(f.PitchDegrees, "+0.0;-0.0;0.0")} BANK={D(f.BankDegrees, "+0.0;-0.0;0.0")} G={D(f.GLoad, "F2")} WARN ovs={B(w.Overspeed)} flap={B(w.FlapSpeedExceeded)} gear={B(w.GearSpeedExceeded)} stall={B(w.Stall)}");
-            Print($"t.{source}", t.Engines.Count == 0 ? "ENG n/a" : string.Join(" | ", t.Engines.Select(e => $"ENG{e.Index} run={B(e.Running)} N1={D(e.N1Percent, "F1")} N2={D(e.N2Percent, "F1")} EGT={D(e.EgtCelsius, "F0")} FF={D(e.FuelFlowKilogramsPerHour, "F0")}kg/h fire={B(e.FireDetected)}")));
+            Print($"t.{source}", t.Engines.Count == 0 ? "ENG n/a" : string.Join(" | ", t.Engines.Select(e => $"ENG{e.Index} run={B(e.Running)} N1={D(e.N1Percent, "F1")} N2={D(e.N2Percent, "F1")} EGT={D(e.EgtCelsius, "F0")} FF={D(e.FuelFlowKilogramsPerHour, "F0")}kg/h OILT={D(e.OilTemperatureCelsius, "F0")} OILP={D(e.OilPressurePsi, "F0")} THR={D(e.ThrottleLeverPercent, "F0")} START={B(e.StarterActive)} REV={B(e.ReverserEngaged)} fire={B(e.FireDetected)}")));
             Print($"t.{source}", $"GEAR handle={B(g.HandleDown)} {string.Join(' ', g.Units.Select(u => $"{u.Id}={D(u.ExtensionPercent, "F0")}"))} FLAPS handle={D(c.FlapsHandlePercent, "F0")} {string.Join(' ', c.FlapSurfaces.Select(s => $"{s.Id}={D(s.ExtensionPercent, "F0")}"))} SPDBRK={D(c.SpeedBrakeDeploymentPercent, "F0")} (generic {D(generic.FlightControls.SpeedBrakeDeploymentPercent, "F0")})");
+            Print($"t.{source}", $"AOA={D(f.AngleOfAttackDegrees, "F1")} GW={D(f.GrossWeightKilograms, "F0")}kg ACC x={D(f.BodyAccelerationXG, "F3")} y={D(f.BodyAccelerationYG, "F3")} z={D(f.BodyAccelerationZG, "F3")} DEFL ail={D(c.AileronLeftDeflectionPercent, "F0")}/{D(c.AileronRightDeflectionPercent, "F0")} elev={D(c.ElevatorDeflectionPercent, "F0")} rud={D(c.RudderDeflectionPercent, "F0")} BRK={D(g.BrakeLeftPercent, "F0")}/{D(g.BrakeRightPercent, "F0")} STEER={D(g.SteeringInputPercent, "F0")} ASKID={B(g.AntiskidActive)}");
+            var p = t.Pressurization;
+            var env = t.Environment;
+            Print($"t.{source}", $"APU bleed={B(t.Apu.BleedOn)} (generic {B(generic.Apu.BleedOn)}) CABIN alt={D(p.CabinAltitudeFeet, "F0")} rate={D(p.CabinAltitudeRateFeetPerMinute, "F0")}fpm ENV oat={D(env.OutsideAirTemperatureCelsius, "F1")} wind={D(env.WindDirectionDegreesTrue, "F0")}/{D(env.WindSpeedKnots, "F0")}kt precip={(env.Precipitation.IsKnown ? env.Precipitation.Value.ToString() : env.Precipitation.State == ValueState.Unknown ? "unk" : "n/a")} rate={D(env.PrecipitationRateMillimeters, "F1")}");
             if (source == "fenix")
             {
                 // Fenix systems: only what the session supports, in normalized terms (never variable names).
                 Print("fenix.sys", $"IRS {Join(t.InertialReferences.Select(i => $"IR{i.Index}={Mode(i.Mode)}"))}   PUMPS {Join(t.FuelPumps.Select(p => $"{p.Id}={OnOff(p.IsOn)}"))}");
-                Print("fenix.sys", $"FIRE {Join(t.Engines.Select(e => $"ENG{e.Index} handle={Handle(e.FireHandlePulled)} warning={OnOff(e.FireWarningLit)}"))}  APU handle={Handle(t.Apu.FireHandlePulled)}   HYD {Join(t.HydraulicSystems.Select(h => $"{h.Id}={(h.PressurePsi.IsKnown ? D(h.PressurePsi, "F0") + " psi" : D(h.PressurePsi, "F0"))}"))}");
+                Print("fenix.sys", $"FIRE {Join(t.Engines.Select(e => $"ENG{e.Index} handle={Handle(e.FireHandlePulled)} warning={OnOff(e.FireWarningLit)}"))}  APU handle={Handle(t.Apu.FireHandlePulled)}   HYD {Join(t.HydraulicSystems.Select(h => $"{h.Id}={(h.PressurePsi.IsKnown ? D(h.PressurePsi, "F0") + " psi" : D(h.PressurePsi, "F0"))}/{D(h.ReservoirPercent, "F0")}%"))}   BAT {Join(t.Batteries.Select(b => $"{b.Id}={D(b.VoltageVolts, "F1")}V"))}");
             }
         }
     }

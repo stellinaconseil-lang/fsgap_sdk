@@ -102,6 +102,35 @@ internal struct FastGroupVars
 
     [SimConnect("STALL WARNING", "Bool")]
     public double StallWarning;
+
+    // -- 0.9.0: flight dynamics and control surfaces (FSHANGAR's FAST group, live-verified on MSFS + Fenix) ---------
+    [SimConnect("INCIDENCE ALPHA", "Degrees")]
+    public double AngleOfAttackDegrees;
+
+    [SimConnect("TOTAL WEIGHT", "Kilograms")]
+    public double GrossWeightKilograms;
+
+    /// <summary>"GForce" is accepted directly for body accelerations (verified live by FSHANGAR, 2026-08-31).</summary>
+    [SimConnect("ACCELERATION BODY X", "GForce")]
+    public double BodyAccelerationXG;
+
+    [SimConnect("ACCELERATION BODY Y", "GForce")]
+    public double BodyAccelerationYG;
+
+    [SimConnect("ACCELERATION BODY Z", "GForce")]
+    public double BodyAccelerationZG;
+
+    [SimConnect("AILERON LEFT DEFLECTION PCT", "Percent")]
+    public double AileronLeftPercent;
+
+    [SimConnect("AILERON RIGHT DEFLECTION PCT", "Percent")]
+    public double AileronRightPercent;
+
+    [SimConnect("ELEVATOR DEFLECTION PCT", "Percent")]
+    public double ElevatorPercent;
+
+    [SimConnect("RUDDER DEFLECTION PCT", "Percent")]
+    public double RudderPercent;
 }
 
 /// <summary>
@@ -145,6 +174,26 @@ internal struct NormalGroupVars
 
     [SimConnect("SPOILERS RIGHT POSITION", "Percent")]
     public double SpoilersRightPercent;
+
+    // -- 0.9.0: wheel brakes and steering ----------------------------------------------------------------------------
+
+    /// <summary>
+    /// Wheel brake, 0–100. Through this transport "Percent" is honoured: FSGAP's live probe (2026-09-24, Fenix A319,
+    /// parking brake set) read 99.9999 in "Percent" and 0.999999 in "Percent Over 100" on the same connection. FSHANGAR
+    /// recorded a 0–1 fraction in "Percent" on 2026-08-31 and multiplies by 100; that multiplication is deliberately
+    /// <b>not</b> carried over, it would report about 10 000 % here.
+    /// </summary>
+    [SimConnect("BRAKE LEFT POSITION", "Percent")]
+    public double BrakeLeftPercent;
+
+    [SimConnect("BRAKE RIGHT POSITION", "Percent")]
+    public double BrakeRightPercent;
+
+    [SimConnect("STEER INPUT CONTROL", "Percent")]
+    public double SteeringInputPercent;
+
+    [SimConnect("ANTISKID BRAKES ACTIVE", "Bool")]
+    public double AntiskidActive;
 }
 
 /// <summary>
@@ -188,6 +237,69 @@ internal struct SlowGroupVars
 
     [SimConnect("ENG FUEL FLOW PPH:2", "Pounds per hour")]
     public double Engine2FuelFlowPoundsPerHour;
+
+    // -- 0.9.0: engine secondary parameters, APU bleed, pressurization (FSHANGAR's SYSTEMS group, 5 s) ----------------
+    [SimConnect("GENERAL ENG STARTER ACTIVE:1", "Bool")]
+    public double Engine1StarterActive;
+
+    [SimConnect("GENERAL ENG OIL TEMPERATURE:1", "Celsius")]
+    public double Engine1OilTemperatureCelsius;
+
+    [SimConnect("GENERAL ENG OIL PRESSURE:1", "Psi")]
+    public double Engine1OilPressurePsi;
+
+    [SimConnect("GENERAL ENG THROTTLE LEVER POSITION:1", "Percent")]
+    public double Engine1ThrottleLeverPercent;
+
+    [SimConnect("GENERAL ENG REVERSE THRUST ENGAGED:1", "Bool")]
+    public double Engine1ReverserEngaged;
+
+    [SimConnect("GENERAL ENG STARTER ACTIVE:2", "Bool")]
+    public double Engine2StarterActive;
+
+    [SimConnect("GENERAL ENG OIL TEMPERATURE:2", "Celsius")]
+    public double Engine2OilTemperatureCelsius;
+
+    [SimConnect("GENERAL ENG OIL PRESSURE:2", "Psi")]
+    public double Engine2OilPressurePsi;
+
+    [SimConnect("GENERAL ENG THROTTLE LEVER POSITION:2", "Percent")]
+    public double Engine2ThrottleLeverPercent;
+
+    [SimConnect("GENERAL ENG REVERSE THRUST ENGAGED:2", "Bool")]
+    public double Engine2ReverserEngaged;
+
+    [SimConnect("PNEUMATICS APU BLEED AIR", "Bool")]
+    public double ApuBleedOn;
+
+    [SimConnect("PRESSURIZATION CABIN ALTITUDE", "Feet")]
+    public double CabinAltitudeFeet;
+
+    /// <summary>Feet per second (verified live: 8.32 ft/s = 499 ft/min in a standard climb). The mapper converts.</summary>
+    [SimConnect("PRESSURIZATION CABIN ALTITUDE RATE", "Feet per second")]
+    public double CabinAltitudeRateFeetPerSecond;
+}
+
+/// <summary>
+/// Weather around the aircraft (0.9.0). Every 10 s, as in the audited applications: it changes over minutes.
+/// </summary>
+internal struct EnvironmentGroupVars
+{
+    [SimConnect("AMBIENT TEMPERATURE", "Celsius")]
+    public double OutsideAirTemperatureCelsius;
+
+    [SimConnect("AMBIENT WIND DIRECTION", "Degrees")]
+    public double WindDirectionDegreesTrue;
+
+    [SimConnect("AMBIENT WIND VELOCITY", "Knots")]
+    public double WindSpeedKnots;
+
+    /// <summary>A bit mask, not an ordinal (SDK: 2 = none, 4 = rain, 8 = snow). The mapper decodes it.</summary>
+    [SimConnect("AMBIENT PRECIP STATE", "Mask")]
+    public double PrecipitationMask;
+
+    [SimConnect("AMBIENT PRECIP RATE", "Millimeters of Water")]
+    public double PrecipitationRateMillimeters;
 }
 
 #pragma warning restore CS0649
@@ -195,12 +307,15 @@ internal struct SlowGroupVars
 /// <summary>Which logical group a native read belongs to. Used for logging and failure isolation.</summary>
 internal enum TelemetryGroup
 {
-    /// <summary>Position, attitude, speeds and warnings. 1 Hz.</summary>
+    /// <summary>Position, attitude, speeds, warnings, flight dynamics and control surfaces. 1 Hz.</summary>
     Fast,
 
-    /// <summary>Gear, flaps and speed brake.</summary>
+    /// <summary>Gear, flaps, speed brake, wheel brakes and steering.</summary>
     Normal,
 
-    /// <summary>Engines.</summary>
+    /// <summary>Engines, APU bleed, pressurization.</summary>
     Slow,
+
+    /// <summary>Weather.</summary>
+    Environment,
 }

@@ -58,6 +58,9 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
     /// <summary>Engines. Thermal and rotational quantities; the audited five seconds proved sufficient.</summary>
     internal static readonly TimeSpan SlowGroupInterval = TimeSpan.FromSeconds(5);
 
+    /// <summary>Weather around the aircraft. It changes over minutes; the audited ten seconds is kept.</summary>
+    internal static readonly TimeSpan EnvironmentGroupInterval = TimeSpan.FromSeconds(10);
+
     internal const string SimulatorNotRunning = "Simulator not running.";
     internal const string ConnectionLost = "Connection to the simulator was lost.";
     internal const string SimulatorNotConnected = "The simulator is not connected.";
@@ -440,6 +443,7 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
                 PollGroupAsync<FastGroupVars>(session, TelemetryGroup.Fast, FastGroupInterval, _telemetry.ApplyFast, sessionCts.Token),
                 PollGroupAsync<NormalGroupVars>(session, TelemetryGroup.Normal, NormalGroupInterval, _telemetry.ApplyNormal, sessionCts.Token),
                 PollGroupAsync<SlowGroupVars>(session, TelemetryGroup.Slow, SlowGroupInterval, _telemetry.ApplySlow, sessionCts.Token),
+                PollGroupAsync<EnvironmentGroupVars>(session, TelemetryGroup.Environment, EnvironmentGroupInterval, _telemetry.ApplyEnvironment, sessionCts.Token),
             ];
 
             var finished = await Task.WhenAny([lost.Task, identityTask, .. groupTasks]).ConfigureAwait(false);
