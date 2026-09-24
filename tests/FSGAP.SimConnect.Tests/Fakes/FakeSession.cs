@@ -167,6 +167,36 @@ internal sealed class FakeSession : ISimConnectSession
         return variables.Select(v => Variables.TryGetValue(v.Name, out var value) ? value : 0.0).ToArray();
     }
 
+    /// <summary>The airport list the simulator returns.</summary>
+    public IReadOnlyList<RawAirport> Airports { get; set; } = [];
+
+    /// <summary>When set, airport requests throw it.</summary>
+    public Exception? AirportFailure { get; set; }
+
+    /// <summary>When set, airport requests wait for it (a slow answer).</summary>
+    public TaskCompletionSource? AirportGate { get; set; }
+
+    private int _airportRequests;
+
+    public int AirportRequests => Volatile.Read(ref _airportRequests);
+
+    public async Task<IReadOnlyList<RawAirport>> RequestAirportsAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Interlocked.Increment(ref _airportRequests);
+        if (AirportGate is { } gate)
+        {
+            await gate.Task.WaitAsync(cancellationToken);
+        }
+
+        if (AirportFailure is { } failure)
+        {
+            throw failure;
+        }
+
+        return Airports;
+    }
+
     public Task<RawAircraftIdentity> ReadAircraftIdentityAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();

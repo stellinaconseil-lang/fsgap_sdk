@@ -473,7 +473,36 @@ Original plan:
   - Live checklist: trigger, read back, clear for `F_PNEUMATIC_CPC_1` and one id per FLP tier, through normalized
     keys only.
 
-## BLOCK 8 — Simulator services
+## BLOCK 8 — Simulator services — airport search DONE (version 0.8.0); parking and FlightLoad still open
+
+**Delivered** (details in [../simulator-airport-service.md](../simulator-airport-service.md)):
+
+- In Abstractions: `IAirportService`, `GeoPosition` (great-circle distance), `AirportInfo`, `AirportSearchOptions`
+  (50 NM and 10 results by default), and `SimulatorServiceException` (`SimulatorUnavailable` / `QueryFailed`).
+- `SimConnectSimulator` implements it on the **shared connection**:
+  - `SimConnect_RequestFacilitiesList_EX1` through the library's internal dispatcher (`InvokeNativeAsync`), with the
+    reflection isolated in `FacilityInterop` and pinned to 0.2.2;
+  - multi-packet answers, a validated layout, a 10 s cache per connection, and shared concurrent requests.
+- 48 tests:
+  - distance edge cases;
+  - packets (including the live sizes 100 and 13,060 bytes);
+  - selection;
+  - FSHANGAR parity on random bubbles;
+  - lifecycle (loss, reconnection, stop, dispose);
+  - cache and concurrency;
+  - one session for everything;
+  - reflection compatibility.
+
+**Definition of done:** met at two airports, **LIVE TEST** 2026-09-24.
+- LFMN at 0.5 NM from the parked A319, and LFMD at 0.1 NM from Cannes.
+- Legacy parity: FSHANGAR's `NearestAirportMath`, compiled as-is, gives the same nearest airport on 2,043 of 2,043
+  points of the live bubble (295 airports).
+- 2.3 minutes of searches alongside the telemetry and the Fenix polling: no errors.
+
+**Deviation:** the lookup runs on the shared connection. It is not isolated as in FSHANGAR: the dispatcher path
+removes the reason FSHANGAR needed a second connection.
+
+**Original plan:**
 
 - **Goal:** move the non-aircraft SimConnect services behind FSGAP.
 - **Scope:**

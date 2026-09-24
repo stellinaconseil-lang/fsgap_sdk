@@ -11,7 +11,7 @@ providers. Since 0.5.0 it also reads the generic flight telemetry on the same co
 A single public type:
 
 ```csharp
-public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariableReader   // + IAsyncDisposable
+public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariableReader, IAirportService   // + IAsyncDisposable
 {
     public SimConnectSimulator(FsgapOptions options, ILogger<SimConnectSimulator>? logger = null, TimeProvider? timeProvider = null);
 
@@ -23,6 +23,10 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
 
     // 0.6.0: read-only, batched read of named variables on this connection (used by aircraft providers)
     public Task<IReadOnlyList<double>> ReadAsync(IReadOnlyList<SimulatorVariable> variables, CancellationToken cancellationToken = default);
+
+    // 0.8.0: airports of the simulator's reality bubble near a point (docs/simulator-airport-service.md)
+    public Task<IReadOnlyList<AirportInfo>> FindNearbyAirportsAsync(GeoPosition position, AirportSearchOptions? options = null, CancellationToken cancellationToken = default);
+    public Task<AirportInfo?> FindNearestAirportAsync(GeoPosition position, AirportSearchOptions? options = null, CancellationToken cancellationToken = default);
 
     public Task StartAsync(CancellationToken cancellationToken = default);
     public Task StopAsync(CancellationToken cancellationToken = default);
@@ -242,6 +246,19 @@ periodic subscription planned in BLOCK 3. Polling keeps the same session seam, t
 fake-clock testability as the identity poll, at the cost of one request per read. Request structs stay
 `internal`, which requires the
 `InternalsVisibleTo("SimConnect.NET")` described below.
+
+## Airport list on the same connection (0.8.0)
+
+`IAirportService` sends `SimConnect_RequestFacilitiesList_EX1` on this connection.
+
+- **Dispatcher.** The call goes through SimConnect.NET's internal `InvokeNativeAsync`, reached by reflection in
+  `FacilityInterop` only, so it is serialized with the message loop. Called from another thread on the same handle,
+  it once broke every other request (FSHANGAR).
+- **Answer.** It is read from the public `RawMessageReceived` event, filtered by request id, with every packet
+  gathered.
+- **Lifetime.** It is bound to the connection: a loss, a stop or a dispose ends it as "simulator unavailable".
+
+See [simulator-airport-service.md](simulator-airport-service.md).
 
 ## Known library constraint
 

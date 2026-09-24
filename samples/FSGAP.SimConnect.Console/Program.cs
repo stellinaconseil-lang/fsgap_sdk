@@ -7,13 +7,15 @@
 // otherwise, followed for a Fenix by its systems (IRS, fuel pumps, fire panel, hydraulics). Read-only by default;
 // the only write is the explicit --failure-roundtrip option (a trigger always followed by its clear).
 //
-// Usage: dotnet run --project samples/FSGAP.SimConnect.Console [-- --minutes N] [--failures] [--failure-roundtrip <key>]
+// Usage: dotnet run --project samples/FSGAP.SimConnect.Console [-- --minutes N] [--failures] [--failure-roundtrip <key>] [--nearest-airport]
 using System.Diagnostics;
 using System.Globalization;
 using FSGAP.Abstractions;
 using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Configuration;
 using FSGAP.Abstractions.Failures;
+using FSGAP.Abstractions.Geography;
+using FSGAP.Abstractions.Simulator;
 using FSGAP.Abstractions.Telemetry;
 using FSGAP.Fenix;
 using FSGAP.SimConnect;
@@ -30,6 +32,10 @@ var runFor = double.TryParse(Arg(args, "--minutes"), CultureInfo.InvariantCultur
     : Timeout.InfiniteTimeSpan;
 var readFailures = args.Contains("--failures") || args.Contains("--failure-roundtrip");
 var roundtripKey = Arg(args, "--failure-roundtrip") is { } keyText ? FailureKey.Parse(keyText) : null;
+var airportAt = Arg(args, "--airport-at")?.Split(",") is [var atLat, var atLon]
+    ? new GeoPosition(double.Parse(atLat, CultureInfo.InvariantCulture), double.Parse(atLon, CultureInfo.InvariantCulture))
+    : (GeoPosition?)null;
+var nearestAirport = args.Contains("--nearest-airport") || airportAt is not null;
 
 using var stop = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) =>
@@ -81,6 +87,7 @@ var watchers = new[]
     Watch(simulator.State.WatchAsync(stop.Token), s => Print("state", $"paused={s.Paused} crashes={s.CrashCount} lastCrash={s.LastCrashAt:O}")),
     Watch(simulator.AircraftDetector.WatchAsync(stop.Token), a => DescribeAsync(a).GetAwaiter().GetResult()),
     PrintTelemetryAsync(stop.Token),
+    nearestAirport ? PrintNearestAirportAsync(stop.Token) : Task.CompletedTask,
 };
 
 await Task.WhenAll(watchers);
@@ -197,6 +204,46 @@ async Task<IReadOnlyCollection<AircraftFailure>?> ReadActiveAsync(IAircraftSessi
     {
         Print("failures", $"active {when}: unavailable ({ex.Message})");
         return null;
+    }
+}
+
+async Task PrintNearestAirportAsync(CancellationToken cancellationToken)
+{
+    // Read-only: the aircraft's position from the generic telemetry, then the airport service on the same connection.
+    try
+    {
+        while (true)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+            var flight = (await simulator.Telemetry.GetSnapshotAsync(cancellationToken)).Flight;
+            var position = airportAt
+                ?? (flight.LatitudeDegrees.TryGetValue(out var lat) && flight.LongitudeDegrees.TryGetValue(out var lon)
+                    ? GeoPosition.TryFrom(lat, lon)
+                    : null);
+            if (position is not { } from)
+            {
+                Print("airport", "no known aircraft position yet");
+                continue;
+            }
+
+            try
+            {
+                var clock = Stopwatch.StartNew();
+                var nearby = await simulator.FindNearbyAirportsAsync(from, new AirportSearchOptions { MaxResults = 3 }, cancellationToken);
+                Print("airport", nearby.Count == 0
+                    ? $"no airport within {AirportSearchOptions.DefaultMaxDistanceNauticalMiles} NM of {from} ({clock.ElapsedMilliseconds} ms)"
+                    : $"nearest to {from} ({clock.ElapsedMilliseconds} ms): " + string.Join(" | ", nearby.Select(a =>
+                        string.Create(CultureInfo.InvariantCulture, $"{a.Icao} {a.DistanceNauticalMiles:F1} NM (region {a.Region ?? "-"}, elev {(a.ElevationFeet is { } ft ? $"{ft:F0} ft" : "n/a")}, {a.Position})"))));
+            }
+            catch (SimulatorServiceException ex)
+            {
+                Print("airport", $"unavailable: {ex.Error} ({ex.Message})");
+            }
+        }
+    }
+    catch (OperationCanceledException)
+    {
+        // Ctrl+C or auto-stop.
     }
 }
 

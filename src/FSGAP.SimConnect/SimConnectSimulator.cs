@@ -1,8 +1,10 @@
 using FSGAP.Abstractions.Configuration;
+using FSGAP.Abstractions.Geography;
 using FSGAP.Abstractions.Simulator;
 using FSGAP.Abstractions.Telemetry;
 using FSGAP.Core.Observation;
 using FSGAP.SimConnect.Native;
+using FSGAP.SimConnect.Services;
 using FSGAP.SimConnect.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -34,7 +36,7 @@ namespace FSGAP.SimConnect;
 /// <item><description>After disposal, Start throws <see cref="ObjectDisposedException"/>.</description></item>
 /// </list>
 /// </remarks>
-public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariableReader
+public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariableReader, IAirportService
 {
     /// <summary>Identity poll interval while connecting or while the aircraft is changing.</summary>
     internal static readonly TimeSpan IdentityFastInterval = TimeSpan.FromSeconds(2);
@@ -60,6 +62,9 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
     internal const string ConnectionLost = "Connection to the simulator was lost.";
     internal const string SimulatorNotConnected = "The simulator is not connected.";
 
+    /// <summary>How long an airport list is reused. The bubble moves with the aircraft, so this stays short.</summary>
+    internal static readonly TimeSpan AirportListCacheLifetime = TimeSpan.FromSeconds(10);
+
     private readonly FsgapOptions _options;
     private readonly ISimConnectSessionFactory _factory;
     private readonly ILogger _logger;
@@ -72,12 +77,14 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
     private readonly bool _pollTelemetry;
     private readonly SemaphoreSlim _lifecycle = new(1, 1);
     private readonly object _clockGate = new();
+    private readonly object _airportGate = new();
 
     private long? _sessionStartedAt;
     private CancellationTokenSource? _runCts;
     private Task? _runTask;
     private bool _disposed;
-    private volatile ISimConnectSession? _connectedSession;
+    private volatile LiveSession? _connectedSession;
+    private AirportListCache? _airportCache;
 
     /// <summary>Creates the connection. Nothing happens until <see cref="StartAsync"/>.</summary>
     /// <param name="options">Host options; <see cref="FsgapOptions.ApplicationName"/> is the SimConnect client name.</param>
@@ -150,7 +157,7 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
         VariableSetStructs.Validate(variables);
         ObjectDisposedException.ThrowIf(_disposed, this);
         cancellationToken.ThrowIfCancellationRequested();
-        var session = _connectedSession;
+        var session = _connectedSession?.Session;
         if (session is null || !session.IsConnected)
         {
             throw new InvalidOperationException(SimulatorNotConnected);
@@ -158,6 +165,42 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
 
         var snapshot = variables.ToArray();
         return await session.ReadVariablesAsync(snapshot, cancellationToken).ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// <para>
+    /// The airports come from the simulator's facility list for its <b>reality bubble</b>: the area loaded around the
+    /// user aircraft. A position far from the aircraft only finds the bubble's airports, so the nearest one returned can
+    /// be further away than the real nearest airport, or none may be within range.
+    /// </para>
+    /// <para>
+    /// The list is requested on this transport's connection (one native request, through the library's dispatcher, see
+    /// <c>FacilityInterop</c>) and kept for <see cref="AirportListCacheLifetime"/>. Concurrent searches share one
+    /// request; a new connection always starts without a cache.
+    /// </para>
+    /// </remarks>
+    public async Task<IReadOnlyList<AirportInfo>> FindNearbyAirportsAsync(
+        GeoPosition position,
+        AirportSearchOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        options ??= AirportSearchOptions.Default;
+        options.Validate();
+        var airports = await GetAirportListAsync(cancellationToken).ConfigureAwait(false);
+        return AirportSelection.Select(airports, position, options);
+    }
+
+    /// <inheritdoc />
+    /// <remarks>Same source and limits as <see cref="FindNearbyAirportsAsync"/>.</remarks>
+    public async Task<AirportInfo?> FindNearestAirportAsync(
+        GeoPosition position,
+        AirportSearchOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        var nearby = await FindNearbyAirportsAsync(position, (options ?? AirportSearchOptions.Default) with { MaxResults = 1 }, cancellationToken)
+            .ConfigureAwait(false);
+        return nearby.Count == 0 ? null : nearby[0];
     }
 
     /// <inheritdoc />
@@ -388,7 +431,7 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
             await TrySubscribeAsync(session, SimulatorSystemEvent.Crashed, sessionCts.Token).ConfigureAwait(false);
             var pauseSubscribed = await TrySubscribeAsync(session, SimulatorSystemEvent.Pause, sessionCts.Token).ConfigureAwait(false);
             _state.MarkConnected(pauseSubscribed);
-            _connectedSession = session;
+            _connectedSession = new LiveSession(session, sessionCts.Token);
             SetStatus(SimulatorConnectionState.Connected, null);
 
             identityTask = PollIdentityAsync(session, lost, sessionCts.Token);
@@ -666,6 +709,74 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
     /// by <c>in</c> reference and <see cref="Action{T1, T2, T3}"/> cannot express that.</summary>
     private delegate void ApplyGroup<TGroup>(in TGroup vars, DateTimeOffset observedAt, int generation)
         where TGroup : struct;
+
+    /// <summary>
+    /// The airport list of the current connection: from the cache while it is fresh and belongs to this connection,
+    /// otherwise from one new native request shared by every concurrent caller. A caller's cancellation only stops its
+    /// own wait; the shared request ends with the connection.
+    /// </summary>
+    /// <exception cref="SimulatorServiceException">Not connected, or the query failed.</exception>
+    private async Task<IReadOnlyList<RawAirport>> GetAirportListAsync(CancellationToken cancellationToken)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        cancellationToken.ThrowIfCancellationRequested();
+        var live = _connectedSession;
+        if (live is null || !live.Session.IsConnected)
+        {
+            throw new SimulatorServiceException(SimulatorServiceError.SimulatorUnavailable, SimulatorNotConnected);
+        }
+
+        Task<IReadOnlyList<RawAirport>> request;
+        lock (_airportGate)
+        {
+            var cached = _airportCache;
+            if (cached is not null
+                && ReferenceEquals(cached.Session, live.Session)
+                && !cached.Request.IsFaulted
+                && !cached.Request.IsCanceled
+                && _time.GetElapsedTime(cached.RequestedAt) <= AirportListCacheLifetime)
+            {
+                request = cached.Request;
+            }
+            else
+            {
+                request = RequestAirportListAsync(live);
+                _airportCache = new AirportListCache(live.Session, _time.GetTimestamp(), request);
+            }
+        }
+
+        try
+        {
+            return await request.WaitAsync(cancellationToken).ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new SimulatorServiceException(SimulatorServiceError.SimulatorUnavailable, ConnectionLost);
+        }
+        catch (Exception ex) when (ex is not (OperationCanceledException or SimulatorServiceException))
+        {
+            if (!live.Session.IsConnected || live.Lifetime.IsCancellationRequested)
+            {
+                throw new SimulatorServiceException(SimulatorServiceError.SimulatorUnavailable, ConnectionLost, ex);
+            }
+
+            _logger.LogWarning(ex, "The airport list query failed");
+            throw new SimulatorServiceException(SimulatorServiceError.QueryFailed, $"The airport list query failed: {ex.Message}", ex);
+        }
+    }
+
+    private async Task<IReadOnlyList<RawAirport>> RequestAirportListAsync(LiveSession live)
+    {
+        // ForceYielding: never continue on the native message thread.
+        await Task.Yield();
+        return await live.Session.RequestAirportsAsync(live.Lifetime).ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+    }
+
+    /// <summary>The connected native session and the token that ends with it.</summary>
+    private sealed record LiveSession(ISimConnectSession Session, CancellationToken Lifetime);
+
+    /// <summary>One airport-list request of one connection, and when it was sent.</summary>
+    private sealed record AirportListCache(ISimConnectSession Session, long RequestedAt, Task<IReadOnlyList<RawAirport>> Request);
 
     /// <summary>Marks the callbacks of one native connection as current; deactivated when that connection ends.</summary>
     private sealed class SessionGuard

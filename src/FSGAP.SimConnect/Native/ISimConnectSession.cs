@@ -58,6 +58,15 @@ internal interface ISimConnectSession : IAsyncDisposable
     /// </summary>
     /// <returns>One value per variable, in list order.</returns>
     Task<double[]> ReadVariablesAsync(IReadOnlyList<Abstractions.Simulator.SimulatorVariable> variables, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Requests the airport list of the simulator's reality bubble on this connection and gathers every packet of the
+    /// answer (see <see cref="FacilityInterop"/> and <see cref="AirportListParser"/>).
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The library is not compatible, or the simulator rejected the request.</exception>
+    /// <exception cref="TimeoutException">The answer did not arrive in time.</exception>
+    /// <exception cref="FormatException">A packet does not match the known layout.</exception>
+    Task<IReadOnlyList<RawAirport>> RequestAirportsAsync(CancellationToken cancellationToken);
 }
 
 /// <summary>Opens native connections.</summary>

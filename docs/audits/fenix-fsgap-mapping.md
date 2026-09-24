@@ -60,6 +60,13 @@ proposals for later blocks.
 > Fenix ids stay inside FSGAP.Fenix. Table: [../fenix-failure-mapping.md](../fenix-failure-mapping.md). The server
 > (DEC-2) is not migrated yet.
 
+> **Status after BLOCK 8 (version 0.8.0).** G-S3 (simulator services) is half done.
+>
+> - **Done:** the nearest-airport lookup is `IAirportService` in `FSGAP.SimConnect`, on the single connection, with
+>   the reflection isolated in `FacilityInterop`. Details: [../simulator-airport-service.md](../simulator-airport-service.md).
+> - **Still open (P3):** airport parking and `FlightLoad`.
+> - **G-S4:** the MSFS install locator is still internal to FSGAP.Fenix.
+
 Column meanings:
 
 - **Source:** FSH = FSHANGAR client, FLP = FLIPPP client, both = identical or near-identical code in both.

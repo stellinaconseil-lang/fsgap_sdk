@@ -1,6 +1,6 @@
 # FSGAP_SDK
 
-Version 0.7.0. It provides:
+Version 0.8.0. It provides:
 
 - contracts for aircraft providers, telemetry and failures;
 - normalized failure keys;
@@ -17,10 +17,13 @@ Version 0.7.0. It provides:
   masked, plus the proven Fenix systems: ADIRS modes, fuel pump switches, fire panel (handles, fire warning lights)
   and green/blue hydraulic pressure;
 - **Fenix failures** through the local Fenix EFB: a normalized catalog of 40 failure keys (the failures the
-  applications use today), trigger, clear and read of the active failures, never exposing a Fenix id.
+  applications use today), trigger, clear and read of the active failures, never exposing a Fenix id;
+- **a simulator airport service** (`IAirportService`): the nearest airports to any coordinate, from the simulator's own
+  facility list, on the same single connection.
 
-Simulator services (airport search, parking, flight loading), the APU operating state and the electrical system are
-not implemented yet. See `docs/generic-telemetry.md`, `docs/fenix-system-telemetry.md` and `docs/fenix-failures.md`.
+Parking search, flight loading, the APU operating state and the electrical system are not implemented yet. See
+`docs/generic-telemetry.md`, `docs/fenix-system-telemetry.md`, `docs/fenix-failures.md` and
+`docs/simulator-airport-service.md`.
 
 ## What is FSGAP?
 
@@ -99,7 +102,7 @@ src/
   FSGAP.Fenix/          FenixAircraftProvider (recognition, identity, telemetry, failures), FenixOptions and
                         FenixInstalledAircraftCatalog (installed liveries, registration resolution)
   FSGAP.SimConnect/     SimConnectSimulator: MSFS connection lifecycle, simulation state, aircraft detection,
-                        generic telemetry
+                        generic telemetry, variable reader, airport service
                         (the only assembly referencing SimConnect.NET)
 tests/                  xUnit tests, one project per library (none needs MSFS)
 samples/                FSGAP.SimConnect.Console: live validation tool (not a package)
@@ -108,6 +111,7 @@ docs/generic-telemetry.md  the generic telemetry: SimVars, groups, cadences, con
 docs/fenix-system-telemetry.md  the Fenix system telemetry: variables, transport, overlay, LVAR inventory
 docs/fenix-failures.md    the Fenix failure provider: EFB transport, catalogue, key policy, results, lifecycle
 docs/fenix-failure-mapping.md  FailureKey ↔ Fenix id table (reference for the server migration)
+docs/simulator-airport-service.md  the airport service: native mechanism, reflection boundary, search, limits
 docs/decisions/         architecture decision records (ADRs)
 docs/audits/            BLOCK 1 audit of the existing Fenix/MSFS integrations, mapping and extraction plan
 ```
@@ -157,6 +161,13 @@ if (resolution.IsResolved)
         // Succeeded, or Unavailable (EFB not reachable: nothing applied), Unconfirmed (may be applied: read before
         // retrying), Rejected, Failed, NotSupported.
     }
+}
+
+// Simulator services: the nearest airport to the aircraft (or any point), on the same connection.
+var flight = (await simulator.Telemetry.GetSnapshotAsync()).Flight;
+if (flight.LatitudeDegrees.TryGetValue(out var lat) && flight.LongitudeDegrees.TryGetValue(out var lon))
+{
+    var nearest = await simulator.FindNearestAirportAsync(new GeoPosition(lat, lon));   // null: none within 50 NM
 }
 ```
 

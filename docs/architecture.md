@@ -1,6 +1,6 @@
 # FSGAP_SDK architecture
 
-This document records the principles FSGAP_SDK is built on, the current design (version 0.7.0) and targets that are
+This document records the principles FSGAP_SDK is built on, the current design (version 0.8.0) and targets that are
 planned but not implemented. Individual decisions are recorded as ADRs in [decisions/](decisions/README.md). The
 BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 
@@ -8,10 +8,10 @@ BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 
 | Assembly | Role | Depends on | Status |
 |---|---|---|---|
-| `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.7.0 |
-| `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.7.0 |
-| `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321: recognition, normalized identity, installed livery catalog ([details](fenix-identity-and-catalog.md)), generic-telemetry policy and system telemetry ([details](fenix-system-telemetry.md)), failures through the EFB ([details](fenix-failures.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.7.0 |
-| `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)), generic telemetry ([details](generic-telemetry.md)), batched variable reader | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.7.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
+| `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.8.0 |
+| `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.8.0 |
+| `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321: recognition, normalized identity, installed livery catalog ([details](fenix-identity-and-catalog.md)), generic-telemetry policy and system telemetry ([details](fenix-system-telemetry.md)), failures through the EFB ([details](fenix-failures.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.8.0 |
+| `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)), generic telemetry ([details](generic-telemetry.md)), batched variable reader, airport service ([details](simulator-airport-service.md)) | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.8.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
 
 ```text
 FSGAP.Abstractions  <-  FSGAP.Core  <-  FSGAP.Fenix
@@ -332,6 +332,26 @@ Some required MSFS features (airport list, parking data, `FlightLoad`) are reach
 SimConnect.NET functions. Reflection into them is tolerated temporarily, **only** inside one internal class of
 `FSGAP.SimConnect`, pinned to the tested library version and checked at startup. It never appears in a public
 contract, in FSGAP.Abstractions or in application code ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)).
+
+Since 0.8.0 that class exists: `FacilityInterop`. It reaches two members of SimConnect.NET 0.2.2:
+- the internal P/Invoke `SimConnect_RequestFacilitiesList_EX1`;
+- the internal `SimConnectClient.InvokeNativeAsync<T>`, which runs the call on the library's dispatcher.
+
+Tests pin the version and the signatures. Parking and `FlightLoad` are still to come.
+
+### Simulator airport service (0.8.0)
+
+- **What it does.** `SimConnectSimulator` implements `IAirportService` (Abstractions): the airports of the simulator's
+  reality bubble near any `GeoPosition`, nearest first, within `AirportSearchOptions` (50 NM and 10 results by
+  default).
+- **How.**
+  - One native request per search, on the **single** connection, serialized by the library's dispatcher. That is the
+    fix for the race that forced FSHANGAR onto a second connection.
+  - A 10 s cache per connection, with concurrent searches sharing one request.
+  - Distances are great-circle, in nautical miles.
+- **Errors.** `SimulatorServiceException` separates "simulator unavailable" from "query failed". An empty answer
+  means "nothing in range".
+- Details, live validation and parity with FSHANGAR: [simulator-airport-service.md](simulator-airport-service.md).
 
 ### Packaging and distribution
 

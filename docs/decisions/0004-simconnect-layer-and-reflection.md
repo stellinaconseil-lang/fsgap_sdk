@@ -1,7 +1,8 @@
 # 0004 — `FSGAP.SimConnect` layer and reflection isolation
 
 - **Status:** Accepted (BLOCK 2, DEC-4). Implemented in BLOCK 3 (0.3.0) with the connection lifecycle, simulation
-  state and aircraft detection, and **no reflection at all**. Airport list, parking and `FlightLoad` are still to
+  state and aircraft detection, and **no reflection at all**. The airport list arrived in BLOCK 8 (0.8.0, see the
+  follow-up). Parking and `FlightLoad` are still to
   come.
 
 ## Context
@@ -44,3 +45,16 @@ subscription. The audit also showed that the generic SimConnect part and the Fen
 
 - Upgrading SimConnect.NET is a deliberate, tested change in one place.
 - Airport list, parking and `FlightLoad` are ported in the simulator-services block, behind the same rule.
+
+## Follow-up (BLOCK 8, 0.8.0)
+
+- **The reflection now exists.** It is confined to `FSGAP.SimConnect.Native.FacilityInterop` and pinned to
+  SimConnect.NET 0.2.2. It reaches:
+  - `SimConnectNative.SimConnect_RequestFacilitiesList_EX1`;
+  - `SimConnectClient.InvokeNativeAsync<T>`.
+- **Startup check.** Members are resolved once and their signatures checked. A mismatch gives a clear
+  "not compatible" error on every airport search and never a `NullReferenceException`.
+- **Tests** pin the version and the members.
+- **Why `InvokeNativeAsync`.** It runs the native call on the library's dispatcher, which keeps the whole transport
+  on **one** connection. FSHANGAR needed a second one because it called the native function from its own thread.
+- Details: [../simulator-airport-service.md](../simulator-airport-service.md).
