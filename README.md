@@ -1,6 +1,6 @@
 # FSGAP_SDK
 
-Version 0.4.0. It provides:
+Version 0.5.0. It provides:
 
 - contracts for aircraft providers, telemetry and failures;
 - normalized failure keys;
@@ -10,9 +10,13 @@ Version 0.4.0. It provides:
 - **Fenix A319/A320/A321 recognition and normalized identity**, and a catalog of the installed Fenix liveries
   that resolves registrations (`FSGAP.Fenix`);
 - **a real MSFS SimConnect transport** (`FSGAP.SimConnect`): automatic connection and reconnection, pause and
-  crash state, and detection of the loaded aircraft.
+  crash state, detection of the loaded aircraft, and **generic flight telemetry** (flight state, position at 1 Hz,
+  attitude, speeds, engines, gear, flaps, flight-envelope warnings) read on that same single connection;
+- **Fenix telemetry policy**: a Fenix session exposes the generic telemetry with the values known to be wrong on
+  Fenix masked as unavailable.
 
-Aircraft telemetry, Fenix systems (LVARs) and Fenix failures are not implemented yet.
+Fenix-specific systems (APU, ADIRS, fuel pumps, fire, electrical, hydraulics: LVARs) and failures are not
+implemented yet. See `docs/generic-telemetry.md`.
 
 ## What is FSGAP?
 
@@ -86,14 +90,17 @@ src/
                         FailureCatalog), simulator (connection, state, aircraft detector), installed-aircraft
                         catalog, FsgapOptions
   FSGAP.Core/           AircraftProviderRegistry, AircraftSession, ObservableState, TelemetryFreshness,
+                        TransformedTelemetryProvider,
                         PollingTelemetryStream, null-object providers
   FSGAP.Fenix/          FenixAircraftProvider (recognition, identity) and FenixInstalledAircraftCatalog
                         (installed liveries, registration resolution)
-  FSGAP.SimConnect/     SimConnectSimulator: MSFS connection lifecycle, simulation state, aircraft detection
+  FSGAP.SimConnect/     SimConnectSimulator: MSFS connection lifecycle, simulation state, aircraft detection,
+                        generic telemetry
                         (the only assembly referencing SimConnect.NET)
 tests/                  xUnit tests, one project per library (none needs MSFS)
 samples/                FSGAP.SimConnect.Console: live validation tool (not a package)
 docs/architecture.md    principles, design and future targets
+docs/generic-telemetry.md  the generic telemetry: SimVars, groups, cadences, conversions, Fenix policy
 docs/decisions/         architecture decision records (ADRs)
 docs/audits/            BLOCK 1 audit of the existing Fenix/MSFS integrations, mapping and extraction plan
 ```
@@ -111,17 +118,17 @@ var aircraft = await simulator.AircraftDetector.WaitForAircraftAsync();   // TIT
 var registry = new AircraftProviderRegistry();
 var fenixLiveries = new FenixInstalledAircraftCatalog(options);   // finds MSFS 2024 from UserCfg.opt
 await fenixLiveries.RefreshAsync();                                 // read-only scan, cached under DataDirectory
-registry.Register(new FenixAircraftProvider(fenixLiveries));
+registry.Register(new FenixAircraftProvider(fenixLiveries, genericTelemetry: simulator.Telemetry));
 
 var resolution = registry.Resolve(aircraft);
 if (resolution.IsResolved)
 {
     await using var session = await resolution.Selected.Provider.AttachAsync(aircraft);
 
-    if (session.Capabilities.Telemetry.Apu)
+    if (session.Capabilities.Telemetry.FlightState)
     {
         var telemetry = await session.Telemetry.GetSnapshotAsync();
-        if (telemetry.Apu.Running.TryGetValue(out var running)) { /* running is a real reading */ }
+        if (telemetry.Flight.IndicatedAirspeedKnots.TryGetValue(out var ias)) { /* a fresh reading, not a default */ }
     }
 
     // Keys come from the provider's catalog (session.Capabilities.Failures.Catalog), never from a vendor id.

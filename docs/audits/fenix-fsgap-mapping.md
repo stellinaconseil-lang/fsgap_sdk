@@ -21,6 +21,23 @@ proposals for later blocks.
 > References to `FailureType` and `FlightControls.FlapsExtensionPercent` below describe the BLOCK 0 model; both
 > were removed. P2 and P3 gaps are still open.
 
+> **Status after BLOCK 5 (version 0.5.0).** Rows whose action is "Generic provider" are now implemented in
+> `FSGAP.SimConnect` for the P1 contract fields (full list in [../generic-telemetry.md](../generic-telemetry.md)):
+>
+> - §1.1: on ground, position (1 Hz), altitudes, AGL, IAS, GS, VS, touchdown, pitch, bank, G, the four warnings.
+>   Magnetic heading is added with `PLANE HEADING DEGREES MAGNETIC`, which was not audited and was read live.
+> - §1.2: combustion, N1, N2, EGT, fuel flow.
+> - §1.5: gear handle; centre, left and right legs (left and right were not audited and were read live); flaps
+>   handle and trailing-edge surfaces; spoilers → speed brake.
+>
+> Changes from the table below:
+>
+> - `Flight.RadioAltitudeFeet` and `Engines[n].FireDetected` stay Unavailable.
+> - **Fenix override:** the speed brake is masked to Unavailable by `FenixGenericTelemetryPolicy`.
+> - Rows with "Drop (no Fenix source)" or "confirmed wrong on Fenix" are not read.
+> - Still open: G-T4/G-T5/G-T6, the rest of G-T8, APU bleed (not verified on Fenix) and generic
+>   hydraulics/electrical. The Fenix rows are BLOCK 6.
+
 Column meanings:
 
 - **Source:** FSH = FSHANGAR client, FLP = FLIPPP client, both = identical or near-identical code in both.

@@ -1,6 +1,7 @@
 using System.Reflection;
 using FSGAP.Abstractions;
 using FSGAP.Core.Observation;
+using FSGAP.SimConnect.Native;
 
 namespace FSGAP.SimConnect.Tests;
 
@@ -76,6 +77,35 @@ public class ArchitectureTests
 
         Assert.DoesNotContain(names, name => forbidden.Any(f => name.Contains(f, StringComparison.OrdinalIgnoreCase)));
     }
+
+    [Fact]
+    public void Only_the_session_factory_creates_native_connections()
+    {
+        // BLOCK 5: telemetry reuses the lifecycle's connection. One factory implementation, one factory field on the
+        // transport, and nothing outside the native seam holds a SimConnect.NET client or a factory of its own.
+        var client = typeof(global::SimConnect.NET.SimConnectClient);
+        var factories = Transport.GetTypes().Where(t => !t.IsInterface && typeof(ISimConnectSessionFactory).IsAssignableFrom(t));
+        var holdersOfClient = Transport.GetTypes().Where(t => InstanceFields(t).Any(f => f.FieldType == client)).Select(t => Outermost(t).Name).Distinct().Order();
+        var holdersOfFactory = Transport.GetTypes().Where(t => InstanceFields(t).Any(f => f.FieldType == typeof(ISimConnectSessionFactory))).Select(t => Outermost(t).Name).Distinct();
+
+        Assert.Equal([typeof(SimConnectNetSessionFactory)], factories);
+        Assert.Equal([nameof(SimConnectNetSession), nameof(SimConnectNetSessionFactory)], holdersOfClient);
+        Assert.Equal([nameof(SimConnectSimulator)], holdersOfFactory);
+    }
+
+    [Fact]
+    public void Telemetry_source_holds_no_native_session()
+    {
+        Assert.DoesNotContain(
+            InstanceFields(typeof(Telemetry.TelemetrySource)),
+            f => f.FieldType == typeof(ISimConnectSession) || f.FieldType == typeof(ISimConnectSessionFactory));
+    }
+
+    /// <summary>Compiler-generated state machines and closures count as the type that declares them.</summary>
+    private static Type Outermost(Type type) => type.DeclaringType is { } outer ? Outermost(outer) : type;
+
+    private static IEnumerable<FieldInfo> InstanceFields(Type type) =>
+        type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
     private static IEnumerable<Type> PublicSignatureTypes(Type type)
     {

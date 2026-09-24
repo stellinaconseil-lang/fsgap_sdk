@@ -8,15 +8,17 @@ namespace FSGAP.SimConnect.Tests.Fakes;
 /// <summary>A transport wired to a fake native layer, a fake clock and a capturing logger.</summary>
 internal sealed class Harness : IAsyncDisposable
 {
-    public Harness(TimeSpan? retryDelay = null)
+    /// <param name="pollTelemetry">Off by default: the lifecycle tests count timers, and the telemetry loops add three per session.</param>
+    public Harness(TimeSpan? retryDelay = null, bool pollTelemetry = false, TimeSpan? staleAfter = null)
     {
         Options = new FsgapOptions
         {
             ApplicationName = "FsgapTests",
             DataDirectory = Path.Combine(Path.GetTempPath(), "fsgap-simconnect-tests"),
             Connection = new SimulatorConnectionOptions { RetryDelay = retryDelay ?? TimeSpan.FromSeconds(5) },
+            Telemetry = new TelemetryOptions { StaleAfter = staleAfter ?? TimeSpan.FromSeconds(15) },
         };
-        Simulator = new SimConnectSimulator(Options, Factory, Logger, Clock);
+        Simulator = new SimConnectSimulator(Options, Factory, Logger, Clock, pollTelemetry);
     }
 
     public FsgapOptions Options { get; }

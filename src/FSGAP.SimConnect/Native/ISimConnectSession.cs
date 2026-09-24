@@ -40,6 +40,17 @@ internal interface ISimConnectSession : IAsyncDisposable
 
     /// <summary>Reads the identity of the user aircraft.</summary>
     Task<RawAircraftIdentity> ReadAircraftIdentityAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Reads one telemetry group as a single native request.
+    /// </summary>
+    /// <remarks>
+    /// One call, one data definition, every field of <typeparamref name="TGroup"/> in one response, the same
+    /// batched pattern the audited applications used (one struct per cadence group).
+    /// </remarks>
+    /// <typeparam name="TGroup">A struct whose fields carry SimVar attributes.</typeparam>
+    Task<TGroup> ReadTelemetryGroupAsync<TGroup>(CancellationToken cancellationToken)
+        where TGroup : struct;
 }
 
 /// <summary>Opens native connections.</summary>

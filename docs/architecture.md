@@ -8,10 +8,10 @@ BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 
 | Assembly | Role | Depends on | Status |
 |---|---|---|---|
-| `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.4.0 |
-| `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.4.0 |
-| `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321: recognition, normalized identity, installed livery catalog ([details](fenix-identity-and-catalog.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.4.0 |
-| `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)) | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.4.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
+| `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.5.0 |
+| `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.5.0 |
+| `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321: recognition, normalized identity, installed livery catalog ([details](fenix-identity-and-catalog.md)), generic-telemetry policy ([details](generic-telemetry.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.5.0 |
+| `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)), generic telemetry ([details](generic-telemetry.md)) | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.5.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
 
 ```text
 FSGAP.Abstractions  <-  FSGAP.Core  <-  FSGAP.Fenix
@@ -201,14 +201,29 @@ deliberately left out.
 `PollingTelemetryStream` (Core) implements streaming for snapshot-only providers and takes a `TimeProvider` for
 tests.
 
-**Target cadences for the SimConnect providers:**
+**Cadences of the SimConnect generic telemetry (0.5.0):**
 
-- flight state **including position: 1 Hz by default** ([ADR 0005](decisions/0005-position-update-rate.md));
-- warnings: ≥ 1 Hz;
-- systems: about 5 s;
-- all of them below the staleness limit.
+- FAST, 1 s: flight state **including position** ([ADR 0005](decisions/0005-position-update-rate.md)), attitude,
+  speeds and the flight-envelope warnings;
+- NORMAL, 2 s: gear and flight controls;
+- SLOW, 5 s: engines;
+- all of them below the staleness limit (15 s by default).
 
-Consumers downsample if they need less.
+Consumers downsample if they need less. `StreamAsync` honours `TelemetryStreamOptions.Interval`: at most one
+snapshot per interval, always the latest.
+
+### Generic telemetry and aircraft policies (0.5.0)
+
+- `SimConnectSimulator.Telemetry` reads the generic MSFS SimVars in three batched groups **on the transport's
+  single native connection**: no second SimConnect client, one native request per group read.
+- Every group read replaces its own sections of one immutable snapshot. A failing group is isolated: its values
+  expire, the others keep flowing, the connection stays up.
+- An aircraft change or a stop resets the snapshot to Unavailable. A read issued for the previous aircraft is
+  dropped. After a connection loss, the values turn Unknown once `StaleAfter` has passed, streams included.
+- The transport knows no aircraft. A provider composes on it with `TransformedTelemetryProvider` (Core):
+  `FSGAP.Fenix` masks the generic values known to be wrong on Fenix (the speed brake). BLOCK 6 will add the Fenix
+  values at the same composition point.
+- Details, SimVar list, conversions and the Fenix policy table: [generic-telemetry.md](generic-telemetry.md).
 
 ### Simulator observation
 
@@ -265,7 +280,8 @@ A trigger or clear outside the catalog returns `NotSupported` without contacting
 ### Null-object building blocks
 
 `UnavailableTelemetryProvider` and `UnsupportedFailureProvider` (Core) let a provider open an honest session before
-its telemetry or failures are implemented. `FSGAP.Fenix` uses them in 0.4.0.
+its telemetry or failures are implemented. `FSGAP.Fenix` uses `UnsupportedFailureProvider`, and
+`UnavailableTelemetryProvider` when it is given no generic telemetry.
 
 ### Plugin loading
 

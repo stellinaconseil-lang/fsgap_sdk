@@ -1,11 +1,13 @@
 using FSGAP.Abstractions;
 using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Capabilities;
+using FSGAP.Abstractions.Telemetry;
 using FSGAP.Core.Failures;
 using FSGAP.Core.Sessions;
 using FSGAP.Core.Telemetry;
 using FSGAP.Fenix.Detection;
 using FSGAP.Fenix.Identity;
+using FSGAP.Fenix.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -25,7 +27,9 @@ namespace FSGAP.Fenix;
 /// the installed livery matching <c>LIVERY FOLDER</c>, then from the ATC id, otherwise it is unknown.
 /// </para>
 /// <para>
-/// Sessions still declare <see cref="AircraftCapabilities.None"/>: no Fenix telemetry or failures yet.
+/// Telemetry: with the simulator's generic telemetry supplied, a session exposes it through
+/// <c>FenixGenericTelemetryPolicy</c>, which masks the generic values known to be wrong on Fenix. Without it, the
+/// session declares <see cref="AircraftCapabilities.None"/> as before. No Fenix-specific values and no failures yet.
 /// </para>
 /// </remarks>
 public sealed class FenixAircraftProvider : IAircraftProvider
@@ -36,6 +40,7 @@ public sealed class FenixAircraftProvider : IAircraftProvider
     private readonly IInstalledAircraftCatalog? _installedAircraft;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger _logger;
+    private readonly ITelemetryProvider? _genericTelemetry;
 
     /// <summary>Creates the provider.</summary>
     /// <param name="installedAircraft">
@@ -44,14 +49,20 @@ public sealed class FenixAircraftProvider : IAircraftProvider
     /// </param>
     /// <param name="timeProvider">Clock used by sessions; <see cref="TimeProvider.System"/> by default.</param>
     /// <param name="logger">Optional logger (identity conflicts, catalog lookup failures).</param>
+    /// <param name="genericTelemetry">
+    /// The simulator's generic telemetry, typically <c>SimConnectSimulator.Telemetry</c> of the connection that detected
+    /// the aircraft. Sessions expose it with the Fenix policy applied. Without it, sessions have no telemetry.
+    /// </param>
     public FenixAircraftProvider(
         IInstalledAircraftCatalog? installedAircraft = null,
         TimeProvider? timeProvider = null,
-        ILogger<FenixAircraftProvider>? logger = null)
+        ILogger<FenixAircraftProvider>? logger = null,
+        ITelemetryProvider? genericTelemetry = null)
     {
         _installedAircraft = installedAircraft;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _logger = (ILogger?)logger ?? NullLogger.Instance;
+        _genericTelemetry = genericTelemetry;
     }
 
     /// <inheritdoc />
@@ -78,8 +89,10 @@ public sealed class FenixAircraftProvider : IAircraftProvider
         return new AircraftSession(
             ProviderId,
             FenixIdentityResolver.Resolve(variant, aircraft, installed, _logger),
-            AircraftCapabilities.None,
-            new UnavailableTelemetryProvider(_timeProvider),
+            _genericTelemetry is null ? AircraftCapabilities.None : FenixGenericTelemetryPolicy.Capabilities,
+            _genericTelemetry is null
+                ? new UnavailableTelemetryProvider(_timeProvider)
+                : new TransformedTelemetryProvider(_genericTelemetry, FenixGenericTelemetryPolicy.Apply),
             UnsupportedFailureProvider.Instance);
     }
 

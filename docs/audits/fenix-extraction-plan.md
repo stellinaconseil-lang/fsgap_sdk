@@ -250,7 +250,56 @@ Original plan:
   - Identity parity with the FSH coordinator on the same inputs (golden tests).
   - Live checklist: A319, A320 and A321 recognized, with correct registration on a community livery.
 
-## BLOCK 5 — Generic flight telemetry provider
+## BLOCK 5 — Generic flight telemetry provider — DONE (version 0.5.0)
+
+**Delivered** (details in [../generic-telemetry.md](../generic-telemetry.md)):
+
+- `SimConnectSimulator.Telemetry` (`ITelemetryProvider`):
+  - 36 stock SimVars in three batched groups on the transport's **single** native connection: FAST 1 s, NORMAL
+    2 s, SLOW 5 s;
+  - one immutable merged snapshot, Core freshness, and streams that honour `TelemetryStreamOptions.Interval`;
+  - reset on aircraft change and on stop, with generation-guarded reads;
+  - failing groups are isolated;
+  - values expire to Unknown after a disconnection.
+- `TransformedTelemetryProvider` (Core): an aircraft integration composes on the generic telemetry without the
+  transport knowing it.
+- `FenixGenericTelemetryPolicy` (FSGAP.Fenix, internal): masks the speed brake (wrong scale on Fenix).
+  `FenixAircraftProvider(genericTelemetry:)` exposes the masked telemetry and declares the five generic sections.
+- Tests:
+  - conversions, the mapper, the source (freshness, streams, reset), the transport (single session, isolation,
+    aircraft change, disconnection);
+  - golden parity fixtures (10 situations);
+  - the Fenix policy;
+  - architecture (single connection).
+
+**Deviations from the plan below, and why:**
+
+- **No separate `FSGAP.GenericSimConnect` provider assembly.** The BLOCK 5 specification puts the generic telemetry
+  in `FSGAP.SimConnect` on the existing connection (one native session). A separate provider would need its own
+  connection or a shared one exposed publicly.
+- **Scope limited to the P1 contract sections.** Not ported, and still in the contract backlog:
+  - the audited SYSTEMS and ENVIRONMENT extras: G-T4 (AoA, weight), G-T5 (body accelerations), G-T6 (oil,
+    starter, throttle, reverser);
+  - brakes, steering and surface deflections (G-T8 extras);
+  - APU bleed;
+  - generic hydraulics and electrical.
+
+  Brake fraction ×100 therefore has no field yet.
+- **Fenix overrides:** only the speed brake needed masking. The other "confirmed wrong on Fenix" SimVars (APU
+  RPM/GEN, yellow hydraulics, BAT2, slats, engine anti-ice) are not read generically, so their sections stay
+  Unavailable. The Fenix index mappings (green/blue hydraulics, BAT1) belong to BLOCK 6.
+- **Speed warnings at 1 Hz** for every consumer. FLIPPP already reads them at that rate. The change for FSHANGAR (5 s
+  before) must be accepted at its migration (BLOCK 9).
+
+**Live validation (2026-09-24):** LIVE TEST, MSFS 2024, Fenix A319 parked with engines running.
+
+- All groups were read without error, and the three SimVars absent from the audit (magnetic heading, left and
+  right gear) returned plausible values.
+- The Fenix masking was observed.
+- **Still open:** the "full taxi / takeoff / landing" checklist of the definition of done, the pitch and bank signs,
+  and the warnings set to true were not flown (the aircraft was static). They are AUTOMATED ONLY (golden fixtures).
+
+**Original plan:**
 
 - **Goal:** normalized telemetry from stock SimVars, usable by any aircraft and composed by the Fenix session.
 - **Scope:**

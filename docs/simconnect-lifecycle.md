@@ -3,7 +3,8 @@
 `FSGAP.SimConnect` (since 0.3.0) is the generic Microsoft Flight Simulator transport. It implements the simulator
 contracts of FSGAP.Abstractions ([ADR 0008](decisions/0008-simulator-abstractions.md)). It is **vendor-neutral**: it
 reports what MSFS says and never recognizes a developer, a model or an engine, which is the job of the aircraft
-providers. It contains no aircraft telemetry yet; that arrives in the generic telemetry block.
+providers. Since 0.5.0 it also reads the generic flight telemetry on the same connection
+([generic-telemetry.md](generic-telemetry.md)).
 
 ## Public API
 
@@ -18,6 +19,7 @@ public sealed class SimConnectSimulator : ISimulatorConnection   // + IAsyncDisp
     public TimeSpan SessionElapsed { get; }
     public ISimulatorStateProvider State { get; }        // pause, crashes
     public IAircraftDetector AircraftDetector { get; }   // loaded aircraft
+    public ITelemetryProvider Telemetry { get; }         // generic flight telemetry (0.5.0)
 
     public Task StartAsync(CancellationToken cancellationToken = default);
     public Task StopAsync(CancellationToken cancellationToken = default);
@@ -223,16 +225,19 @@ dotnet run --project samples/FSGAP.SimConnect.Console -- --minutes 10
 The results of the BLOCK 3 validation are recorded in [audits/fenix-extraction-plan.md](audits/fenix-extraction-plan.md)
 (BLOCK 3 section).
 
-## Preparing the telemetry groups (not implemented)
+## Telemetry groups (implemented in 0.5.0)
 
-The generic telemetry block will add SimVar groups on the same connection, each with its own cadence:
+The generic telemetry reads three SimVar groups on the same connection, each on its own loop and cadence:
 
-- **fast**: native `SimConnectPeriod.Second` subscription, including position at 1 Hz per
+- **FAST**: every 1 s, including position at 1 Hz per
   [ADR 0005](decisions/0005-position-update-rate.md);
-- **normal**: about 5 s poll;
-- **slow**: environment.
+- **NORMAL** (gear, flaps, speed brake): every 2 s;
+- **SLOW** (engines): every 5 s.
 
-They will be read through the same session seam. Request structs stay `internal`, which requires the
+Each read is one batched one-shot request (`ISimConnectSession.ReadTelemetryGroupAsync`), rather than the native
+periodic subscription planned in BLOCK 3. Polling keeps the same session seam, the same cancellation and the same
+fake-clock testability as the identity poll, at the cost of one request per read. Request structs stay
+`internal`, which requires the
 `InternalsVisibleTo("SimConnect.NET")` described below.
 
 ## Known library constraint

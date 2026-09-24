@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using FSGAP.SimConnect.Native;
 
 namespace FSGAP.SimConnect.Tests.Fakes;
@@ -13,6 +14,8 @@ internal sealed class FakeSession : ISimConnectSession
     private Action? _disconnected;
     private Action? _crashed;
     private Action<bool>? _pauseChanged;
+    private readonly Dictionary<Type, object> _groups = [];
+    private readonly Dictionary<Type, int> _groupReads = [];
     private RawAircraftIdentity _identity;
     private int _identityReads;
     private int _disposeCount;
@@ -50,6 +53,9 @@ internal sealed class FakeSession : ISimConnectSession
     public List<SimulatorSystemEvent> Subscriptions { get; } = [];
 
     public Exception? IdentityFailure { get; set; }
+
+    /// <summary>Groups whose reads throw while present, keyed by group struct type. Written by the test thread.</summary>
+    public ConcurrentDictionary<Type, Exception> GroupFailures { get; } = new();
 
     public bool IsConnected => _connected;
 
@@ -96,6 +102,42 @@ internal sealed class FakeSession : ISimConnectSession
         return FailingSubscriptions.Contains(systemEvent)
             ? Task.FromException(new InvalidOperationException($"{systemEvent} subscription refused"))
             : Task.CompletedTask;
+    }
+
+    /// <summary>Sets what the next read of <typeparamref name="TGroup"/> returns.</summary>
+    public void SetGroup<TGroup>(TGroup vars)
+        where TGroup : struct
+    {
+        lock (_gate)
+        {
+            _groups[typeof(TGroup)] = vars;
+        }
+    }
+
+    /// <summary>How many times <typeparamref name="TGroup"/> has been read.</summary>
+    public int GroupReads<TGroup>()
+        where TGroup : struct
+    {
+        lock (_gate)
+        {
+            return _groupReads.TryGetValue(typeof(TGroup), out var count) ? count : 0;
+        }
+    }
+
+    public Task<TGroup> ReadTelemetryGroupAsync<TGroup>(CancellationToken cancellationToken)
+        where TGroup : struct
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        lock (_gate)
+        {
+            _groupReads[typeof(TGroup)] = (_groupReads.TryGetValue(typeof(TGroup), out var count) ? count : 0) + 1;
+            if (GroupFailures.TryGetValue(typeof(TGroup), out var failure))
+            {
+                return Task.FromException<TGroup>(failure);
+            }
+
+            return Task.FromResult(_groups.TryGetValue(typeof(TGroup), out var vars) ? (TGroup)vars : default);
+        }
     }
 
     public Task<RawAircraftIdentity> ReadAircraftIdentityAsync(CancellationToken cancellationToken)

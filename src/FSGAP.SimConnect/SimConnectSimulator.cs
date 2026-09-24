@@ -1,7 +1,9 @@
 using FSGAP.Abstractions.Configuration;
 using FSGAP.Abstractions.Simulator;
+using FSGAP.Abstractions.Telemetry;
 using FSGAP.Core.Observation;
 using FSGAP.SimConnect.Native;
+using FSGAP.SimConnect.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -43,6 +45,17 @@ public sealed class SimConnectSimulator : ISimulatorConnection
     /// <summary>Consecutive identical identity reads after which the aircraft is considered stable.</summary>
     internal const int IdentityStableReads = 3;
 
+    /// <summary>ADR 0005: position at 1 Hz. The audited applications used ten seconds, a network concession
+    /// rather than a property of the data.</summary>
+    internal static readonly TimeSpan FastGroupInterval = TimeSpan.FromSeconds(1);
+
+    /// <summary>Gear, flaps and speed brake. Faster than the audited five seconds, because configuration at
+    /// touchdown is what a landing analysis needs and five seconds can straddle a transition.</summary>
+    internal static readonly TimeSpan NormalGroupInterval = TimeSpan.FromSeconds(2);
+
+    /// <summary>Engines. Thermal and rotational quantities; the audited five seconds proved sufficient.</summary>
+    internal static readonly TimeSpan SlowGroupInterval = TimeSpan.FromSeconds(5);
+
     internal const string SimulatorNotRunning = "Simulator not running.";
     internal const string ConnectionLost = "Connection to the simulator was lost.";
 
@@ -54,6 +67,8 @@ public sealed class SimConnectSimulator : ISimulatorConnection
     private readonly object _statusGate = new();
     private readonly SimulatorStateSource _state = new();
     private readonly AircraftDetectorSource _aircraft = new();
+    private readonly TelemetrySource _telemetry;
+    private readonly bool _pollTelemetry;
     private readonly SemaphoreSlim _lifecycle = new(1, 1);
     private readonly object _clockGate = new();
 
@@ -72,7 +87,21 @@ public sealed class SimConnectSimulator : ISimulatorConnection
     {
     }
 
-    internal SimConnectSimulator(FsgapOptions options, ISimConnectSessionFactory factory, ILogger? logger, TimeProvider? timeProvider)
+    /// <summary>Test seam: a transport over a given native layer.</summary>
+    /// <param name="options">Host options.</param>
+    /// <param name="factory">Opens native connections.</param>
+    /// <param name="logger">Optional logger.</param>
+    /// <param name="timeProvider">Clock for delays and timestamps.</param>
+    /// <param name="pollTelemetry">
+    /// <see langword="false"/> leaves <see cref="Telemetry"/> permanently Unavailable and creates no telemetry
+    /// timers. Only the lifecycle tests use it, because they count the timers the transport creates.
+    /// </param>
+    internal SimConnectSimulator(
+        FsgapOptions options,
+        ISimConnectSessionFactory factory,
+        ILogger? logger,
+        TimeProvider? timeProvider,
+        bool pollTelemetry = true)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(factory);
@@ -81,6 +110,8 @@ public sealed class SimConnectSimulator : ISimulatorConnection
         _factory = factory;
         _logger = logger ?? NullLogger.Instance;
         _time = timeProvider ?? TimeProvider.System;
+        _telemetry = new TelemetrySource(_time, options.Telemetry.StaleAfter);
+        _pollTelemetry = pollTelemetry;
     }
 
     /// <inheritdoc />
@@ -91,6 +122,14 @@ public sealed class SimConnectSimulator : ISimulatorConnection
 
     /// <summary>The aircraft currently loaded, as reported by the simulator.</summary>
     public IAircraftDetector AircraftDetector => _aircraft;
+
+    /// <summary>Generic MSFS telemetry for the attached aircraft.</summary>
+    /// <remarks>
+    /// Bound to this connection, not a global: a snapshot always describes the aircraft this transport is
+    /// attached to, and an aircraft change clears it rather than letting the previous aircraft's readings pass
+    /// for the new one.
+    /// </remarks>
+    public ITelemetryProvider Telemetry => _telemetry;
 
     /// <inheritdoc />
     public TimeSpan SessionElapsed
@@ -169,6 +208,7 @@ public sealed class SimConnectSimulator : ISimulatorConnection
             _status.Complete();
             _state.Complete();
             _aircraft.Complete();
+            _telemetry.Complete();
         }
         finally
         {
@@ -207,6 +247,7 @@ public sealed class SimConnectSimulator : ISimulatorConnection
 
         _state.Reset();
         _aircraft.Publish(null);
+        _telemetry.Reset();
         SetStatus(SimulatorConnectionState.Disconnected, null);
     }
 
@@ -257,6 +298,11 @@ public sealed class SimConnectSimulator : ISimulatorConnection
                 // The session ended without a stop request: the connection was lost.
                 _state.MarkDisconnected();
                 _aircraft.Publish(null);
+                if (_pollTelemetry)
+                {
+                    _ = ExpireTelemetryLaterAsync(cancellationToken);
+                }
+
                 await WaitBeforeRetryAsync(SimulatorConnectionState.Reconnecting, ConnectionLost, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -307,6 +353,7 @@ public sealed class SimConnectSimulator : ISimulatorConnection
         session.PauseChanged += OnPauseChanged;
         using var sessionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         Task? identityTask = null;
+        Task[] groupTasks = [];
         try
         {
             await TrySubscribeAsync(session, SimulatorSystemEvent.Crashed, sessionCts.Token).ConfigureAwait(false);
@@ -315,7 +362,14 @@ public sealed class SimConnectSimulator : ISimulatorConnection
             SetStatus(SimulatorConnectionState.Connected, null);
 
             identityTask = PollIdentityAsync(session, lost, sessionCts.Token);
-            var finished = await Task.WhenAny(lost.Task, identityTask).ConfigureAwait(false);
+            groupTasks = !_pollTelemetry ? [] :
+            [
+                PollGroupAsync<FastGroupVars>(session, TelemetryGroup.Fast, FastGroupInterval, _telemetry.ApplyFast, sessionCts.Token),
+                PollGroupAsync<NormalGroupVars>(session, TelemetryGroup.Normal, NormalGroupInterval, _telemetry.ApplyNormal, sessionCts.Token),
+                PollGroupAsync<SlowGroupVars>(session, TelemetryGroup.Slow, SlowGroupInterval, _telemetry.ApplySlow, sessionCts.Token),
+            ];
+
+            var finished = await Task.WhenAny([lost.Task, identityTask, .. groupTasks]).ConfigureAwait(false);
             await finished.ConfigureAwait(false);
         }
         finally
@@ -327,6 +381,15 @@ public sealed class SimConnectSimulator : ISimulatorConnection
             session.PauseChanged -= OnPauseChanged;
             await sessionCts.CancelAsync().ConfigureAwait(false);
             await AwaitQuietlyAsync(identityTask).ConfigureAwait(false);
+            foreach (var groupTask in groupTasks)
+            {
+                await AwaitQuietlyAsync(groupTask).ConfigureAwait(false);
+            }
+
+            // Nothing will arrive until the simulator returns, so publish the snapshot aged to now: a stream
+            // must not keep showing the last live values as though the aircraft were still flying. Values read
+            // less than StaleAfter ago are still fresh at this instant; ExpireTelemetryLaterAsync finishes the job.
+            _telemetry.ExpireNow();
             try
             {
                 await session.DisposeAsync().ConfigureAwait(false);
@@ -378,6 +441,9 @@ public sealed class SimConnectSimulator : ISimulatorConnection
                 var aircraft = AircraftIdentityMapper.ToDescriptor(raw);
                 if (_aircraft.Publish(aircraft))
                 {
+                    // Not stale data about the new aircraft — accurate data about a different one. Ageing would
+                    // leave it looking merely old, so it is dropped outright.
+                    _telemetry.Reset();
                     identicalReads = 1;
                     _logger.LogInformation("Loaded aircraft: {Title} (livery folder {LiveryFolder})", aircraft?.Title ?? "none", aircraft?.LiveryFolder ?? "none");
                 }
@@ -412,6 +478,99 @@ public sealed class SimConnectSimulator : ISimulatorConnection
         }
     }
 
+    /// <summary>
+    /// Reads one telemetry group on its own cadence until the session ends.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// One loop per group, and each one survives its own failures. A group that starts failing — an unsupported
+    /// variable, a transient native error — stops updating its own sections and nothing else: the other groups
+    /// keep publishing, and the failing group's values age into Unknown through the normal freshness path rather
+    /// than freezing or taking the connection down with them.
+    /// </para>
+    /// <para>
+    /// Logging is on transition only. At 1 Hz a per-read log would be 3,600 lines an hour saying the same thing,
+    /// which is how a log stops being read at all. One line when a group starts failing, one when it recovers.
+    /// </para>
+    /// </remarks>
+    private async Task PollGroupAsync<TGroup>(
+        ISimConnectSession session,
+        TelemetryGroup group,
+        TimeSpan interval,
+        ApplyGroup<TGroup> apply,
+        CancellationToken cancellationToken)
+        where TGroup : struct
+    {
+        var failing = false;
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            try
+            {
+                // No aircraft (main menu, or before the first identity read): there is nothing to describe, and a
+                // snapshot must never exist without the aircraft it belongs to.
+                if (_aircraft.Current is not null)
+                {
+                    // Captured before the read: if the aircraft changes while the read is in flight, the result
+                    // belongs to the previous aircraft and TelemetrySource drops it.
+                    var generation = _telemetry.Generation;
+
+                    // ForceYielding: the native message thread copies and returns; normalization and publication
+                    // happen off it, as BLOCK 3 established.
+                    var vars = await session.ReadTelemetryGroupAsync<TGroup>(cancellationToken)
+                        .ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+                    apply(vars, _time.GetUtcNow(), generation);
+                }
+
+                if (failing)
+                {
+                    _logger.LogInformation("Telemetry group {Group} recovered", group);
+                    failing = false;
+                }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                if (!session.IsConnected)
+                {
+                    // The connection itself is gone; RunSessionAsync owns that, so this loop simply stops.
+                    return;
+                }
+
+                if (!failing)
+                {
+                    _logger.LogWarning(ex, "Could not read telemetry group {Group}; its values will expire", group);
+                    failing = true;
+                }
+
+                // If every group is failing, nothing else publishes: age the snapshot here so subscribers see it.
+                _telemetry.ExpireNow();
+            }
+
+            await Task.Delay(interval, _time, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// After a connection loss, publishes the snapshot once more when everything read before the loss has passed
+    /// the telemetry StaleAfter, so a stream shows Unknown without having to be polled.
+    /// </summary>
+    private async Task ExpireTelemetryLaterAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(_options.Telemetry.StaleAfter + TimeSpan.FromMilliseconds(1), _time, cancellationToken).ConfigureAwait(false);
+            _telemetry.ExpireNow();
+        }
+        catch (OperationCanceledException)
+        {
+            // Stopped; StopCoreAsync resets the telemetry anyway.
+        }
+    }
+
     private async Task AwaitQuietlyAsync(Task? task)
     {
         if (task is null)
@@ -429,7 +588,7 @@ public sealed class SimConnectSimulator : ISimulatorConnection
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Aircraft identity polling ended with an error");
+            _logger.LogWarning(ex, "A polling loop ended with an error");
         }
     }
 
@@ -471,6 +630,11 @@ public sealed class SimConnectSimulator : ISimulatorConnection
             }
         }
     }
+
+    /// <summary>Hands a freshly read group to the aggregator. Separate delegate type because a group is passed
+    /// by <c>in</c> reference and <see cref="Action{T1, T2, T3}"/> cannot express that.</summary>
+    private delegate void ApplyGroup<TGroup>(in TGroup vars, DateTimeOffset observedAt, int generation)
+        where TGroup : struct;
 
     /// <summary>Marks the callbacks of one native connection as current; deactivated when that connection ends.</summary>
     private sealed class SessionGuard

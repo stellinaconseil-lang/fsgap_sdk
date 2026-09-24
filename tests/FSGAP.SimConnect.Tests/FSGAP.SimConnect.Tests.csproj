@@ -15,4 +15,8 @@
     <ProjectReference Include="..\..\src\FSGAP.SimConnect\FSGAP.SimConnect.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Fixtures\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

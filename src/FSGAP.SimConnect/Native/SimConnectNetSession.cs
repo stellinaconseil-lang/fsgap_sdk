@@ -68,6 +68,10 @@ internal sealed class SimConnectNetSession : ISimConnectSession
         return new RawAircraftIdentity(vars.Title, vars.AtcId, vars.LiveryFolder, vars.LiveryName);
     }
 
+    public Task<TGroup> ReadTelemetryGroupAsync<TGroup>(CancellationToken cancellationToken)
+        where TGroup : struct =>
+        _client.SimVars.GetAsync<TGroup>(0, cancellationToken);
+
     public async ValueTask DisposeAsync()
     {
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
