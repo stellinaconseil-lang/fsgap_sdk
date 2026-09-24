@@ -8,78 +8,120 @@ using Microsoft.Extensions.Time.Testing;
 
 namespace FSGAP.Fenix.Tests;
 
-// Descriptors below are synthetic test inputs, not strings captured from the simulator.
+// Descriptors below are synthetic test inputs, modelled on the formats observed live.
 public class FenixAircraftProviderTests
 {
     private readonly FenixAircraftProvider _provider = new();
 
-    public static TheoryData<AircraftDescriptor, string> FenixAircraft => new()
+    public static TheoryData<string, string> FenixTitles => new()
     {
-        { new AircraftDescriptor { Title = "Fenix A319 Test Livery", IcaoType = "A319" }, "A319" },
-        { new AircraftDescriptor { Title = "Fenix A320 Test Livery", IcaoType = "A320" }, "A320" },
-        { new AircraftDescriptor { Title = "Fenix A321 Test Livery", IcaoType = "A321" }, "A321" },
-        { new AircraftDescriptor { Title = "FenixA320 Test Livery" }, "A320" },
-        { new AircraftDescriptor { Title = "Test Livery", PackagePath = "fenix-test-package", Model = "A321" }, "A321" },
+        { "FenixA319", "A319" },
+        { "FenixA320", "A320" },
+        { "FenixA321", "A321" },
+        { "Fenix A319", "A319" },
+        { "Fenix A320", "A320" },
+        { "Fenix A321", "A321" },
+        { "FenixA320 CFM", "A320" },
+        { "FenixA320 CFM WF", "A320" },
+        { "FenixA321 IAE WF SC", "A321" },
+        { "FenixA319 IAE SL SD", "A319" },
+        { "fenix-a320 air test", "A320" },
     };
 
     public static TheoryData<AircraftDescriptor> OtherAircraft => new()
     {
         new AircraftDescriptor { Title = "PMDG 737-800 Test Livery", Manufacturer = "Boeing", Model = "737-800", IcaoType = "B738" },
+        new AircraftDescriptor { Title = "iniBuilds A320neo V2 Test Livery", IcaoType = "A20N" },
+        new AircraftDescriptor { Title = "Airbus A320neo Asobo", IcaoType = "A20N" },
+        new AircraftDescriptor { Title = "Airbus A320", IcaoType = "A320", LiveryFolder = "a320-generic" },
+        new AircraftDescriptor { Title = "FlyByWire A320neo Test Livery", IcaoType = "A20N" },
         new AircraftDescriptor { Title = "Cessna Skyhawk C172 Test Livery", Manufacturer = "Cessna", IcaoType = "C172" },
-        new AircraftDescriptor { Title = "Other Developer A320 Test Livery", Manufacturer = "Airbus", IcaoType = "A320" },
-        new AircraftDescriptor { Title = "Fenix Test Aircraft", IcaoType = "A3200" },
+        new AircraftDescriptor { Title = "Fenix 3200 test", LiveryFolder = "unrelated" },
         new AircraftDescriptor(),
     };
 
     [Theory]
-    [MemberData(nameof(FenixAircraft))]
-    public void Fenix_A320_family_is_supported(AircraftDescriptor aircraft, string expectedModel)
+    [MemberData(nameof(FenixTitles))]
+    public void Fenix_titles_are_recognized(string title, string expectedModel)
     {
-        var match = _provider.Match(aircraft);
+        var match = _provider.Match(new AircraftDescriptor { Title = title });
 
         Assert.True(match.IsSupported);
-        Assert.True(((IAircraftProvider)_provider).CanHandle(aircraft));
+        Assert.True(((IAircraftProvider)_provider).CanHandle(new AircraftDescriptor { Title = title }));
         Assert.Equal(MatchSpecificity.Dedicated, match.Specificity);
-        Assert.Equal("Fenix Simulations", match.Identity.Developer);
-        Assert.Equal("Airbus", match.Identity.Manufacturer);
-        Assert.Equal("A320", match.Identity.Family);
         Assert.Equal(expectedModel, match.Identity.Model);
-        Assert.Equal(expectedModel, match.Identity.IcaoType);
     }
 
     [Theory]
     [MemberData(nameof(OtherAircraft))]
-    public void Other_aircraft_are_not_supported(AircraftDescriptor aircraft)
+    public void Other_aircraft_are_never_matched_even_when_they_say_A320(AircraftDescriptor aircraft)
     {
         Assert.False(_provider.Match(aircraft).IsSupported);
     }
 
     [Fact]
-    public void Identity_keeps_registration_and_livery_and_does_not_guess_the_rest()
+    public void Livery_folder_is_the_fallback_when_the_title_is_not_conclusive()
     {
-        var aircraft = new AircraftDescriptor { Title = "Fenix A320", Registration = "F-TEST", Livery = "Test Livery" };
+        var match = _provider.Match(new AircraftDescriptor { Title = "Custom Airliner", LiveryFolder = "Fenix_A321_house" });
 
-        var identity = _provider.Match(aircraft).Identity!;
-
-        Assert.Equal("F-TEST", identity.Registration);
-        Assert.Equal("Test Livery", identity.Livery);
-        Assert.Null(identity.Variant);
-        Assert.Null(identity.EngineVariant);
+        Assert.True(match.IsSupported);
+        Assert.Equal("A321", match.Identity.Model);
     }
 
     [Fact]
-    public async Task Session_declares_no_capability_yet()
+    public void Title_wins_over_livery_folder_for_the_model()
+    {
+        var match = _provider.Match(new AircraftDescriptor { Title = "FenixA319 CFM SL SD", LiveryFolder = "Fenix_A321_house" });
+
+        Assert.Equal("A319", match.Identity!.Model);
+    }
+
+    [Fact]
+    public void Identity_is_normalized()
+    {
+        var identity = _provider.Match(new AircraftDescriptor { Title = "FenixA321 IAE WF SC", Registration = " sx-dnh ", Livery = "Test Livery" }).Identity!;
+
+        Assert.Equal("Fenix Simulations", identity.Developer);
+        Assert.Equal("Airbus", identity.Manufacturer);
+        Assert.Equal("A320", identity.Family);
+        Assert.Equal("A321", identity.Model);
+        Assert.Equal("A321", identity.IcaoType); // inferred from the recognized model
+        Assert.Null(identity.Variant); // the sub-series is not known
+        Assert.Equal("IAE", identity.EngineVariant);
+        Assert.Equal("WingtipFence", identity.WingtipConfiguration);
+        Assert.Equal("SX-DNH", identity.Registration);
+        Assert.Equal("Test Livery", identity.Livery);
+        Assert.Null(identity.OperatorIcao);
+    }
+
+    [Theory]
+    [InlineData("FenixA320 CFM WF", "CFM", "WingtipFence")]
+    [InlineData("FenixA320 IAE SL", "IAE", "Sharklets")]
+    [InlineData("FenixA320", null, null)] // unknown stays unknown, never defaulted to CFM
+    [InlineData("FenixA320 CFM IAE WF SL", null, null)] // contradictory tokens: unknown, not a guess
+    [InlineData("FenixA320 CFMX WFX", null, null)] // whole words only
+    public void Engine_and_wingtip_come_from_exact_title_words(string title, string? engine, string? wingtip)
+    {
+        var identity = _provider.Match(new AircraftDescriptor { Title = title }).Identity!;
+
+        Assert.Equal(engine, identity.EngineVariant);
+        Assert.Equal(wingtip, identity.WingtipConfiguration);
+    }
+
+    [Fact]
+    public async Task Session_has_a_real_identity_but_still_no_capability()
     {
         var clock = new FakeTimeProvider(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
-        var provider = new FenixAircraftProvider(clock);
+        var provider = new FenixAircraftProvider(timeProvider: clock);
 
-        await using var session = await provider.AttachAsync(new AircraftDescriptor { Title = "Fenix A321" });
+        await using var session = await provider.AttachAsync(new AircraftDescriptor { Title = "FenixA321 IAE WF SC", Registration = "SX-DNH" });
         var snapshot = await session.Telemetry.GetSnapshotAsync();
         var engineFire = new FailureCommand(FailureKey.Parse("engine.fire"), FailureTarget.Engine(1));
         var trigger = await session.Failures.TriggerAsync(engineFire);
 
         Assert.Equal(FenixAircraftProvider.Id, session.ProviderId);
         Assert.Equal("A321", session.Identity.Model);
+        Assert.Equal("SX-DNH", session.Identity.Registration);
         Assert.Same(AircraftCapabilities.None, session.Capabilities);
         Assert.Equal(clock.GetUtcNow(), snapshot.Timestamp);
         Assert.Equal(ValueState.Unavailable, snapshot.Apu.Running.State);
@@ -101,11 +143,11 @@ public class FenixAircraftProviderTests
         var registry = new AircraftProviderRegistry();
         registry.Register(_provider);
 
-        var fenix = registry.Resolve(new AircraftDescriptor { Title = "Fenix A319" });
-        var cessna = registry.Resolve(new AircraftDescriptor { Title = "Cessna C172" });
+        var fenix = registry.Resolve(new AircraftDescriptor { Title = "FenixA319 CFM SL SD" });
+        var other = registry.Resolve(new AircraftDescriptor { Title = "iniBuilds A320neo" });
 
         Assert.True(fenix.IsResolved);
         Assert.Equal("fenix", fenix.Selected.Provider.ProviderId);
-        Assert.Equal(ProviderResolutionStatus.NotSupported, cessna.Status);
+        Assert.Equal(ProviderResolutionStatus.NotSupported, other.Status);
     }
 }

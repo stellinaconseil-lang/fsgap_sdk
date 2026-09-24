@@ -26,8 +26,23 @@ public sealed record AircraftIdentity
     /// <summary>Sub-variant or series when known (e.g. <c>A320-214</c>).</summary>
     public string? Variant { get; init; }
 
-    /// <summary>Engine variant when known (e.g. <c>CFM56-5B</c>, <c>IAE V2500</c>).</summary>
+    /// <summary>
+    /// Engine variant when known, as precisely as the source allows: an engine family such as <c>CFM</c> or
+    /// <c>IAE</c>, or a model such as <c>CFM56-5B</c>.
+    /// </summary>
     public string? EngineVariant { get; init; }
+
+    /// <summary>
+    /// Wingtip device when known. Conventional values: <c>Sharklets</c>, <c>WingtipFence</c>, <c>Winglets</c>,
+    /// <c>None</c>. Open-ended; <see langword="null"/> when unknown.
+    /// </summary>
+    public string? WingtipConfiguration { get; init; }
+
+    /// <summary>
+    /// ICAO designator of the operator whose livery is applied (e.g. <c>AEE</c>, <c>AFR</c>), when the livery
+    /// declares one. Never derived from a display name.
+    /// </summary>
+    public string? OperatorIcao { get; init; }
 
     /// <summary>ICAO aircraft type designator (e.g. <c>A320</c>, <c>B738</c>).</summary>
     public string? IcaoType { get; init; }

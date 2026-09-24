@@ -1,10 +1,15 @@
-// FSGAP.SimConnect live validation sample.
+// FSGAP live validation sample.
 //
-// Starts the FSGAP simulator transport and prints connection status changes, pause/crash state and the
-// loaded-aircraft descriptor until Ctrl+C. No telemetry, no aircraft-specific logic, no failure injection.
+// Scans the installed Fenix liveries, starts the FSGAP simulator transport, and prints connection status changes,
+// pause/crash state, the raw aircraft descriptor reported by MSFS, and what the Fenix provider makes of it
+// (match, normalized identity, catalog match). No telemetry, no failure injection.
 //
 // Usage: dotnet run --project samples/FSGAP.SimConnect.Console [-- --minutes N]
+using System.Diagnostics;
+using FSGAP.Abstractions;
+using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Configuration;
+using FSGAP.Fenix;
 using FSGAP.SimConnect;
 using FSGAP.SimConnect.Console;
 
@@ -29,16 +34,26 @@ var options = new FsgapOptions
     DataDirectory = Path.Combine(Path.GetTempPath(), "fsgap-live-sample"),
 };
 
+var catalog = new FenixInstalledAircraftCatalog(options, logger: new ConsoleLogger<FenixInstalledAircraftCatalog>());
+var scanClock = Stopwatch.StartNew();
+var scan = await catalog.RefreshAsync(cancellationToken: stop.Token);
+Print("catalog", $"{scan.AircraftCount} Fenix liveries in {scanClock.ElapsedMilliseconds} ms, {scan.Errors.Count} errors");
+foreach (var error in scan.Errors)
+{
+    Print("catalog", $"  error: {error}");
+}
+
+var provider = new FenixAircraftProvider(catalog, logger: new ConsoleLogger<FenixAircraftProvider>());
+
 await using var simulator = new SimConnectSimulator(options, new ConsoleLogger<SimConnectSimulator>());
 Print("sample", $"starting (Ctrl+C to stop{(runFor == Timeout.InfiniteTimeSpan ? string.Empty : $", auto-stop after {runFor}")})");
 await simulator.StartAsync();
 
 var watchers = new[]
 {
-    Watch(simulator.WatchStatusAsync(stop.Token), s => $"{s.State}{(s.Detail is null ? string.Empty : $" ({s.Detail})")}", "status"),
-    Watch(simulator.State.WatchAsync(stop.Token), s => $"paused={s.Paused} crashes={s.CrashCount} lastCrash={s.LastCrashAt:O}", "state"),
-    Watch(simulator.AircraftDetector.WatchAsync(stop.Token),
-        a => a is null ? "none" : $"title='{a.Title}' atcId='{a.Registration}' liveryFolder='{a.LiveryFolder}' livery='{a.Livery}'", "aircraft"),
+    Watch(simulator.WatchStatusAsync(stop.Token), s => Print("status", $"{s.State}{(s.Detail is null ? string.Empty : $" ({s.Detail})")}")),
+    Watch(simulator.State.WatchAsync(stop.Token), s => Print("state", $"paused={s.Paused} crashes={s.CrashCount} lastCrash={s.LastCrashAt:O}")),
+    Watch(simulator.AircraftDetector.WatchAsync(stop.Token), a => DescribeAsync(a).GetAwaiter().GetResult()),
 };
 
 await Task.WhenAll(watchers);
@@ -46,13 +61,39 @@ Print("sample", $"stopping after {simulator.SessionElapsed:hh\\:mm\\:ss}");
 await simulator.StopAsync();
 Print("sample", $"final status: {simulator.Status.State}");
 
-static async Task Watch<T>(IAsyncEnumerable<T> stream, Func<T, string> format, string label)
+async Task DescribeAsync(AircraftDescriptor? aircraft)
+{
+    if (aircraft is null)
+    {
+        Print("aircraft", "none");
+        return;
+    }
+
+    Print("msfs", $"Title='{aircraft.Title}' AtcId='{aircraft.Registration}' LiveryFolder='{aircraft.LiveryFolder}' Livery='{aircraft.Livery}'");
+    var match = provider.Match(aircraft);
+    if (!match.IsSupported)
+    {
+        Print("fenix", "Match: not a Fenix aircraft");
+        return;
+    }
+
+    var installed = aircraft.LiveryFolder is null ? null : await catalog.FindByLiveryFolderAsync(aircraft.LiveryFolder);
+    await using var session = await provider.AttachAsync(aircraft);
+    var id = session.Identity;
+    Print("fenix", $"Match={match.Specificity} Developer='{id.Developer}' Manufacturer='{id.Manufacturer}' Family='{id.Family}' Model='{id.Model}' IcaoType='{id.IcaoType}'");
+    Print("fenix", $"Engine='{id.EngineVariant}' Wingtip='{id.WingtipConfiguration}' Registration='{id.Registration}' Operator='{id.OperatorIcao}' Livery='{id.Livery}'");
+    Print("fenix", installed is null
+        ? "Catalog: no installed livery matches this livery folder"
+        : $"Catalog: {installed.PackageName}/{installed.LiveryFolder} (registration '{installed.Identity.Registration}', tags model={installed.Identity.Model} engine={installed.Identity.EngineVariant} wingtip={installed.Identity.WingtipConfiguration})");
+}
+
+static async Task Watch<T>(IAsyncEnumerable<T> stream, Action<T> print)
 {
     try
     {
         await foreach (var value in stream)
         {
-            Print(label, format(value));
+            print(value);
         }
     }
     catch (OperationCanceledException)

@@ -1,6 +1,6 @@
 # FSGAP_SDK architecture
 
-This document records the principles FSGAP_SDK is built on, the current design (version 0.3.0) and targets that are
+This document records the principles FSGAP_SDK is built on, the current design (version 0.4.0) and targets that are
 planned but not implemented. Individual decisions are recorded as ADRs in [decisions/](decisions/README.md). The
 BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 
@@ -8,10 +8,10 @@ BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 
 | Assembly | Role | Depends on | Status |
 |---|---|---|---|
-| `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.3.0 |
-| `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.3.0 |
-| `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321 (identification placeholder only) | Abstractions, Core | 0.3.0 |
-| `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)) | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.3.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
+| `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.4.0 |
+| `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.4.0 |
+| `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321: recognition, normalized identity, installed livery catalog ([details](fenix-identity-and-catalog.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.4.0 |
+| `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)) | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.4.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
 
 ```text
 FSGAP.Abstractions  <-  FSGAP.Core  <-  FSGAP.Fenix
@@ -236,6 +236,19 @@ Aircraft identity comes from `TITLE`, `ATC ID`, `LIVERY FOLDER` and `LIVERY NAME
 5 s once the aircraft is stable. Details, fault semantics and the live validation procedure are in
 [simconnect-lifecycle.md](simconnect-lifecycle.md). A live sample is in `samples/FSGAP.SimConnect.Console`.
 
+### Fenix identity and installed catalog (FSGAP.Fenix)
+
+- `FenixAircraftProvider.Match` recognizes a Fenix with the rule `Fenix\D{0,4}(319|320|321)` on `TITLE`, then on
+  `LIVERY FOLDER`. The "Fenix" marker is mandatory, so a generic "A320" never matches.
+- `AttachAsync` resolves the identity:
+  - model, engine and wingtip from the loaded title;
+  - registration from the installed livery matched by `LIVERY FOLDER`, then from the ATC id, otherwise unknown;
+  - operator ICAO from the livery.
+- `FenixInstalledAircraftCatalog` scans the Fenix packages read-only, from `UserCfg.opt`. It indexes them in an
+  immutable snapshot swapped atomically, and caches the result as JSON under `DataDirectory/fenix/`.
+- `AircraftIdentity` gained two open fields, `WingtipConfiguration` and `OperatorIcao`.
+- Details: [fenix-identity-and-catalog.md](fenix-identity-and-catalog.md).
+
 ### Failure model
 
 - `FailureKey`: the identity.
@@ -252,7 +265,7 @@ A trigger or clear outside the catalog returns `NotSupported` without contacting
 ### Null-object building blocks
 
 `UnavailableTelemetryProvider` and `UnsupportedFailureProvider` (Core) let a provider open an honest session before
-its telemetry or failures are implemented. `FSGAP.Fenix` uses them in 0.3.0.
+its telemetry or failures are implemented. `FSGAP.Fenix` uses them in 0.4.0.
 
 ### Plugin loading
 
@@ -271,7 +284,7 @@ contract, in FSGAP.Abstractions or in application code ([ADR 0004](decisions/000
 - All projects target `net8.0`, with nullable reference types and implicit usings.
 - Warnings are treated as errors.
 - XML documentation is generated and required for every public member.
-- The single version, **0.3.0**, is defined in `Directory.Build.props`.
+- The single version, **0.4.0**, is defined in `Directory.Build.props`.
 - NuGet versions are pinned centrally in `Directory.Packages.props`.
 - `dotnet pack` writes versioned packages to `artifacts/packages/`.
 - Applications will consume them from a feed (GitHub Packages planned) with an explicitly pinned version. They

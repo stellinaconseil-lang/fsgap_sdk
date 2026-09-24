@@ -2,12 +2,20 @@
 
   <PropertyGroup>
     <RootNamespace>FSGAP.Fenix</RootNamespace>
-    <Description>FSGAP_SDK aircraft provider for the Fenix Simulations A319/A320/A321. It currently only recognizes the aircraft; telemetry and failures are not implemented yet.</Description>
+    <Description>FSGAP_SDK aircraft provider for the Fenix Simulations A319/A320/A321: aircraft recognition, normalized identity and the installed Fenix livery catalog (registration resolution). Telemetry and failures are not implemented yet.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\FSGAP.Abstractions\FSGAP.Abstractions.csproj" />
     <ProjectReference Include="..\FSGAP.Core\FSGAP.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="FSGAP.Fenix.Tests" />
   </ItemGroup>
 
 </Project>

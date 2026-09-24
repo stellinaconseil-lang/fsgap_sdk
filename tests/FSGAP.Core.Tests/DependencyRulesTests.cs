@@ -14,4 +14,16 @@ public class DependencyRulesTests
             name.StartsWith("System", StringComparison.Ordinal) || name is "netstandard" or "FSGAP.Abstractions",
             $"FSGAP.Core must not reference '{name}'."));
     }
+
+    [Fact]
+    public void Core_contains_no_vendor_specific_type_or_member()
+    {
+        string[] forbidden = ["Fenix", "Fnx", "Pmdg", "Lvar", "Efb", "SimConnect"];
+        var names = typeof(AircraftProviderRegistry).Assembly.GetTypes()
+            .SelectMany(t => t.GetMembers(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic
+                    | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.DeclaredOnly)
+                .Select(m => $"{t.FullName}.{m.Name}").Prepend(t.FullName!));
+
+        Assert.DoesNotContain(names, name => forbidden.Any(f => name.Contains(f, StringComparison.OrdinalIgnoreCase)));
+    }
 }

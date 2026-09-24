@@ -173,7 +173,45 @@ Original plan:
   - Live checklist: connect before and after MSFS start, MSFS quit, pause, crash, with no leak over 10 minutes of
     MSFS down.
 
-## BLOCK 4 — Aircraft detection, identity and Fenix installed-aircraft catalog
+## BLOCK 4 — Aircraft detection, identity and Fenix installed-aircraft catalog — DONE (version 0.4.0)
+
+**Delivered:**
+
+- Real Fenix recognition (`Fenix\D{0,4}(319|320|321)(?!\d)` on TITLE, then LIVERY FOLDER), with `Dedicated`
+  specificity. The BLOCK 0 placeholder is removed.
+- Normalized identity, with the new open fields `AircraftIdentity.WingtipConfiguration` and `OperatorIcao`.
+- `FenixInstalledAircraftCatalog`:
+  - MSFS 2024 discovery via `UserCfg.opt`, then Fenix package discovery;
+  - read-only livery scan, pruning `presets`/`attachments` and skipping `Disabled` liveries;
+  - immutable indexed snapshot swapped atomically;
+  - JSON cache in `DataDirectory/fenix/`.
+- Registration resolution: LIVERY FOLDER → installed livery, then ATC ID, otherwise unknown.
+- The live sample shows the whole chain.
+- Details: [../fenix-identity-and-catalog.md](../fenix-identity-and-catalog.md).
+
+**Live and semi-live validation (2026-09-24):**
+
+| Aircraft | Kind | Result |
+|---|---|---|
+| A319 | **LIVE** (MSFS + sample) | PASS. `FenixA319 CFM WF SD`, ATC ID `C-GBIA`, folder `ACA-C-GBIA-E270` → A319 / CFM / WingtipFence / C-GBIA / ACA. Catalog match `fnx-aircraft-319-liveries/aca-c-gbia-e270`. |
+| A320 | Real catalog + descriptor recorded live in BLOCK 1 (empty ATC ID) | PASS. Registration C-FDRP resolved through the catalog only. |
+| A321 | Real catalog + descriptor recorded live in BLOCK 3 | PASS. A321 / IAE / WingtipFence / SX-DNH / AEE. |
+| Real catalog scan | LIVE (filesystem) | 129 liveries in about 4 s on a cold disk; 4 folders skipped (3 `Disabled` placeholders, 1 non-livery `aircraft.cfg`); 1 error (a broken third-party symlink) |
+
+**Findings:**
+
+- **Case of livery folders.** MSFS reports folders in upper case (`AEE-SX-DNH-7F2F`), while the disk has
+  `aee-sx-dnh-7f2f`, so the lookup must ignore case.
+- **Disabled placeholder liveries.** Fenix ships three `FNX_3xx_Fenix` placeholder liveries with
+  `required_tags = "Disabled"`. They are not selectable.
+- **Duplicate registrations.** Five registrations appear on two liveries each (for example SX-DNG). No duplicate
+  livery folder was found.
+- **False-positive package name.** A third-party FS2Crew package, `q-dsn-aicopilot-fnx-A320`, is a symbolic link to
+  a missing folder. It matches the "fnx" marker and is reported as unreadable, without blocking the scan.
+- **Dropped heuristics.** The audited scanner's folder-name registration heuristic and its package- or path-based
+  model heuristic are deliberately **not** ported (they would invent data; `fnx-aircraft-319-321` would give a
+  wrong model). Liveries without a declared registration now have none in FSGAP, whereas FSHANGAR's hangar discovery
+  used a heuristic one. This is a behaviour change to handle when FSHANGAR migrates.
 
 > **Starting point after BLOCK 3.** Generic detection is done: `SimConnectSimulator.AircraftDetector` publishes
 > `AircraftDescriptor` (Title, Registration = ATC ID, LiveryFolder, Livery). BLOCK 4 therefore only covers:

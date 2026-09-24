@@ -1,16 +1,18 @@
 # FSGAP_SDK
 
-Version 0.3.0. It provides:
+Version 0.4.0. It provides:
 
 - contracts for aircraft providers, telemetry and failures;
 - normalized failure keys;
 - simulator connection, state and aircraft-detection contracts;
 - an installed-aircraft catalog contract;
-- provider resolution and a Fenix identification placeholder;
+- provider resolution;
+- **Fenix A319/A320/A321 recognition and normalized identity**, and a catalog of the installed Fenix liveries
+  that resolves registrations (`FSGAP.Fenix`);
 - **a real MSFS SimConnect transport** (`FSGAP.SimConnect`): automatic connection and reconnection, pause and
   crash state, and detection of the loaded aircraft.
 
-Aircraft telemetry and Fenix integration are not implemented yet.
+Aircraft telemetry, Fenix systems (LVARs) and Fenix failures are not implemented yet.
 
 ## What is FSGAP?
 
@@ -85,7 +87,8 @@ src/
                         catalog, FsgapOptions
   FSGAP.Core/           AircraftProviderRegistry, AircraftSession, ObservableState, TelemetryFreshness,
                         PollingTelemetryStream, null-object providers
-  FSGAP.Fenix/          FenixAircraftProvider (identification placeholder only)
+  FSGAP.Fenix/          FenixAircraftProvider (recognition, identity) and FenixInstalledAircraftCatalog
+                        (installed liveries, registration resolution)
   FSGAP.SimConnect/     SimConnectSimulator: MSFS connection lifecycle, simulation state, aircraft detection
                         (the only assembly referencing SimConnect.NET)
 tests/                  xUnit tests, one project per library (none needs MSFS)
@@ -106,7 +109,9 @@ await simulator.StartAsync();
 var aircraft = await simulator.AircraftDetector.WaitForAircraftAsync();   // TITLE, ATC ID, LIVERY FOLDER, LIVERY NAME
 
 var registry = new AircraftProviderRegistry();
-registry.Register(new FenixAircraftProvider());
+var fenixLiveries = new FenixInstalledAircraftCatalog(options);   // finds MSFS 2024 from UserCfg.opt
+await fenixLiveries.RefreshAsync();                                 // read-only scan, cached under DataDirectory
+registry.Register(new FenixAircraftProvider(fenixLiveries));
 
 var resolution = registry.Resolve(aircraft);
 if (resolution.IsResolved)
