@@ -8,6 +8,11 @@
 // the only write is the explicit --failure-roundtrip option (a trigger always followed by its clear).
 //
 // Usage: dotnet run --project samples/FSGAP.SimConnect.Console [-- --minutes N] [--failures] [--failure-roundtrip <key>] [--nearest-airport]
+//                                                             [--synaptic-probe] [--synaptic-fixture <directory>]
+//
+// --synaptic-probe (BLOCK 10A discovery, read-only): prints the verdict of every candidate Synaptic A220 detection rule
+// for the loaded aircraft and, when one fires, reads the documented Synaptic variables every 5 s (SynapticDiscovery.cs).
+// --synaptic-fixture <directory> also writes one sanitized JSON capture there for BLOCK 10B. Neither writes to the aircraft.
 using System.Diagnostics;
 using System.Globalization;
 using FSGAP.Abstractions;
@@ -36,6 +41,8 @@ var airportAt = Arg(args, "--airport-at")?.Split(",") is [var atLat, var atLon]
     ? new GeoPosition(double.Parse(atLat, CultureInfo.InvariantCulture), double.Parse(atLon, CultureInfo.InvariantCulture))
     : (GeoPosition?)null;
 var nearestAirport = args.Contains("--nearest-airport") || airportAt is not null;
+var synapticFixtureDirectory = Arg(args, "--synaptic-fixture");
+var synapticProbe = args.Contains("--synaptic-probe") || synapticFixtureDirectory is not null;
 
 using var stop = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) =>
@@ -77,6 +84,7 @@ var provider = new FenixAircraftProvider(
     fenixOptions: readFailures ? new FenixOptions() : null);
 IAircraftSession? session = null;
 (string Source, ITelemetryProvider Provider) shown = ("generic", simulator.Telemetry);
+CancellationTokenSource? synapticProbeStop = null;
 
 Print("sample", $"starting (Ctrl+C to stop{(runFor == Timeout.InfiniteTimeSpan ? string.Empty : $", auto-stop after {runFor}")})");
 await simulator.StartAsync();
@@ -92,6 +100,7 @@ var watchers = new[]
 
 await Task.WhenAll(watchers);
 Print("sample", $"stopping after {simulator.SessionElapsed:hh\\:mm\\:ss}");
+StopSynapticProbe();
 if (session is not null)
 {
     await session.DisposeAsync();
@@ -116,6 +125,12 @@ async Task DescribeAsync(AircraftDescriptor? aircraft)
     }
 
     Print("msfs", $"Title='{aircraft.Title}' AtcId='{aircraft.Registration}' LiveryFolder='{aircraft.LiveryFolder}' Livery='{aircraft.Livery}'");
+    StopSynapticProbe();
+    if (synapticProbe)
+    {
+        StartSynapticProbe(aircraft);
+    }
+
     var match = provider.Match(aircraft);
     if (!match.IsSupported)
     {
@@ -139,6 +154,32 @@ async Task DescribeAsync(AircraftDescriptor? aircraft)
         var failureSession = session;
         _ = Task.Run(() => CheckFailuresAsync(failureSession));
     }
+}
+
+// BLOCK 10A discovery only (SynapticDiscovery.cs): rule verdicts for every aircraft, reads only when a candidate fires.
+void StartSynapticProbe(AircraftDescriptor aircraft)
+{
+    foreach (var verdict in SynapticDiscovery.EvaluateCandidateRules(aircraft))
+    {
+        Print("synaptic", $"rule {verdict.Id} [{verdict.Grade}] {(verdict.Fires ? "FIRES" : "no   ")} : {verdict.Description}");
+    }
+
+    if (!SynapticDiscovery.LooksLikeA220(aircraft))
+    {
+        Print("synaptic", "no candidate rule fires: no Synaptic variable is read for this aircraft");
+        return;
+    }
+
+    synapticProbeStop = CancellationTokenSource.CreateLinkedTokenSource(stop.Token);
+    var token = synapticProbeStop.Token;
+    _ = Task.Run(() => SynapticDiscovery.RunAsync(simulator, aircraft, synapticFixtureDirectory, Print, token), token);
+}
+
+void StopSynapticProbe()
+{
+    synapticProbeStop?.Cancel();
+    synapticProbeStop?.Dispose();
+    synapticProbeStop = null;
 }
 
 async Task CheckFailuresAsync(IAircraftSession fenix)

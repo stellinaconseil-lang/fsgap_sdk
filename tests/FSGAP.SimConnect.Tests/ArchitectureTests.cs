@@ -69,7 +69,8 @@ public class ArchitectureTests
     [Fact]
     public void Transport_contains_no_vendor_specific_names()
     {
-        string[] forbidden = ["Fenix", "Fnx", "Efb", "8083", "Lvar", "A319", "A320", "A321", "Cfm", "Iae", "RequiredTags"];
+        // BLOCK 10A: the Synaptic A220 audit added no production detection, overlay or variable to the transport.
+        string[] forbidden = ["Fenix", "Fnx", "Efb", "8083", "Lvar", "A319", "A320", "A321", "Cfm", "Iae", "RequiredTags", "Synaptic", "A22X", "A220"];
         var names = Transport.GetTypes()
             .SelectMany(type => type.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Select(member => $"{type.FullName}.{member.Name}")
@@ -117,10 +118,12 @@ public class ArchitectureTests
         // BLOCK 6: Fenix variable names live in FSGAP.Fenix only. Checked on the compiled binaries (string literals and
         // metadata), so no name can slip in through a constant.
         // BLOCK 7 adds the Fenix failure and EFB details: raw failure ids, endpoints, port.
+        // BLOCK 10A adds the Synaptic A220 variable prefix: the discovery harness lives in the sample, never here.
         string[] fenixMarkers =
         [
             "S_OH_", "I_OH_", "S_MIP_", "I_MIP_", "I_ENG_FIRE", "L:S_", "L:I_",
             "F_PNEUMATIC", "F_ELEC_", "F_HYD_", "B_INT_SFCDC", "saveManual", "fenix/failures", "8083",
+            "A22X", "INI_GPU",
         ];
         Assembly[] assemblies = [Transport, typeof(IAircraftProvider).Assembly, typeof(ObservableState<>).Assembly];
 

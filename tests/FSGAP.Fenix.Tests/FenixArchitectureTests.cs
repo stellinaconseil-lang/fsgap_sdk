@@ -94,6 +94,15 @@ public class FenixArchitectureTests
     }
 
     [Fact]
+    public void No_synaptic_a220_code_exists_in_the_fenix_provider()
+    {
+        // BLOCK 10A scope guard: the Synaptic A220 audit is discovery only. No Synaptic variable, detection or overlay
+        // exists in any packaged assembly; the read-only harness lives in the sample.
+        Assert.False(BinaryContains(Fenix, "A22X"));
+        Assert.DoesNotContain(Fenix.GetTypes(), t => t.FullName!.Contains("Synaptic", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void The_variable_contract_used_by_fenix_is_read_only()
     {
         var methods = typeof(ISimulatorVariableReader).GetMethods();
