@@ -116,7 +116,8 @@ docs/fenix-failures.md    the Fenix failure provider: EFB transport, catalogue, 
 docs/fenix-failure-mapping.md  FailureKey ↔ Fenix id table (reference for the server migration)
 docs/simulator-airport-service.md  the airport service: native mechanism, reflection boundary, search, limits
 docs/decisions/         architecture decision records (ADRs)
-docs/audits/            BLOCK 1 audit of the existing Fenix/MSFS integrations, mapping and extraction plan
+docs/audits/            BLOCK 1 audit of the existing Fenix/MSFS integrations, mapping and extraction plan;
+                        BLOCK 10A read-only discovery audit of the Synaptic A220-300 (no provider yet)
 ```
 
 ## Usage
