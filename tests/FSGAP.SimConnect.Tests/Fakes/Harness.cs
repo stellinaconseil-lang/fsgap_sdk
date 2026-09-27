@@ -49,6 +49,6 @@ internal sealed class Harness : IAsyncDisposable
 /// <summary>Raw identity builder for tests.</summary>
 internal static class Identity
 {
-    public static RawAircraftIdentity Of(string? title, string? atcId = null, string? liveryFolder = null, string? liveryName = null) =>
-        new(title, atcId, liveryFolder, liveryName);
+    public static RawAircraftIdentity Of(string? title, string? atcId = null, string? liveryFolder = null, string? liveryName = null, string? atcModel = null, string? atcType = null) =>
+        new(title, atcId, liveryFolder, liveryName, atcModel, atcType);
 }

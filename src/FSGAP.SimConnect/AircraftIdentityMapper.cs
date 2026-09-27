@@ -5,7 +5,9 @@ namespace FSGAP.SimConnect;
 
 /// <summary>
 /// Turns the raw identity SimVars into an <see cref="AircraftDescriptor"/>. Pure normalization: values are trimmed,
-/// empty values become <see langword="null"/>, and no vendor or aircraft type is inferred.
+/// empty values become <see langword="null"/>, and no vendor or aircraft type is inferred. <c>ATC TYPE</c> and
+/// <c>ATC MODEL</c> are passed through as the descriptor's <c>Manufacturer</c> and <c>Model</c> "as reported by the
+/// simulator" (BLOCK 10A-LIVE, gap G-D1); what they mean for a given add-on is the provider's business.
 /// </summary>
 internal static class AircraftIdentityMapper
 {
@@ -24,6 +26,8 @@ internal static class AircraftIdentityMapper
             Registration = Clean(raw.AtcId),
             LiveryFolder = Clean(raw.LiveryFolder),
             Livery = Clean(raw.LiveryName),
+            Manufacturer = Clean(raw.AtcType),
+            Model = Clean(raw.AtcModel),
         };
     }
 

@@ -73,7 +73,7 @@ internal sealed class SimConnectNetSession : ISimConnectSession
     public async Task<RawAircraftIdentity> ReadAircraftIdentityAsync(CancellationToken cancellationToken)
     {
         var vars = await _client.SimVars.GetAsync<AircraftIdentityVars>(0, cancellationToken).ConfigureAwait(false);
-        return new RawAircraftIdentity(vars.Title, vars.AtcId, vars.LiveryFolder, vars.LiveryName);
+        return new RawAircraftIdentity(vars.Title, vars.AtcId, vars.LiveryFolder, vars.LiveryName, vars.AtcModel, vars.AtcType);
     }
 
     public Task<TGroup> ReadTelemetryGroupAsync<TGroup>(CancellationToken cancellationToken)
@@ -200,8 +200,10 @@ internal sealed class SimConnectNetSession : ISimConnectSession
 #pragma warning disable CS0649 // Fields are written by SimConnect.NET when it unmarshals the response.
 
 /// <summary>
-/// The four MSFS aircraft-identity SimVars, read as one batched request. Names and types are the ones proven in the
-/// audited applications (<c>AircraftIdentityVars</c> in FSHANGAR/FLIPPP).
+/// The MSFS aircraft-identity SimVars, read as one batched request. The first four are the ones proven in the
+/// audited applications (<c>AircraftIdentityVars</c> in FSHANGAR/FLIPPP). <c>ATC MODEL</c> and <c>ATC TYPE</c> were
+/// added by the BLOCK 10A-LIVE audit (gap G-D1): they are the stock <c>aircraft.cfg</c> <c>atc_model</c> /
+/// <c>atc_type</c> strings, the generic evidence an aircraft provider can use when the title alone is ambiguous.
 /// </summary>
 internal struct AircraftIdentityVars
 {
@@ -216,6 +218,12 @@ internal struct AircraftIdentityVars
 
     [SimConnect("LIVERY NAME", SimConnectDataType.String256)]
     public string LiveryName;
+
+    [SimConnect("ATC MODEL", SimConnectDataType.String256)]
+    public string AtcModel;
+
+    [SimConnect("ATC TYPE", SimConnectDataType.String256)]
+    public string AtcType;
 }
 
 #pragma warning restore CS0649

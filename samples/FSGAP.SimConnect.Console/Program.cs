@@ -125,6 +125,7 @@ async Task DescribeAsync(AircraftDescriptor? aircraft)
     }
 
     Print("msfs", $"Title='{aircraft.Title}' AtcId='{aircraft.Registration}' LiveryFolder='{aircraft.LiveryFolder}' Livery='{aircraft.Livery}'");
+    Print("msfs", $"AtcModel='{aircraft.Model}' AtcType='{aircraft.Manufacturer}'");
     StopSynapticProbe();
     if (synapticProbe)
     {

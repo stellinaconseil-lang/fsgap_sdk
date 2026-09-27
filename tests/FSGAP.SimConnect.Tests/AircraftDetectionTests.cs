@@ -26,6 +26,17 @@ public class AircraftDetectionTests
     }
 
     [Fact]
+    public void Atc_model_and_type_are_passed_through_as_model_and_manufacturer()
+    {
+        // BLOCK 10A-LIVE (gap G-D1): the stock aircraft.cfg strings, verbatim, so a provider can use them as evidence.
+        var descriptor = AircraftIdentityMapper.ToDescriptor(Identity.Of("Test Airliner", atcModel: " TT:ATCCOM.AC_MODEL_A223.0.text ", atcType: "TT:ATCCOM.ATC_NAME_AIRBUS.0.text"))!;
+
+        Assert.Equal("TT:ATCCOM.AC_MODEL_A223.0.text", descriptor.Model);
+        Assert.Equal("TT:ATCCOM.ATC_NAME_AIRBUS.0.text", descriptor.Manufacturer);
+        Assert.Null(descriptor.IcaoType);
+    }
+
+    [Fact]
     public void The_transport_reports_what_the_simulator_says_and_infers_nothing()
     {
         var descriptor = AircraftIdentityMapper.ToDescriptor(Identity.Of("Some A320 CFM title", "F-TEST"))!;

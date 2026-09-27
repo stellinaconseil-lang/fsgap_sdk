@@ -11,7 +11,13 @@ internal enum SimulatorSystemEvent
 }
 
 /// <summary>Raw aircraft identity strings as read from the simulator, before normalization.</summary>
-internal readonly record struct RawAircraftIdentity(string? Title, string? AtcId, string? LiveryFolder, string? LiveryName);
+internal readonly record struct RawAircraftIdentity(
+    string? Title,
+    string? AtcId,
+    string? LiveryFolder,
+    string? LiveryName,
+    string? AtcModel = null,
+    string? AtcType = null);
 
 /// <summary>
 /// One open native connection to the simulator. This is the seam between the transport logic, which is fully

@@ -164,8 +164,9 @@ resume.
 
 ## Aircraft detection
 
-**SimVars:** one batched request of 4 `String256` SimVars for the user aircraft (object 0), with the names proven in
-FSHANGAR/FLIPPP:
+**SimVars:** one batched request of 6 `String256` SimVars for the user aircraft (object 0): the four names proven in
+FSHANGAR/FLIPPP, plus the two stock ATC strings added by the BLOCK 10A-LIVE audit (gap G-D1) as generic evidence for
+providers whose aircraft title is ambiguous:
 
 | SimVar | `AircraftDescriptor` field |
 |---|---|
@@ -173,12 +174,15 @@ FSHANGAR/FLIPPP:
 | `ATC ID` | `Registration` |
 | `LIVERY FOLDER` | `LiveryFolder` |
 | `LIVERY NAME` | `Livery` |
+| `ATC MODEL` | `Model` (verbatim, e.g. a `TT:ATCCOM.…` localization key) |
+| `ATC TYPE` | `Manufacturer` (verbatim) |
 
 **Normalization:**
 
 - values are trimmed, and empty values become `null`;
 - an empty `TITLE` means "no aircraft loaded" (descriptor `null`), as in the audited apps;
-- nothing is inferred (no manufacturer, model, ICAO type or engine).
+- nothing is inferred (no ICAO type, engine or developer): `Model` and `Manufacturer` are what the aircraft's
+  `aircraft.cfg` declares, not a normalized identity.
 
 **Cadence:**
 
@@ -190,8 +194,8 @@ FSHANGAR/FLIPPP:
 
 **Change detection:**
 
-- a new value is published only when the descriptor differs by value. Title, ATC id, livery folder and livery name
-  all count, so a new livery of the same aircraft is a change;
+- a new value is published only when the descriptor differs by value. Title, ATC id, livery folder, livery name, ATC
+  model and ATC type all count, so a new livery of the same aircraft is a change;
 - identical polls notify nobody;
 - a lost connection publishes `null`.
 
