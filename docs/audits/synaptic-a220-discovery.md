@@ -18,7 +18,7 @@ Companion files:
 - [synaptic-a220-variable-mapping.csv](synaptic-a220-variable-mapping.csv): every officially documented Synaptic
   variable (397 names) with documented meaning, semantic tag, FSGAP classification and, since 10A-LIVE, a
   `live_status` / `live_observation` for the 57 variables read live.
-- [fixtures/synaptic-a220/](fixtures/synaptic-a220/): seven sanitized live captures (descriptor, generic FSGAP
+- [fixtures/synaptic-a220/](fixtures/synaptic-a220/): eight sanitized live captures (the eighth is the landing rollout) (descriptor, generic FSGAP
   snapshot with value states, the 57 documented variables, 33 stock SimVars) for BLOCK 10B tests.
 
 ## 0. Headline (10A-LIVE)
@@ -28,8 +28,8 @@ Companion files:
 2. **Generic flight data is sound; generic engine secondaries are not.** Position, speeds, attitude, gear, flaps,
    control surfaces, N1, N2 and EGT match the cockpit. Engine running, fuel flow, starter, oil temperature and oil
    pressure are wrong, the stock APU and electrical SimVars are dead, and cabin altitude disagrees with the EICAS.
-3. **Validated generic coverage: 37 of 73 fields (51 %).** 9 generic fields are wrong and must be masked, 3 need a
-   Synaptic overlay, 13 have no source, 11 are still untested.
+3. **Validated generic coverage: 39 of 73 fields (53 %)** after the landing flight. 9 generic fields are wrong and must be masked, 3 need a
+   Synaptic overlay, 13 have no source, 9 are still untested.
 4. **Fuel pump AUTO is real and cannot be expressed by `IsOn`.** `FuelPumpMode` stays the one P0 contract change.
 5. **Registration has no authoritative source for Marketplace liveries.** `ATC ID` is not bound to the livery (a Delta
    and an Air Baltic livery both reported `C-FFCO`, the Air France one `I-BMTO`, `C-FFCO`, then empty). Marketplace
@@ -47,6 +47,7 @@ Companion files:
 | Aircraft package | Marketplace streamed `fs24-inibuilds-aircraft-a220`; Synaptic version not observable (packed content; docs current = 1.0.10) |
 | Session 1 (2026-09-26, 23:33–23:52 local) | LFKF Figari, cold and dark, three livery/preset combinations, batteries, ground power, APU selector, boost pumps, parking brake, hydraulic selectors. Engines not started (see §7.5). |
 | Session 2 (2026-09-27, 10:23–12:22 local) | LFLC Clermont-Ferrand, gate, batteries and ground power on; APU, both engine starts, 44 % N1 run-up with flaps 2, taxi with tiller and brakes, takeoff runway 08, gear up, gear down with flaps FULL, gear and flaps up, climb through FL130 (flight still in progress when the audit was written; no landing). |
+| Session 3 (2026-09-27, 16:04–17:15 local) | LFKF round trip: takeoff 16:07, cruise FL300, speedbrakes extended in the descent, autobrake LO, landing 17:12:11 with ground spoilers, manual then hard braking, APU off in flight. Reversers not used; boost pumps and anti-ice not cycled |
 | Presets seen | `A220-300` (cabin) and `A220-300 - No Cabin` |
 | Liveries seen | Delta (`DELTA N324DU`), Air Baltic (`AIR BALTIC YL-CSM`), Air France (`AIR FRANCE F-HZUF`) |
 | Cockpit references | two EICAS captures by the pilot (engines at idle; 44 % N1, flaps 2), the MFD configuration page (engine variant), EICAS memos |
@@ -167,7 +168,7 @@ recount removes a double count in the engine block).
 | IndicatedAirspeedKnots | 0 → 153 kt at rotation, 169 kt in the climb | GENERIC_VALIDATED | consistent with GS and the reported 9 kt wind |
 | GroundSpeedKnots | 0 → 160 kt at liftoff, 13–18 kt taxi | GENERIC_VALIDATED | |
 | VerticalSpeedFeetPerMinute | +2 190 to +3 761 fpm in the climb | GENERIC_VALIDATED | matches the altitude change between samples (1 242 → 1 507 ft in 6 s ≈ 2 650 fpm) |
-| TouchdownVerticalSpeedFeetPerMinute | Unknown | STILL_NOT_TESTED | no landing during the capture |
+| TouchdownVerticalSpeedFeetPerMinute | Unknown until 17:12:11, then **−90 fpm** (session 3), held through the rollout | GENERIC_VALIDATED | appears at the touchdown sample; the last airborne VS samples were −208 and −198 fpm (2 s averages at 16 and 12 ft), consistent with a soft flare |
 | HeadingMagneticDegrees | 80° on the runway 08 roll, right turn 91 → 114° | GENERIC_VALIDATED | |
 | PitchDegrees | −0.7° parked, +12.6° at rotation, +16.7° in the climb | GENERIC_VALIDATED | sign nose-up positive confirmed |
 | BankDegrees | +9.6° / +13.7° while the heading increased | GENERIC_VALIDATED | sign right-wing-down positive confirmed |
@@ -244,12 +245,12 @@ Deriving "running" from N2 would be an inference; it is not proposed.
 |---|---|---|---|
 | HandleDown | down at the gate, up after liftoff, down, up again | GENERIC_VALIDATED | |
 | Units (nose / left-main / right-main) | 100 → 0 in about 12 s after gear up; 3 → 82 % then back to 0 when the handle was reversed mid-travel | GENERIC_VALIDATED | handle and legs differ during transit, as designed |
-| BrakeLeftPercent / BrakeRightPercent | 100 / 100 with pedals, 0 released, **27–37 % pulsing with the parking brake set** (71–73 % in session 1), left = right always | GENERIC_VALIDATED ×2 (0–100 scale, no ×100 issue) | the parking brake does **not** read 100 %, and left/right are identical (docs: `BRAKES_LEFT/RIGHT` share one commanded pressure). Consumers must not infer the parking brake from brake percent |
+| BrakeLeftPercent / BrakeRightPercent | 100 / 100 with pedals, 0 released, **27–37 % pulsing with the parking brake set** (71–73 % in session 1); **differential** on the landing rollout (16/13, 1/8, 25/0, 29/9), then 100/100 hard braking at 58 kt | GENERIC_VALIDATED ×2 (0–100 scale, no ×100 issue) | the parking brake does **not** read 100 %. Left/right were identical in sessions 1–2 but differ on the rollout of session 3, so the two sides are independent readings (the docs' shared commanded pressure applies to the *keyboard* brake events). Consumers must not infer the parking brake from brake percent |
 | SteeringInputPercent | −89 … +100 during taxi, −5 to −8 at rest | GENERIC_VALIDATED (range) | sign: 3 of 5 clear turns agree with positive = right; weak, recorded as such |
-| AntiskidActive | false throughout | STILL_NOT_TESTED | no braking at speed |
+| AntiskidActive | false throughout, **including 100/100 braking at 58 → 17 kt** (session 3) | STILL_NOT_TESTED (inconclusive) | no skid may have occurred on a dry runway; the A220 has no antiskid switch. Mask on an A220 session until a transition is seen |
 | FlapsHandlePercent | 0, 20 (1), 40 (2, EICAS "2"), 60 (3), 100 (FULL) | GENERIC_VALIDATED | percent = detent × 20; stock `FLAPS HANDLE INDEX` 0/2/5 agrees |
 | FlapSurfaces (trailing left / right) | 27 % at flaps 2, 100 % at FULL, travels over ~10 s | GENERIC_VALIDATED | lags the handle as expected |
-| SpeedBrakeDeploymentPercent | 0 on the ground, 4 % at rotation, 1 % in flight | STILL_NOT_TESTED | speedbrake lever not used; the small values are probably roll spoilers |
+| SpeedBrakeDeploymentPercent | 0 on the ground, 1–5 % in manoeuvres (roll spoilers), **24 %** with the speedbrake lever in the descent (FL300), **99 %** from the touchdown sample (ground spoilers) | GENERIC_VALIDATED | unlike Fenix, `SPOILERS LEFT/RIGHT POSITION` has the right scale on the A220; stock `SPOILERS HANDLE POSITION` did not follow the lever and is not used |
 | AileronLeft / Right | 0 parked, −19 … +14 % in turns, left = right sign | GENERIC_VALIDATED ×2 | actual surfaces (see elevator) |
 | ElevatorDeflectionPercent | **−100 unpowered**, −51 then −2 once hydraulics pressurize, −53 with forward stick on the roll, +3 … +7 in the climb | GENERIC_VALIDATED | the droop without hydraulic pressure proves these are surface positions, not stick inputs |
 | RudderDeflectionPercent | −94 … −100 unpowered, follows pedals and tiller on the ground, +3 … +4 in flight | GENERIC_VALIDATED | |
@@ -259,14 +260,14 @@ Deriving "running" from N2 would be an inference; it is not proposed.
 | Count | |
 |---|---|
 | Fields examined | 73 |
-| GENERIC_VALIDATED | 37 |
+| GENERIC_VALIDATED | 39 |
 | GENERIC_WRONG | 9 (engine running, fuel flow, starter, oil temperature, oil pressure; APU bleed; bus powered; cabin altitude and rate) |
 | SYNAPTIC_OVERLAY_REQUIRED | 3 (fuel pump state, APU master switch, engine fire pushbutton) |
 | NOT_SUPPORTED | 13 (radio altitude, engine fire detected and fire light, APU available/running/fire detected/fire handle, pump fault, 3 IRS, hydraulic pressurized, fire zones) |
-| STILL_NOT_TESTED | 11 (touchdown VS, 4 warnings, reverser, battery voltage, hydraulic pressure and reservoir, antiskid, speed brake) |
+| STILL_NOT_TESTED | 9 (4 warnings, reverser, battery voltage, hydraulic pressure and reservoir, antiskid) |
 
-- **Validated generic coverage: 37 / 73 = 50.7 %.**
-- **Potential total coverage: (37 + 3 overlay + 11 untested) / 73 = 69.9 %**, the ceiling if every untested field passes.
+- **Validated generic coverage: 39 / 73 = 53.4 %** (37 after the first flight; touchdown and speed brake added by the landing flight).
+- **Potential total coverage: (39 + 3 overlay + 9 untested) / 73 = 69.9 %**, the ceiling if every untested field passes.
   The documentation-based 10A ceiling (80 %) was too high: live evidence turned 9 fields from "plausible or untested"
   into "wrong".
 - **Synaptic overlay fields actually required: 3** (plus the replacement for the masked APU bleed, which reuses the
@@ -405,7 +406,8 @@ LIVE_VALIDATED.
 - Total with the generic telemetry (about 1.8 reads/s) and identity polling (0.2–0.5): **about 2.5–2.8 native reads/s**
   on the single connection.
 - Generic mask for an A220 session: engine `Running`, `FuelFlowKilogramsPerHour`, `StarterActive`,
-  `OilTemperatureCelsius`, `OilPressurePsi`; `Apu.BleedOn` (replaced by the overlay); `Pressurization` (both fields).
+  `OilTemperatureCelsius`, `OilPressurePsi`; `Apu.BleedOn` (replaced by the overlay); `Pressurization` (both fields);
+  `LandingGear.AntiskidActive` (never true, even under hard braking).
   Batteries, buses and hydraulics are not read generically and must not be added for the A220.
 
 ## 10. Failure capabilities
@@ -427,7 +429,7 @@ tests and fixtures may use those names freely, exactly as FSGAP.Fenix uses "Feni
 - **Registration only derived** for Marketplace liveries (§5; one of ten folders is inconsistent with its operator).
 - **Documentation drift.** Two documented variables contradict live behaviour (`APU Switch` enum, `Flap Lever` never
   moves). Every future overlay variable must be live-proven, not taken from the docs.
-- **Untested fields.** Touchdown, warnings, reverser, antiskid, speed brake and hydraulics need a landing and a
+- **Untested fields.** Warnings, reverser, antiskid and hydraulics still need a
   dedicated check in 10B qualification.
 - **AoA at standstill** reads ±180°: harmless but must be documented for consumers.
 
