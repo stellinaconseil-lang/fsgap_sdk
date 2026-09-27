@@ -24,6 +24,8 @@
       access keeps the structs internal instead of making them public API.
     -->
     <InternalsVisibleTo Include="SimConnect.NET" />
+    <!-- BLOCK 10A.5: the live sample drives the internal, experimental livery-discovery entry points. Not a product. -->
+    <InternalsVisibleTo Include="FSGAP.SimConnect.Console" />
   </ItemGroup>
 
 </Project>

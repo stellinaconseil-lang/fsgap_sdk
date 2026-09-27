@@ -19,4 +19,9 @@
     <None Include="Fixtures\**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- BLOCK 10A.5: the sample-only livery discovery analysis helpers, unit-tested here without MSFS. -->
+  <ItemGroup>
+    <Compile Include="..\..\samples\FSGAP.SimConnect.Console\LiveryDiscoveryAnalysis.cs" Link="Discovery\LiveryDiscoveryAnalysis.cs" />
+  </ItemGroup>
+
 </Project>

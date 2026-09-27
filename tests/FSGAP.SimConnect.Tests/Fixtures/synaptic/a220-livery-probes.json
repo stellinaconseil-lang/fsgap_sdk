@@ -1,0 +1,631 @@
+{
+  "_comment": "BLOCK 10A.5 live capture (2026-09-27, MSFS 2024 1.8.16.0): non-ATC AI aircraft created with SimConnect_AICreateNonATCAircraft_EX1 (title, livery, tail), identity read from the object own id (never object 0), removed with SimConnect_AIRemoveObject; removal confirmed when a read of the id no longer answers. Two runs: no-cabin preset (10 liveries, then the FSGAP01 control) and cabin preset (3 liveries, then the control).",
+  "runs": [
+    {
+      "preset": "A220-300 - No Cabin",
+      "ledger": {
+        "Created": 11,
+        "Removed": 11,
+        "Remaining": []
+      },
+      "simulatorWorkingSetMb": {
+        "before": 10469,
+        "after": 10555
+      }
+    },
+    {
+      "preset": "A220-300",
+      "ledger": {
+        "Created": 4,
+        "Removed": 4,
+        "Remaining": []
+      },
+      "simulatorWorkingSetMb": {
+        "before": 10566,
+        "after": 10581
+      }
+    }
+  ],
+  "probes": [
+    {
+      "preset": "no-cabin run (10 liveries + control)",
+      "requested": {
+        "ContainerTitle": "A220-300 - No Cabin",
+        "Livery": "Air France A220-300",
+        "TailNumber": ""
+      },
+      "CreateHResult": 0,
+      "assignedObjectId": 82477068,
+      "queriedObjectIsNotUser": true,
+      "observed": {
+        "Title": "A220-300 - No Cabin",
+        "LiveryName": "Air France A220-300",
+        "LiveryFolder": "AIR FRANCE F-HZUF",
+        "AtcId": null,
+        "AtcAirline": null,
+        "AtcModel": "A220-300",
+        "AtcType": "223"
+      },
+      "userAircraftTitleSameCycle": "A220-300 - No Cabin",
+      "folderRegistrationCandidate": {
+        "Registration": "F-HZUF",
+        "Source": 1,
+        "Confidence": 2,
+        "Reason": "one registration-shaped token with a known prefix"
+      },
+      "emptyTailOutcome": "Blank",
+      "createLatencyMs": 34,
+      "readLatencyMs": 50,
+      "removeLatencyMs": 0,
+      "totalMs": 7149,
+      "RemoveHResult": 0,
+      "RemovalConfirmed": true,
+      "Exceptions": [],
+      "Error": null,
+      "simulatorWorkingSetMb": {
+        "before": 10470,
+        "after": 10503
+      }
+    },
+    {
+      "preset": "no-cabin run (10 liveries + control)",
+      "requested": {
+        "ContainerTitle": "A220-300 - No Cabin",
+        "Livery": "Air Baltic A220-300",
+        "TailNumber": ""
+      },
+      "CreateHResult": 0,
+      "assignedObjectId": 82477069,
+      "queriedObjectIsNotUser": true,
+      "observed": {
+        "Title": "A220-300 - No Cabin",
+        "LiveryName": "Air Baltic A220-300",
+        "LiveryFolder": "AIR BALTIC YL-CSM",
+        "AtcId": null,
+        "AtcAirline": null,
+        "AtcModel": "A220-300",
+        "AtcType": "223"
+      },
+      "userAircraftTitleSameCycle": "A220-300 - No Cabin",
+      "folderRegistrationCandidate": {
+        "Registration": "YL-CSM",
+        "Source": 1,
+        "Confidence": 2,
+        "Reason": "one registration-shaped token with a known prefix"
+      },
+      "emptyTailOutcome": "Blank",
+      "createLatencyMs": 38,
+      "readLatencyMs": 16,
+      "removeLatencyMs": 0,
+      "totalMs": 7107,
+      "RemoveHResult": 0,
+      "RemovalConfirmed": true,
+      "Exceptions": [],
+      "Error": null,
+      "simulatorWorkingSetMb": {
+        "before": 10503,
+        "after": 10542
+      }
+    },
+    {
+      "preset": "no-cabin run (10 liveries + control)",
+      "requested": {
+        "ContainerTitle": "A220-300 - No Cabin",
+        "Livery": "Delta A220-300",
+        "TailNumber": ""
+      },
+      "CreateHResult": 0,
+      "assignedObjectId": 82477070,
+      "queriedObjectIsNotUser": true,
+      "observed": {
+        "Title": "A220-300 - No Cabin",
+        "LiveryName": "Delta A220-300",
+        "LiveryFolder": "DELTA N324DU",
+        "AtcId": null,
+        "AtcAirline": null,
+        "AtcModel": "A220-300",
+        "AtcType": "223"
+      },
+      "userAircraftTitleSameCycle": "A220-300 - No Cabin",
+      "folderRegistrationCandidate": {
+        "Registration": "N324DU",
+        "Source": 1,
+        "Confidence": 2,
+        "Reason": "one registration-shaped token with a known prefix"
+      },
+      "emptyTailOutcome": "Blank",
+      "createLatencyMs": 32,
+      "readLatencyMs": 16,
+      "removeLatencyMs": 0,
+      "totalMs": 7101,
+      "RemoveHResult": 0,
+      "RemovalConfirmed": true,
+      "Exceptions": [],
+      "Error": null,
+      "simulatorWorkingSetMb": {
+        "before": 10542,
+        "after": 10566
+      }
+    },
+    {
+      "preset": "no-cabin run (10 liveries + control)",
+      "requested": {
+        "ContainerTitle": "A220-300 - No Cabin",
+        "Livery": "Air Canada A220-300",
+        "TailNumber": ""
+      },
+      "CreateHResult": 0,
+      "assignedObjectId": 82477071,
+      "queriedObjectIsNotUser": true,
+      "observed": {
+        "Title": "A220-300 - No Cabin",
+        "LiveryName": "Air Canada A220-300",
+        "LiveryFolder": "AIR CANADA G-GUAC",
+        "AtcId": null,
+        "AtcAirline": null,
+        "AtcModel": "A220-300",
+        "AtcType": "223"
+      },
+      "userAircraftTitleSameCycle": "A220-300 - No Cabin",
+      "folderRegistrationCandidate": {
+        "Registration": "G-GUAC",
+        "Source": 1,
+        "Confidence": 2,
+        "Reason": "one registration-shaped token with a known prefix"
+      },
+      "emptyTailOutcome": "Blank",
+      "createLatencyMs": 20,
+      "readLatencyMs": 16,
+      "removeLatencyMs": 0,
+      "totalMs": 7103,
+      "RemoveHResult": 0,
+      "RemovalConfirmed": true,
+      "Exceptions": [],
+      "Error": null,
+      "simulatorWorkingSetMb": {
+        "before": 10566,
+        "after": 10557
+      }
+    },
+    {
+      "preset": "no-cabin run (10 liveries + control)",
+      "requested": {
+        "ContainerTitle": "A220-300 - No Cabin",
+        "Livery": "Breeze A220-300",
+        "TailNumber": ""
+      },
+      "CreateHResult": 0,
+      "assignedObjectId": 82477072,
+      "queriedObjectIsNotUser": true,
+      "observed": {
+        "Title": "A220-300 - No Cabin",
+        "LiveryName": "Breeze A220-300",
+        "LiveryFolder": "BREEZE AIRWAYS N214BZ",
+        "AtcId": null,
+        "AtcAirline": null,
+        "AtcModel": "A220-300",
+        "AtcType": "223"
+      },
+      "userAircraftTitleSameCycle": "A220-300 - No Cabin",
+      "folderRegistrationCandidate": {
+        "Registration": "N214BZ",
+        "Source": 1,
+        "Confidence": 2,
+        "Reason": "one registration-shaped token with a known prefix"
+      },
+      "emptyTailOutcome": "Blank",
+      "createLatencyMs": 30,
+      "readLatencyMs": 16,
+      "removeLatencyMs": 0,
+      "totalMs": 7069,
+      "RemoveHResult": 0,
+      "RemovalConfirmed": true,
+      "Exceptions": [],
+      "Error": null,
+      "simulatorWorkingSetMb": {
+        "before": 10557,
+        "after": 10580
+      }
+    },
+    {
+      "preset": "no-cabin run (10 liveries + control)",
+      "requested": {
+        "ContainerTitle": "A220-300 - No Cabin",
+        "Livery": "ITA Airways A220-300",
+        "TailNumber": ""
+      },
+      "CreateHResult": 0,
+      "assignedObjectId": 82477073,
+      "queriedObjectIsNotUser": true,
+      "observed": {
+        "Title": "A220-300 - No Cabin",
+        "LiveryName": "ITA Airways A220-300",
+        "LiveryFolder": "ITA AIRWAYS EI-HHU",
+        "AtcId": null,
+        "AtcAirline": null,
+        "AtcModel": "A220-300",
+        "AtcType": "223"
+      },
+      "userAircraftTitleSameCycle": "A220-300 - No Cabin",
+      "folderRegistrationCandidate": {
+        "Registration": "EI-HHU",
+        "Source": 1,
+        "Confidence": 2,
+        "Reason": "one registration-shaped token with a known prefix"
+      },
+      "emptyTailOutcome": "Blank",
+      "createLatencyMs": 20,
+      "readLatencyMs": 30,
+      "removeLatencyMs": 0,
+      "totalMs": 7098,
+      "RemoveHResult": 0,
+      "RemovalConfirmed": true,
+      "Exceptions": [],
+      "Error": null,
+      "simulatorWorkingSetMb": {
+        "before": 10580,
+        "after": 10577
+      }
+    },
+    {
+      "preset": "no-cabin run (10 liveries + control)",
+      "requested": {
+        "ContainerTitle": "A220-300 - No Cabin",
+        "Livery": "JetBlue A220-300",
+        "TailNumber": ""
+      },
+      "CreateHResult": 0,
+      "assignedObjectId": 82477074,
+      "queriedObjectIsNotUser": true,
+      "observed": {
+        "Title": "A220-300 - No Cabin",
+        "LiveryName": "JetBlue A220-300",
+        "LiveryFolder": "JETBLUE N3115J",
+        "AtcId": null,
+        "AtcAirline": null,
+        "AtcModel": "A220-300",
+        "AtcType": "223"
+      },
+      "userAircraftTitleSameCycle": "A220-300 - No Cabin",
+      "folderRegistrationCandidate": {
+        "Registration": "N3115J",
+        "Source": 1,
+        "Confidence": 2,
+        "Reason": "one registration-shaped token with a known prefix"
+      },
+      "emptyTailOutcome": "Blank",
+      "createLatencyMs": 18,
+      "readLatencyMs": 15,
+      "removeLatencyMs": 0,
+      "totalMs": 7094,
+      "RemoveHResult": 0,
+      "RemovalConfirmed": true,
+      "Exceptions": [],
+      "Error": null,
+      "simulatorWorkingSetMb": {
+        "before": 10575,
+        "after": 10573
+      }
+    },
+    {
+      "preset": "no-cabin run (10 liveries + control)",
+      "requested": {
+        "ContainerTitle": "A220-300 - No Cabin",
+        "Livery": "Korean Air A220-300",
+        "TailNumber": ""
+      },
+      "CreateHResult": 0,
+      "assignedObjectId": 82477075,
+      "queriedObjectIsNotUser": true,
+      "observed": {
+        "Title": "A220-300 - No Cabin",
+        "LiveryName": "Korean Air A220-300",
+        "LiveryFolder": "KOREAN AIR HL8315",
+        "AtcId": null,
+        "AtcAirline": null,
+        "AtcModel": "A220-300",
+        "AtcType": "223"
+      },
+      "userAircraftTitleSameCycle": "A220-300 - No Cabin",
+      "folderRegistrationCandidate": {
+        "Registration": null,
+        "Source": 0,
+        "Confidence": 0,
+        "Reason": "no registration-shaped token"
+      },
+      "emptyTailOutcome": "Blank",
+      "createLatencyMs": 38,
+      "readLatencyMs": 16,
+      "removeLatencyMs": 0,
+      "totalMs": 7115,
+      "RemoveHResult": 0,
+      "RemovalConfirmed": true,
+      "Exceptions": [],
+      "Error": null,
+      "simulatorWorkingSetMb": {
+        "before": 10573,
+        "after": 10562
+      }
+    },
+    {
+      "preset": "no-cabin run (10 liveries + control)",
+      "requested": {
+        "ContainerTitle": "A220-300 - No Cabin",
+        "Livery": "Swiss A220-300",
+        "TailNumber": ""
+      },
+      "CreateHResult": 0,
+      "assignedObjectId": 82477076,
+      "queriedObjectIsNotUser": true,
+      "observed": {
+        "Title": "A220-300 - No Cabin",
+        "LiveryName": "Swiss A220-300",
+        "LiveryFolder": "SWISS HB-JCO",
+        "AtcId": null,
+        "AtcAirline": null,
+        "AtcModel": "A220-300",
+        "AtcType": "223"
+      },
+      "userAircraftTitleSameCycle": "A220-300 - No Cabin",
+      "folderRegistrationCandidate": {
+        "Registration": "HB-JCO",
+        "Source": 1,
+        "Confidence": 2,
+        "Reason": "one registration-shaped token with a known prefix"
+      },
+      "emptyTailOutcome": "Blank",
+      "createLatencyMs": 30,
+      "readLatencyMs": 33,
+      "removeLatencyMs": 0,
+      "totalMs": 7114,
+      "RemoveHResult": 0,
+      "RemovalConfirmed": true,
+      "Exceptions": [],
+      "Error": null,
+      "simulatorWorkingSetMb": {
+        "before": 10562,
+        "after": 10564
+      }
+    },
+    {
+      "preset": "no-cabin run (10 liveries + control)",
+      "requested": {
+        "ContainerTitle": "A220-300 - No Cabin",
+        "Livery": "Synaptic House A220-300",
+        "TailNumber": ""
+      },
+      "CreateHResult": 0,
+      "assignedObjectId": 78872587,
+      "queriedObjectIsNotUser": true,
+      "observed": {
+        "Title": "A220-300 - No Cabin",
+        "LiveryName": "Synaptic House A220-300",
+        "LiveryFolder": "A_BCS3_SYN_HOUSE",
+        "AtcId": null,
+        "AtcAirline": null,
+        "AtcModel": "A220-300",
+        "AtcType": "223"
+      },
+      "userAircraftTitleSameCycle": "A220-300 - No Cabin",
+      "folderRegistrationCandidate": {
+        "Registration": null,
+        "Source": 0,
+        "Confidence": 0,
+        "Reason": "no registration-shaped token"
+      },
+      "emptyTailOutcome": "Blank",
+      "createLatencyMs": 41,
+      "readLatencyMs": 16,
+      "removeLatencyMs": 0,
+      "totalMs": 7114,
+      "RemoveHResult": 0,
+      "RemovalConfirmed": true,
+      "Exceptions": [],
+      "Error": null,
+      "simulatorWorkingSetMb": {
+        "before": 10563,
+        "after": 10572
+      }
+    },
+    {
+      "preset": "no-cabin run (10 liveries + control)",
+      "requested": {
+        "ContainerTitle": "A220-300 - No Cabin",
+        "Livery": "Air France A220-300",
+        "TailNumber": "FSGAP01"
+      },
+      "CreateHResult": 0,
+      "assignedObjectId": 78872588,
+      "queriedObjectIsNotUser": true,
+      "observed": {
+        "Title": "A220-300 - No Cabin",
+        "LiveryName": "Air France A220-300",
+        "LiveryFolder": "AIR FRANCE F-HZUF",
+        "AtcId": "FSGAP01",
+        "AtcAirline": null,
+        "AtcModel": "A220-300",
+        "AtcType": "223"
+      },
+      "userAircraftTitleSameCycle": "A220-300 - No Cabin",
+      "folderRegistrationCandidate": {
+        "Registration": "F-HZUF",
+        "Source": 1,
+        "Confidence": 2,
+        "Reason": "one registration-shaped token with a known prefix"
+      },
+      "emptyTailOutcome": null,
+      "createLatencyMs": 44,
+      "readLatencyMs": 31,
+      "removeLatencyMs": 0,
+      "totalMs": 7141,
+      "RemoveHResult": 0,
+      "RemovalConfirmed": true,
+      "Exceptions": [],
+      "Error": null,
+      "simulatorWorkingSetMb": {
+        "before": 10571,
+        "after": 10555
+      }
+    },
+    {
+      "preset": "cabin run (3 liveries + control)",
+      "requested": {
+        "ContainerTitle": "A220-300",
+        "Livery": "Air France A220-300",
+        "TailNumber": ""
+      },
+      "CreateHResult": 0,
+      "assignedObjectId": 85278730,
+      "queriedObjectIsNotUser": true,
+      "observed": {
+        "Title": "A220-300",
+        "LiveryName": "Air France A220-300",
+        "LiveryFolder": "AIR FRANCE F-HZUF",
+        "AtcId": null,
+        "AtcAirline": null,
+        "AtcModel": "A220-300",
+        "AtcType": "223"
+      },
+      "userAircraftTitleSameCycle": "A220-300 - No Cabin",
+      "folderRegistrationCandidate": {
+        "Registration": "F-HZUF",
+        "Source": 1,
+        "Confidence": 2,
+        "Reason": "one registration-shaped token with a known prefix"
+      },
+      "emptyTailOutcome": "Blank",
+      "createLatencyMs": 25,
+      "readLatencyMs": 34,
+      "removeLatencyMs": 0,
+      "totalMs": 7124,
+      "RemoveHResult": 0,
+      "RemovalConfirmed": true,
+      "Exceptions": [],
+      "Error": null,
+      "simulatorWorkingSetMb": {
+        "before": 10573,
+        "after": 10573
+      }
+    },
+    {
+      "preset": "cabin run (3 liveries + control)",
+      "requested": {
+        "ContainerTitle": "A220-300",
+        "Livery": "Air Baltic A220-300",
+        "TailNumber": ""
+      },
+      "CreateHResult": 0,
+      "assignedObjectId": 85278731,
+      "queriedObjectIsNotUser": true,
+      "observed": {
+        "Title": "A220-300",
+        "LiveryName": "Air Baltic A220-300",
+        "LiveryFolder": "AIR BALTIC YL-CSM",
+        "AtcId": null,
+        "AtcAirline": null,
+        "AtcModel": "A220-300",
+        "AtcType": "223"
+      },
+      "userAircraftTitleSameCycle": "A220-300 - No Cabin",
+      "folderRegistrationCandidate": {
+        "Registration": "YL-CSM",
+        "Source": 1,
+        "Confidence": 2,
+        "Reason": "one registration-shaped token with a known prefix"
+      },
+      "emptyTailOutcome": "Blank",
+      "createLatencyMs": 38,
+      "readLatencyMs": 32,
+      "removeLatencyMs": 0,
+      "totalMs": 7118,
+      "RemoveHResult": 0,
+      "RemovalConfirmed": true,
+      "Exceptions": [],
+      "Error": null,
+      "simulatorWorkingSetMb": {
+        "before": 10572,
+        "after": 10590
+      }
+    },
+    {
+      "preset": "cabin run (3 liveries + control)",
+      "requested": {
+        "ContainerTitle": "A220-300",
+        "Livery": "Delta A220-300",
+        "TailNumber": ""
+      },
+      "CreateHResult": 0,
+      "assignedObjectId": 85278732,
+      "queriedObjectIsNotUser": true,
+      "observed": {
+        "Title": "A220-300",
+        "LiveryName": "Delta A220-300",
+        "LiveryFolder": "DELTA N324DU",
+        "AtcId": null,
+        "AtcAirline": null,
+        "AtcModel": "A220-300",
+        "AtcType": "223"
+      },
+      "userAircraftTitleSameCycle": "A220-300 - No Cabin",
+      "folderRegistrationCandidate": {
+        "Registration": "N324DU",
+        "Source": 1,
+        "Confidence": 2,
+        "Reason": "one registration-shaped token with a known prefix"
+      },
+      "emptyTailOutcome": "Blank",
+      "createLatencyMs": 31,
+      "readLatencyMs": 31,
+      "removeLatencyMs": 0,
+      "totalMs": 7106,
+      "RemoveHResult": 0,
+      "RemovalConfirmed": true,
+      "Exceptions": [],
+      "Error": null,
+      "simulatorWorkingSetMb": {
+        "before": 10590,
+        "after": 10596
+      }
+    },
+    {
+      "preset": "cabin run (3 liveries + control)",
+      "requested": {
+        "ContainerTitle": "A220-300",
+        "Livery": "Air France A220-300",
+        "TailNumber": "FSGAP01"
+      },
+      "CreateHResult": 0,
+      "assignedObjectId": 85278733,
+      "queriedObjectIsNotUser": true,
+      "observed": {
+        "Title": "A220-300",
+        "LiveryName": "Air France A220-300",
+        "LiveryFolder": "AIR FRANCE F-HZUF",
+        "AtcId": "FSGAP01",
+        "AtcAirline": null,
+        "AtcModel": "A220-300",
+        "AtcType": "223"
+      },
+      "userAircraftTitleSameCycle": "A220-300 - No Cabin",
+      "folderRegistrationCandidate": {
+        "Registration": "F-HZUF",
+        "Source": 1,
+        "Confidence": 2,
+        "Reason": "one registration-shaped token with a known prefix"
+      },
+      "emptyTailOutcome": null,
+      "createLatencyMs": 19,
+      "readLatencyMs": 15,
+      "removeLatencyMs": 0,
+      "totalMs": 7081,
+      "RemoveHResult": 0,
+      "RemovalConfirmed": true,
+      "Exceptions": [],
+      "Error": null,
+      "simulatorWorkingSetMb": {
+        "before": 10596,
+        "after": 10581
+      }
+    }
+  ]
+}

@@ -65,6 +65,23 @@ internal static class FacilityInterop
         return (Task<int>)resolution.InvokeNative!.Invoke(client, [call, cancellationToken])!;
     }
 
+    /// <summary>
+    /// Runs any native call on the client's dispatcher, serialized with its message loop, and returns its HRESULT.
+    /// BLOCK 10A.5 (experimental livery discovery, <see cref="LiveryInterop"/>) reuses the same resolved member so the
+    /// reflection into SimConnect.NET stays in this one class.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The library does not match (see <see cref="Compatibility"/>).</exception>
+    internal static Task<int> InvokeNativeAsync(SimConnectClient client, Func<IntPtr, int> call, CancellationToken cancellationToken)
+    {
+        var resolution = Resolved.Value;
+        if (resolution.Error is { } error)
+        {
+            throw new InvalidOperationException(error);
+        }
+
+        return (Task<int>)resolution.InvokeNative!.Invoke(client, [call, cancellationToken])!;
+    }
+
     /// <summary>Resolves and checks the members in <paramref name="library"/> (a parameter so tests can feed another assembly).</summary>
     internal static Resolution Resolve(Assembly library, Type clientType)
     {

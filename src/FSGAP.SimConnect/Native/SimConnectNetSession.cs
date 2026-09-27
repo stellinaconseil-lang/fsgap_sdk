@@ -43,8 +43,14 @@ internal sealed class SimConnectNetSession : ISimConnectSession
 
     private static int _nextAirportRequestId = 0x46534700;
 
+    /// <summary>BLOCK 10A.5: time allowed for the livery enumeration answer and for an AI object id to be assigned.</summary>
+    internal static readonly TimeSpan LiveryDiscoveryTimeout = TimeSpan.FromSeconds(15);
+
+    private static int _nextDiscoveryRequestId = 0x46534800;
+
     private readonly SimConnectClient _client;
     private readonly SemaphoreSlim _airportRequests = new(1, 1);
+    private readonly SemaphoreSlim _discoveryRequests = new(1, 1);
     private int _disposed;
 
     public SimConnectNetSession(SimConnectClient client)
@@ -157,6 +163,266 @@ internal sealed class SimConnectNetSession : ISimConnectSession
         }
     }
 
+    /// <inheritdoc />
+    /// <remarks>BLOCK 10A.5, experimental. Same pattern as the airport list: one request id, packets gathered from the
+    /// public raw-message event until <c>OutOf</c> packets arrived.</remarks>
+    public async Task<LiveryEnumeration> EnumerateAircraftLiveriesAsync(CancellationToken cancellationToken)
+    {
+        await _discoveryRequests.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var requestId = unchecked((uint)Interlocked.Increment(ref _nextDiscoveryRequestId));
+            var gate = new object();
+            var received = new Dictionary<uint, LiveryListParser.Packet>();
+            string? firstHeader = null;
+            var done = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+
+            void OnRaw(object? sender, RawSimConnectMessageEventArgs e)
+            {
+                if (e.MessageId != SimConnectRecvId.EnumerateSimobjectAndLiveryList || e.DataSize < LiveryListParser.DocumentedHeaderSize)
+                {
+                    return;
+                }
+
+                var buffer = new byte[e.DataSize];
+                System.Runtime.InteropServices.Marshal.Copy(e.DataPointer, buffer, 0, (int)e.DataSize);
+                if (LiveryListParser.RequestIdOf(buffer) != requestId)
+                {
+                    return;
+                }
+
+                try
+                {
+                    var packet = LiveryListParser.Parse(buffer);
+                    lock (gate)
+                    {
+                        firstHeader ??= Convert.ToHexString(buffer, 0, Math.Min(buffer.Length, 64));
+                        received[packet.EntryNumber] = packet;
+                        if (received.Count >= Math.Max(packet.OutOf, 1))
+                        {
+                            done.TrySetResult();
+                        }
+                    }
+                }
+                catch (FormatException ex)
+                {
+                    done.TrySetException(ex);
+                }
+            }
+
+            _client.RawMessageReceived += OnRaw;
+            try
+            {
+                var hr = await LiveryInterop.EnumerateAsync(_client, requestId, LiveryInterop.AircraftObjectType, cancellationToken).ConfigureAwait(false);
+                if (hr != 0)
+                {
+                    throw new InvalidOperationException($"The simulator rejected the livery enumeration (HRESULT 0x{hr:X8}).");
+                }
+
+                await done.Task.WaitAsync(LiveryDiscoveryTimeout, cancellationToken).ConfigureAwait(false);
+                lock (gate)
+                {
+                    var packets = received.OrderBy(p => p.Key).Select(p => p.Value).ToArray();
+                    return new LiveryEnumeration(
+                        packets.SelectMany(p => p.Entries).ToArray(),
+                        packets.Length,
+                        packets[0].HeaderSize,
+                        packets.Max(p => p.EntrySize),
+                        firstHeader ?? string.Empty,
+                        clock.Elapsed);
+                }
+            }
+            finally
+            {
+                _client.RawMessageReceived -= OnRaw;
+            }
+        }
+        finally
+        {
+            _discoveryRequests.Release();
+        }
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// BLOCK 10A.5, experimental. One probe at a time. The identity is read with the object's own id (never object 0);
+    /// the user aircraft's title is read separately in the same cycle so the result can prove the two differ. The object
+    /// is removed in a <c>finally</c>; removal is confirmed when a read of its id no longer answers.
+    /// </remarks>
+    public async Task<AiProbeResult> ProbeAiAircraftAsync(
+        string containerTitle,
+        string livery,
+        string tailNumber,
+        AiProbePosition position,
+        TimeSpan settle,
+        AiObjectLedger ledger,
+        CancellationToken cancellationToken)
+    {
+        await _discoveryRequests.WaitAsync(cancellationToken).ConfigureAwait(false);
+        var exceptions = new System.Collections.Concurrent.ConcurrentQueue<string>();
+        var createRequestId = unchecked((uint)Interlocked.Increment(ref _nextDiscoveryRequestId));
+        var assigned = new TaskCompletionSource<uint>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        void OnRaw(object? sender, RawSimConnectMessageEventArgs e)
+        {
+            if (e.MessageId == SimConnectRecvId.AssignedObjectId && e.DataSize >= 20)
+            {
+                var buffer = new byte[e.DataSize];
+                System.Runtime.InteropServices.Marshal.Copy(e.DataPointer, buffer, 0, (int)e.DataSize);
+                if (BitConverter.ToUInt32(buffer, 12) == createRequestId)
+                {
+                    assigned.TrySetResult(BitConverter.ToUInt32(buffer, 16));
+                }
+            }
+            else if (e.MessageId == SimConnectRecvId.Exception && e.DataSize >= 24)
+            {
+                var buffer = new byte[e.DataSize];
+                System.Runtime.InteropServices.Marshal.Copy(e.DataPointer, buffer, 0, (int)e.DataSize);
+                exceptions.Enqueue($"exception {BitConverter.ToUInt32(buffer, 12)} (send id {BitConverter.ToUInt32(buffer, 16)}, index {BitConverter.ToUInt32(buffer, 20)})");
+            }
+        }
+
+        _client.RawMessageReceived += OnRaw;
+        var result = new AiProbeResult { ContainerTitle = containerTitle, Livery = livery, TailNumber = tailNumber };
+        uint? objectId = null;
+        var createSent = false;
+        try
+        {
+            (result, objectId) = await CreateAndReadAsync(result).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+        {
+            result = result with { Error = $"{ex.GetType().Name}: {ex.Message}" };
+        }
+        finally
+        {
+            // A late assignment (after the timeout, or after a cancellation) must not leave an object behind: wait for it
+            // once more, independently of the caller's token, and remove whatever was assigned.
+            if (objectId is null && createSent)
+            {
+                try
+                {
+                    objectId = await assigned.Task.WaitAsync(LiveryDiscoveryTimeout).ConfigureAwait(false);
+                    ledger.RecordCreated(objectId.Value);
+                    result = result with { ObjectId = objectId, Error = (result.Error ?? "cancelled") + "; object id assigned late, removed" };
+                }
+                catch (TimeoutException)
+                {
+                    // Nothing was ever assigned: nothing to remove.
+                }
+            }
+
+            _client.RawMessageReceived -= OnRaw;
+            if (objectId is { } id)
+            {
+                var (removeHr, confirmed, latency) = await RemoveAndConfirmAsync(id, ledger).ConfigureAwait(false);
+                result = result with { RemoveHResult = removeHr, RemovalConfirmed = confirmed, RemoveLatency = latency };
+            }
+
+            _discoveryRequests.Release();
+        }
+
+        return result with { Exceptions = exceptions.ToArray() };
+
+        async Task<(AiProbeResult Result, uint? ObjectId)> CreateAndReadAsync(AiProbeResult probe)
+        {
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            var initial = new SimConnectDataInitPosition
+            {
+                Latitude = position.LatitudeDegrees,
+                Longitude = position.LongitudeDegrees,
+                Altitude = position.AltitudeFeet,
+                Pitch = 0,
+                Bank = 0,
+                Heading = position.HeadingDegrees,
+                OnGround = position.OnGround ? 1u : 0u,
+                Airspeed = 0,
+            };
+            var hr = await LiveryInterop.CreateNonAtcAircraftAsync(_client, containerTitle, livery, tailNumber, initial, createRequestId, cancellationToken).ConfigureAwait(false);
+            probe = probe with { CreateHResult = hr };
+            if (hr != 0)
+            {
+                return (probe with { Error = $"create rejected (HRESULT 0x{hr:X8})" }, null);
+            }
+
+            createSent = true;
+
+            uint id;
+            try
+            {
+                id = await assigned.Task.WaitAsync(LiveryDiscoveryTimeout, cancellationToken).ConfigureAwait(false);
+            }
+            catch (TimeoutException)
+            {
+                return (probe with { Error = "no object id assigned in time", CreateLatency = clock.Elapsed }, null);
+            }
+
+            ledger.RecordCreated(id);
+            probe = probe with { ObjectId = id, CreateLatency = clock.Elapsed };
+
+            try
+            {
+                await Task.Delay(settle, cancellationToken).ConfigureAwait(false);
+                clock.Restart();
+                var vars = await _client.SimVars.GetAsync<AiIdentityVars>(id, cancellationToken)
+                    .WaitAsync(LiveryDiscoveryTimeout, cancellationToken).ConfigureAwait(false);
+                var readLatency = clock.Elapsed;
+                var user = await _client.SimVars.GetAsync<AiIdentityVars>(0, cancellationToken)
+                    .WaitAsync(LiveryDiscoveryTimeout, cancellationToken).ConfigureAwait(false);
+                return (probe with
+                {
+                    Identity = new RawObjectIdentity(Clean(vars.Title), Clean(vars.LiveryName), Clean(vars.LiveryFolder), Clean(vars.AtcId), Clean(vars.AtcAirline), Clean(vars.AtcModel), Clean(vars.AtcType)),
+                    UserAircraftTitle = Clean(user.Title),
+                    ReadLatency = readLatency,
+                }, id);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+            {
+                return (probe with { Error = $"read failed: {ex.GetType().Name}: {ex.Message}" }, id);
+            }
+            catch (OperationCanceledException)
+            {
+                // Removal still happens in the caller's finally: hand the id back through the probe.
+                objectId = id;
+                throw;
+            }
+        }
+
+        static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    /// <summary>
+    /// BLOCK 10A.5 cleanup, deliberately independent of the caller's token: removes an experimental AI object and
+    /// confirms it is gone (a read of its id no longer answers within 3 s).
+    /// </summary>
+    internal async Task<(int RemoveHResult, bool Confirmed, TimeSpan Latency)> RemoveAndConfirmAsync(uint objectId, AiObjectLedger ledger)
+    {
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        using var timeout = new CancellationTokenSource(LiveryDiscoveryTimeout);
+        var removeRequestId = unchecked((uint)Interlocked.Increment(ref _nextDiscoveryRequestId));
+        var hr = await LiveryInterop.RemoveObjectAsync(_client, objectId, removeRequestId, timeout.Token).ConfigureAwait(false);
+        var latency = clock.Elapsed;
+        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+        bool stillThere;
+        try
+        {
+            await _client.SimVars.GetAsync<AiIdentityVars>(objectId, timeout.Token).WaitAsync(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
+            stillThere = true;
+        }
+        catch (Exception)
+        {
+            stillThere = false;
+        }
+
+        if (!stillThere)
+        {
+            ledger.RecordRemoved(objectId);
+        }
+
+        return (hr, !stillThere, latency);
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
@@ -218,6 +484,31 @@ internal struct AircraftIdentityVars
 
     [SimConnect("LIVERY NAME", SimConnectDataType.String256)]
     public string LiveryName;
+
+    [SimConnect("ATC MODEL", SimConnectDataType.String256)]
+    public string AtcModel;
+
+    [SimConnect("ATC TYPE", SimConnectDataType.String256)]
+    public string AtcType;
+}
+
+/// <summary>BLOCK 10A.5, experimental: the identity strings read from an AI probe object (and, for contrast, object 0).</summary>
+internal struct AiIdentityVars
+{
+    [SimConnect("TITLE", SimConnectDataType.String256)]
+    public string Title;
+
+    [SimConnect("LIVERY NAME", SimConnectDataType.String256)]
+    public string LiveryName;
+
+    [SimConnect("LIVERY FOLDER", SimConnectDataType.String256)]
+    public string LiveryFolder;
+
+    [SimConnect("ATC ID", SimConnectDataType.String256)]
+    public string AtcId;
+
+    [SimConnect("ATC AIRLINE", SimConnectDataType.String256)]
+    public string AtcAirline;
 
     [SimConnect("ATC MODEL", SimConnectDataType.String256)]
     public string AtcModel;

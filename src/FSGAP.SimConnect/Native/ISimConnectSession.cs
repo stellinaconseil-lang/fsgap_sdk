@@ -73,6 +73,22 @@ internal interface ISimConnectSession : IAsyncDisposable
     /// <exception cref="TimeoutException">The answer did not arrive in time.</exception>
     /// <exception cref="FormatException">A packet does not match the known layout.</exception>
     Task<IReadOnlyList<RawAirport>> RequestAirportsAsync(CancellationToken cancellationToken);
+
+    /// <summary>BLOCK 10A.5, experimental: enumerates every (aircraft title, livery name) pair on this connection.</summary>
+    Task<LiveryEnumeration> EnumerateAircraftLiveriesAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// BLOCK 10A.5, experimental: creates one non-ATC AI aircraft, reads its identity strings from its own object id,
+    /// removes it and confirms the removal. The ledger records the object before anything else is done with it.
+    /// </summary>
+    Task<AiProbeResult> ProbeAiAircraftAsync(
+        string containerTitle,
+        string livery,
+        string tailNumber,
+        AiProbePosition position,
+        TimeSpan settle,
+        AiObjectLedger ledger,
+        CancellationToken cancellationToken);
 }
 
 /// <summary>Opens native connections.</summary>

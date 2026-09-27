@@ -44,6 +44,12 @@ var nearestAirport = args.Contains("--nearest-airport") || airportAt is not null
 var synapticFixtureDirectory = Arg(args, "--synaptic-fixture");
 var synapticProbe = args.Contains("--synaptic-probe") || synapticFixtureDirectory is not null;
 
+// BLOCK 10A.5 (experimental): --livery-discovery <dir> [--livery-probes N] enumerates liveries and probes AI aircraft, then
+// stops; --livery-cleanup <id,id,...> only removes experimental AI objects left by a crashed run.
+var liveryDiscoveryDirectory = Arg(args, "--livery-discovery");
+var liveryProbes = int.TryParse(Arg(args, "--livery-probes"), out var requestedProbes) ? requestedProbes : 3;
+var liveryCleanupIds = Arg(args, "--livery-cleanup")?.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(uint.Parse).ToArray();
+
 using var stop = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) =>
 {
@@ -96,6 +102,11 @@ var watchers = new[]
     Watch(simulator.AircraftDetector.WatchAsync(stop.Token), a => DescribeAsync(a).GetAwaiter().GetResult()),
     PrintTelemetryAsync(stop.Token),
     nearestAirport ? PrintNearestAirportAsync(stop.Token) : Task.CompletedTask,
+    liveryDiscoveryDirectory is not null
+        ? LiveryDiscoveryRun.RunAsync(simulator, liveryDiscoveryDirectory, liveryProbes, args.Contains("--livery-cabin"), Print, stop.Token).ContinueWith(_ => stop.Cancel(), TaskScheduler.Default)
+        : liveryCleanupIds is not null
+            ? LiveryDiscoveryRun.CleanupIdsAsync(simulator, liveryCleanupIds, Print, stop.Token).ContinueWith(_ => stop.Cancel(), TaskScheduler.Default)
+            : Task.CompletedTask,
 };
 
 await Task.WhenAll(watchers);

@@ -769,6 +769,40 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
         }
     }
 
+    /// <summary>
+    /// BLOCK 10A.5 — EXPERIMENTAL, internal, discovery only (visible to the live sample). Enumerates every installed
+    /// aircraft (title, livery) pair on this transport's connection. Not part of any public contract.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The simulator is not connected.</exception>
+    internal Task<LiveryEnumeration> ExperimentalEnumerateAircraftLiveriesAsync(CancellationToken cancellationToken) =>
+        (_connectedSession ?? throw new InvalidOperationException(SimulatorNotConnected)).Session.EnumerateAircraftLiveriesAsync(cancellationToken);
+
+    /// <summary>
+    /// BLOCK 10A.5 — EXPERIMENTAL, internal, discovery only (visible to the live sample). Creates one AI aircraft with
+    /// the given title, livery and tail number on this transport's connection, reads its identity strings, removes it.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The simulator is not connected.</exception>
+    internal Task<AiProbeResult> ExperimentalProbeAiAircraftAsync(
+        string containerTitle,
+        string livery,
+        string tailNumber,
+        AiProbePosition position,
+        TimeSpan settle,
+        AiObjectLedger ledger,
+        CancellationToken cancellationToken) =>
+        (_connectedSession ?? throw new InvalidOperationException(SimulatorNotConnected)).Session
+            .ProbeAiAircraftAsync(containerTitle, livery, tailNumber, position, settle, ledger, cancellationToken);
+
+    /// <summary>
+    /// BLOCK 10A.5 — EXPERIMENTAL cleanup path: removes an AI object by id (for example one reported as remaining after a
+    /// crashed run) and confirms it is gone.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The simulator is not connected, or the session is not the SimConnect.NET one.</exception>
+    internal Task<(int RemoveHResult, bool Confirmed, TimeSpan Latency)> ExperimentalRemoveAiObjectAsync(uint objectId, AiObjectLedger ledger) =>
+        (_connectedSession ?? throw new InvalidOperationException(SimulatorNotConnected)).Session is SimConnectNetSession native
+            ? native.RemoveAndConfirmAsync(objectId, ledger)
+            : throw new InvalidOperationException("AI object removal needs the SimConnect.NET session.");
+
     private async Task<IReadOnlyList<RawAirport>> RequestAirportListAsync(LiveSession live)
     {
         // ForceYielding: never continue on the native message thread.

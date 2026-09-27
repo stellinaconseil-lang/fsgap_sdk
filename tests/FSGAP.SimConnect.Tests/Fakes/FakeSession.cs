@@ -180,6 +180,12 @@ internal sealed class FakeSession : ISimConnectSession
 
     public int AirportRequests => Volatile.Read(ref _airportRequests);
 
+    public Task<LiveryEnumeration> EnumerateAircraftLiveriesAsync(CancellationToken cancellationToken) =>
+        throw new NotSupportedException("BLOCK 10A.5 livery discovery is live-only.");
+
+    public Task<AiProbeResult> ProbeAiAircraftAsync(string containerTitle, string livery, string tailNumber, AiProbePosition position, TimeSpan settle, AiObjectLedger ledger, CancellationToken cancellationToken) =>
+        throw new NotSupportedException("BLOCK 10A.5 AI probes are live-only.");
+
     public async Task<IReadOnlyList<RawAirport>> RequestAirportsAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
