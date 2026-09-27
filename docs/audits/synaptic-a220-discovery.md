@@ -31,8 +31,11 @@ Companion files:
 3. **Validated generic coverage: 37 of 73 fields (51 %).** 9 generic fields are wrong and must be masked, 3 need a
    Synaptic overlay, 13 have no source, 11 are still untested.
 4. **Fuel pump AUTO is real and cannot be expressed by `IsOn`.** `FuelPumpMode` stays the one P0 contract change.
-5. **Registration cannot be resolved.** `ATC ID` is not bound to the livery (a Delta and an Air Baltic livery both
-   reported `C-FFCO`, the Air France one `I-BMTO`, `C-FFCO`, then empty). Marketplace liveries cannot be scanned.
+5. **Registration has no authoritative source for Marketplace liveries.** `ATC ID` is not bound to the livery (a Delta
+   and an Air Baltic livery both reported `C-FFCO`, the Air France one `I-BMTO`, `C-FFCO`, then empty). Marketplace
+   livery **files** cannot be scanned, but BLOCK 10A.5 showed that SimConnect **enumerates** all of them and that the
+   livery folder carries a registration-shaped token that can be used as a *derived* value
+   ([synaptic-a220-livery-discovery.md](synaptic-a220-livery-discovery.md)).
 6. **Minimum overlay: 6 documented variables, one polling group** (8 with the master alerts).
 7. **No failure interface.** `FailureCapabilities.None` is unchanged.
 
@@ -131,12 +134,18 @@ AND ATC TYPE  equals "223"
 - **LIVERY FOLDER** is stable and unique per livery (`DELTA N324DU`, `AIR BALTIC YL-CSM`, `AIR FRANCE F-HZUF`). It
   happens to contain the registration for these three, but the FSGAP rule stands: **never parse a registration out of
   a folder or display name**.
-- **Livery metadata cannot be correlated.** The Marketplace liveries are `.fsarchive` content: no `livery.cfg` is
-  readable, so neither `atc_id` nor the `config,<id>` parameter can be read.
-- **Decision: catalog DEFER.** A `SynapticInstalledAircraftCatalog` would help only for liveries installed as files
-  (Community folder, iniManager); none exists on this machine and Marketplace ones cannot be scanned. V1 reports
-  `Registration = null` and `OperatorIcao = null`, with `LiveryFolder` and `Livery` for display. Revisit when a
-  Community livery with a readable `livery.cfg` can be tested.
+- **Livery metadata: three different things (revised by BLOCK 10A.5).**
+  - *Filesystem scanning*: impossible for Marketplace liveries (`.fsarchive`); no `livery.cfg`, `atc_id` or
+    `config,<id>` can be read.
+  - *SimConnect enumeration* (`SimConnect_EnumerateSimObjectsAndLiveries`): lists all 11 Marketplace A220 liveries under
+    both presets, in ~70 ms, on the single connection.
+  - *Deep probe* (temporary AI aircraft): gives each livery's `LIVERY FOLDER` (e.g. `SWISS HB-JCO`), but the ATC ID
+    stays blank with an empty tail number. Diagnostic only.
+- **Decision (revised by BLOCK 10A.5): catalog FEASIBLE, built on enumeration.** A `SynapticInstalledAircraftCatalog`
+  can list the installed fleet from SimConnect enumeration (one entry per livery name, presets merged), learn each
+  livery's folder whenever the user loads it, and report a registration only as `Derived` from that folder with a
+  confidence (`Authoritative` only from a readable `livery.cfg`). `OperatorIcao` stays null (`ATC AIRLINE` is blank).
+  Algorithm: [synaptic-a220-livery-discovery.md §11](synaptic-a220-livery-discovery.md#11-recommended-catalog-algorithm-not-implemented).
 
 ## 6. Generic FSGAP 0.9.0 telemetry — live matrix
 
@@ -373,7 +382,9 @@ LIVE_VALIDATED.
 | G-E1 electrical sources | P1 | **DOWNGRADE → DEFER** | nothing readable changed; stock electrical dead |
 | G-P1 pneumatics | P1 | **DOWNGRADE → DEFER** | controls static, no actual-state source |
 | G-D1 richer descriptor | P1 | **CONFIRMED, done in the transport** | `ATC MODEL`/`ATC TYPE` are required for a specific detection rule; no contract change |
-| G-X2 shared MSFS locator | P1 if catalog | **DEFER** | no catalog in V1 |
+| G-X2 shared MSFS locator | P1 if catalog | **DEFER** | the catalog would use SimConnect enumeration, not package files |
+| (new, 10A.5) livery enumeration service | — | **P1, generic** | `SimConnect_EnumerateSimObjectsAndLiveries` works for every aircraft, including Marketplace content |
+| (new, 10A.5) registration source/confidence | — | **P1, generic** | a derived registration must be labelled as such on `InstalledAircraft` |
 | G-H1 hydraulic selectors | P2 | **DEFER** | selectors live but no consumer; pressure proven independent |
 | G-U1 APU selector mode | P2 | **REJECT** | live enum contradicts the docs; `MasterSwitchOn` suffices |
 | G-A2 `CockpitEvent` | P2 | **DEFER** | no consumer |
@@ -413,7 +424,7 @@ tests and fixtures may use those names freely, exactly as FSGAP.Fenix uses "Feni
 ## 12. Risks
 
 - **No vendor marker.** Detection relies on configuration strings; a preset rename breaks it (§3).
-- **Registration unavailable** for Marketplace liveries (§5).
+- **Registration only derived** for Marketplace liveries (§5; one of ten folders is inconsistent with its operator).
 - **Documentation drift.** Two documented variables contradict live behaviour (`APU Switch` enum, `Flap Lever` never
   moves). Every future overlay variable must be live-proven, not taken from the docs.
 - **Untested fields.** Touchdown, warnings, reverser, antiskid, speed brake and hydraulics need a landing and a
@@ -425,10 +436,11 @@ tests and fixtures may use those names freely, exactly as FSGAP.Fenix uses "Feni
 1. **Contracts (0.10.0):** `FuelPumpMode` + `FuelPumpTelemetry.Mode` (P0). Optionally `LandingGear.ParkingBrakeSet`
    (generic, `BRAKE PARKING POSITION`) and a minimal alerts section (`MasterCautionLit`, `MasterWarningLit`) if a
    consumer asks. Nothing else.
-2. **FSGAP.Synaptic (new assembly):** recognizer = the rule of §3; identity per §4 (registration and operator null);
+2. **FSGAP.Synaptic (new assembly):** recognizer = the rule of §3; identity per §4 (registration derived from a learned livery folder or null; operator null);
    generic policy masking the fields of §9; one overlay group with the six P0 variables at 2 s; capabilities:
    FlightState, Engines, LandingGear, FlightControls, Environment, FuelPumps, Apu, Fire (and Warnings once tested);
-   not Pressurization, Electrical, Hydraulics, InertialReferences; failures `UnsupportedFailureProvider`. No catalog.
+   not Pressurization, Electrical, Hydraulics, InertialReferences; failures `UnsupportedFailureProvider`. Catalog, if
+   built: enumeration + learned livery folders + derived registrations ([livery audit §11](synaptic-a220-livery-discovery.md#11-recommended-catalog-algorithm-not-implemented)).
 3. **Tests:** recognizer positives from the three live descriptors, negatives from the A380, Fenix, Asobo/FSLTL-style
    titles and any title merely containing A220; mapper tests (Auto never collapses; APU switch 2 → on); golden tests
    from `fixtures/synaptic-a220/`; policy and composition tests mirroring Fenix; architecture tests (no SimConnect
