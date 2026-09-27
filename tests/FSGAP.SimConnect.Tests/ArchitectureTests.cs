@@ -69,7 +69,9 @@ public class ArchitectureTests
     [Fact]
     public void Transport_contains_no_vendor_specific_names()
     {
-        // BLOCK 10A: the Synaptic A220 audit added no production detection, overlay or variable to the transport.
+        // BLOCK 10A: the Synaptic A220 audit added no production detection, overlay or variable to the transport. These
+        // words are forbidden in the vendor-neutral transport only; the future FSGAP.Synaptic assembly, its tests and
+        // its fixtures are expected to use them, exactly as FSGAP.Fenix uses "Fenix".
         string[] forbidden = ["Fenix", "Fnx", "Efb", "8083", "Lvar", "A319", "A320", "A321", "Cfm", "Iae", "RequiredTags", "Synaptic", "A22X", "A220"];
         var names = Transport.GetTypes()
             .SelectMany(type => type.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)

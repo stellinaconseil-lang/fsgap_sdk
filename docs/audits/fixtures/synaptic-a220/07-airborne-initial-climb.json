@@ -1,0 +1,526 @@
+{
+  "_comment": "BLOCK 10A-LIVE discovery capture (read-only). descriptor = TITLE / ATC ID / LIVERY FOLDER / LIVERY NAME / ATC MODEL / ATC TYPE as MSFS reports them; genericTelemetry = FSGAP 0.9.0 generic snapshot (state \u002B value); synapticVariables = documented L:A22X variables read as \u0027number\u0027; stockSimVars = stock SimVars FSGAP does not read yet. Values are raw and unvalidated.",
+  "capturedAtUtc": "2026-09-27T10:16:00.3435205+00:00",
+  "state": "air-eng0-apu2",
+  "descriptor": {
+    "Title": "A220-300 - No Cabin",
+    "Registration": null,
+    "LiveryFolder": "AIR FRANCE F-HZUF",
+    "Livery": "Air France A220-300",
+    "AtcModel": "A220-300",
+    "AtcType": "223"
+  },
+  "genericTelemetry": {
+    "Timestamp": "2026-09-27T10:16:00.3432645+00:00",
+    "Flight": {
+      "OnGround": {
+        "state": "Known",
+        "value": false,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "LatitudeDegrees": {
+        "state": "Known",
+        "value": 45.78720506533661,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "LongitudeDegrees": {
+        "state": "Known",
+        "value": 3.175690011372731,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "AltitudeFeet": {
+        "state": "Known",
+        "value": 1280.2822644349483,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "HeightAboveGroundFeet": {
+        "state": "Known",
+        "value": 216.2008942845714,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "RadioAltitudeFeet": {
+        "state": "Unavailable"
+      },
+      "IndicatedAirspeedKnots": {
+        "state": "Known",
+        "value": 154.41802978515625,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "GroundSpeedKnots": {
+        "state": "Known",
+        "value": 160.88104835775115,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "VerticalSpeedFeetPerMinute": {
+        "state": "Known",
+        "value": 2218.3511352539062,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "TouchdownVerticalSpeedFeetPerMinute": {
+        "state": "Unknown"
+      },
+      "HeadingMagneticDegrees": {
+        "state": "Known",
+        "value": 84.14808985292885,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "PitchDegrees": {
+        "state": "Known",
+        "value": 11.519058619730632,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "BankDegrees": {
+        "state": "Known",
+        "value": 0.9089153886782421,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "GLoad": {
+        "state": "Known",
+        "value": 1.0075649504247852,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "AngleOfAttackDegrees": {
+        "state": "Known",
+        "value": 3.466933230448573,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "GrossWeightKilograms": {
+        "state": "Known",
+        "value": 50994.8127511875,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "BodyAccelerationXG": {
+        "state": "Known",
+        "value": 0.018745743861292116,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "BodyAccelerationYG": {
+        "state": "Known",
+        "value": 0.04196772962187175,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "BodyAccelerationZG": {
+        "state": "Known",
+        "value": 0.052671435075340146,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      }
+    },
+    "Warnings": {
+      "Overspeed": {
+        "state": "Known",
+        "value": false,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "FlapSpeedExceeded": {
+        "state": "Known",
+        "value": false,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "GearSpeedExceeded": {
+        "state": "Known",
+        "value": false,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "Stall": {
+        "state": "Known",
+        "value": false,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      }
+    },
+    "Engines": [
+      {
+        "Index": 1,
+        "Running": {
+          "state": "Known",
+          "value": false,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "N1Percent": {
+          "state": "Known",
+          "value": 94.38786953288573,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "N2Percent": {
+          "state": "Known",
+          "value": 93.87826919555664,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "EgtCelsius": {
+          "state": "Known",
+          "value": 976.5341796875013,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "FuelFlowKilogramsPerHour": {
+          "state": "Known",
+          "value": 0.0003611239977256182,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "StarterActive": {
+          "state": "Known",
+          "value": false,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "OilTemperatureCelsius": {
+          "state": "Known",
+          "value": 21.995301086542156,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "OilPressurePsi": {
+          "state": "Known",
+          "value": 128.69856097373082,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "ThrottleLeverPercent": {
+          "state": "Known",
+          "value": 100,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "ReverserEngaged": {
+          "state": "Known",
+          "value": false,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "FireDetected": {
+          "state": "Unavailable"
+        },
+        "FireHandlePulled": {
+          "state": "Unavailable"
+        },
+        "FireWarningLit": {
+          "state": "Unavailable"
+        }
+      },
+      {
+        "Index": 2,
+        "Running": {
+          "state": "Known",
+          "value": false,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "N1Percent": {
+          "state": "Known",
+          "value": 94.38786953288573,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "N2Percent": {
+          "state": "Known",
+          "value": 93.87826919555664,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "EgtCelsius": {
+          "state": "Known",
+          "value": 973.089599609376,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "FuelFlowKilogramsPerHour": {
+          "state": "Known",
+          "value": 0.0003611239977256182,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "StarterActive": {
+          "state": "Known",
+          "value": false,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "OilTemperatureCelsius": {
+          "state": "Known",
+          "value": 21.99530108642176,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "OilPressurePsi": {
+          "state": "Known",
+          "value": 128.69856097373082,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "ThrottleLeverPercent": {
+          "state": "Known",
+          "value": 100,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "ReverserEngaged": {
+          "state": "Known",
+          "value": false,
+          "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+        },
+        "FireDetected": {
+          "state": "Unavailable"
+        },
+        "FireHandlePulled": {
+          "state": "Unavailable"
+        },
+        "FireWarningLit": {
+          "state": "Unavailable"
+        }
+      }
+    ],
+    "Apu": {
+      "Available": {
+        "state": "Unavailable"
+      },
+      "Running": {
+        "state": "Unavailable"
+      },
+      "MasterSwitchOn": {
+        "state": "Unavailable"
+      },
+      "BleedOn": {
+        "state": "Known",
+        "value": false,
+        "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+      },
+      "FireDetected": {
+        "state": "Unavailable"
+      },
+      "FireHandlePulled": {
+        "state": "Unavailable"
+      }
+    },
+    "InertialReferences": [],
+    "FuelPumps": [],
+    "ElectricalBuses": [],
+    "HydraulicSystems": [],
+    "FireZones": [],
+    "Batteries": [],
+    "LandingGear": {
+      "HandleDown": {
+        "state": "Known",
+        "value": true,
+        "observedAt": "2026-09-27T10:15:58.6453918+00:00"
+      },
+      "BrakeLeftPercent": {
+        "state": "Known",
+        "value": 0.021485686011146754,
+        "observedAt": "2026-09-27T10:15:58.6453918+00:00"
+      },
+      "BrakeRightPercent": {
+        "state": "Known",
+        "value": 0.021485686011146754,
+        "observedAt": "2026-09-27T10:15:58.6453918+00:00"
+      },
+      "SteeringInputPercent": {
+        "state": "Known",
+        "value": -2.8564453125,
+        "observedAt": "2026-09-27T10:15:58.6453918+00:00"
+      },
+      "AntiskidActive": {
+        "state": "Known",
+        "value": false,
+        "observedAt": "2026-09-27T10:15:58.6453918+00:00"
+      },
+      "Units": [
+        {
+          "Id": "nose",
+          "Name": "Nose gear",
+          "ExtensionPercent": {
+            "state": "Known",
+            "value": 100,
+            "observedAt": "2026-09-27T10:15:58.6453918+00:00"
+          }
+        },
+        {
+          "Id": "left-main",
+          "Name": "Left main gear",
+          "ExtensionPercent": {
+            "state": "Known",
+            "value": 100,
+            "observedAt": "2026-09-27T10:15:58.6453918+00:00"
+          }
+        },
+        {
+          "Id": "right-main",
+          "Name": "Right main gear",
+          "ExtensionPercent": {
+            "state": "Known",
+            "value": 100,
+            "observedAt": "2026-09-27T10:15:58.6453918+00:00"
+          }
+        }
+      ]
+    },
+    "FlightControls": {
+      "FlapsHandlePercent": {
+        "state": "Known",
+        "value": 40,
+        "observedAt": "2026-09-27T10:15:58.6453918+00:00"
+      },
+      "FlapSurfaces": [
+        {
+          "Id": "trailing-left",
+          "Name": "Trailing edge left",
+          "ExtensionPercent": {
+            "state": "Known",
+            "value": 27.027025818824768,
+            "observedAt": "2026-09-27T10:15:58.6453918+00:00"
+          }
+        },
+        {
+          "Id": "trailing-right",
+          "Name": "Trailing edge right",
+          "ExtensionPercent": {
+            "state": "Known",
+            "value": 27.027025818824768,
+            "observedAt": "2026-09-27T10:15:58.6453918+00:00"
+          }
+        }
+      ],
+      "SpeedBrakeDeploymentPercent": {
+        "state": "Known",
+        "value": 0.45242018997669226,
+        "observedAt": "2026-09-27T10:15:58.6453918+00:00"
+      },
+      "AileronLeftDeflectionPercent": {
+        "state": "Known",
+        "value": -1.3732910156250002,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "AileronRightDeflectionPercent": {
+        "state": "Known",
+        "value": -1.373291015625,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "ElevatorDeflectionPercent": {
+        "state": "Known",
+        "value": 5.621337890625001,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      },
+      "RudderDeflectionPercent": {
+        "state": "Known",
+        "value": 2.8564453125,
+        "observedAt": "2026-09-27T10:15:59.797169+00:00"
+      }
+    },
+    "Pressurization": {
+      "CabinAltitudeFeet": {
+        "state": "Known",
+        "value": 1007.6854657635145,
+        "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+      },
+      "CabinAltitudeRateFeetPerMinute": {
+        "state": "Known",
+        "value": 499.3846321105957,
+        "observedAt": "2026-09-27T10:15:57.7788511+00:00"
+      }
+    },
+    "Environment": {
+      "OutsideAirTemperatureCelsius": {
+        "state": "Known",
+        "value": 22.03032875061035,
+        "observedAt": "2026-09-27T10:15:52.7585665+00:00"
+      },
+      "WindDirectionDegreesTrue": {
+        "state": "Known",
+        "value": 209.99119567871094,
+        "observedAt": "2026-09-27T10:15:52.7585665+00:00"
+      },
+      "WindSpeedKnots": {
+        "state": "Known",
+        "value": 4.528958074516137,
+        "observedAt": "2026-09-27T10:15:52.7585665+00:00"
+      },
+      "Precipitation": {
+        "state": "Known",
+        "value": "None",
+        "observedAt": "2026-09-27T10:15:52.7585665+00:00"
+      },
+      "PrecipitationRateMillimeters": {
+        "state": "Known",
+        "value": 0,
+        "observedAt": "2026-09-27T10:15:52.7585665+00:00"
+      }
+    }
+  },
+  "synapticVariables": {
+    "L:A22X ACMP 2B": 1,
+    "L:A22X ACMP 3A": 1,
+    "L:A22X ACMP 3B": 1,
+    "L:A22X APU Bleed Fail Lamp": 0,
+    "L:A22X APU Bleed Off": 0,
+    "L:A22X APU Bleed Off Lamp": 0,
+    "L:A22X APU Gen Fail Lamp": 0,
+    "L:A22X APU Gen Off": 0,
+    "L:A22X APU Gen Off Lamp": 0,
+    "L:A22X APU Switch": 2,
+    "L:A22X Alternate Brake": 0,
+    "L:A22X Autobrake": 1,
+    "L:A22X Bus Isolation Mode": 1,
+    "L:A22X Cabin Power Off": 0,
+    "L:A22X Caution PBA": 0,
+    "L:A22X Crossbleed": 1,
+    "L:A22X Flap Lever": 0,
+    "L:A22X Flight Stage": 2,
+    "L:A22X Hyd 1 SOV": 0,
+    "L:A22X Hyd 1 SOV Lamp": 0,
+    "L:A22X Hyd 2 SOV": 0,
+    "L:A22X Hyd 2 SOV Lamp": 0,
+    "L:A22X L Bleed Fail Lamp": 0,
+    "L:A22X L Bleed Off": 0,
+    "L:A22X L Bleed Off Lamp": 0,
+    "L:A22X L Boost Pump": 1,
+    "L:A22X L Cowl Anti Ice": 1,
+    "L:A22X L Eng Fire": 0,
+    "L:A22X L Gen Fail Lamp": 0,
+    "L:A22X L Gen Off": 0,
+    "L:A22X L Gen Off Lamp": 0,
+    "L:A22X L Pack Fail Lamp": 0,
+    "L:A22X L Pack Off": 0,
+    "L:A22X L Pack Off Lamp": 0,
+    "L:A22X L Tiller": 1,
+    "L:A22X Lamp Test": 0,
+    "L:A22X Nose Steer Off": 1,
+    "L:A22X PTU": 1,
+    "L:A22X Parking Brake": 0,
+    "L:A22X Probe Heat": 0,
+    "L:A22X R Bleed Fail Lamp": 0,
+    "L:A22X R Bleed Off": 0,
+    "L:A22X R Bleed Off Lamp": 0,
+    "L:A22X R Boost Pump": 1,
+    "L:A22X R Cowl Anti Ice": 1,
+    "L:A22X R Eng Fire": 0,
+    "L:A22X R Gen Fail Lamp": 0,
+    "L:A22X R Gen Off": 0,
+    "L:A22X R Gen Off Lamp": 0,
+    "L:A22X R Pack Fail Lamp": 0,
+    "L:A22X R Pack Off": 0,
+    "L:A22X R Pack Off Lamp": 0,
+    "L:A22X RAT Gen": 0,
+    "L:A22X RAT Gen Lamp": 0,
+    "L:A22X Warning PBA": 0,
+    "L:A22X Wing Anti Ice": 1,
+    "L:INI_GPU_AVAIL": 0
+  },
+  "stockSimVars": {
+    "APU BLEED PRESSURE RECEIVED BY ENGINE:1": 0,
+    "APU GENERATOR ACTIVE:1": 0,
+    "APU GENERATOR SWITCH:1": 0,
+    "APU PCT RPM": 0,
+    "APU SWITCH": 0,
+    "BLEED AIR ENGINE:1": 1,
+    "BLEED AIR ENGINE:2": 1,
+    "BRAKE PARKING POSITION": 0,
+    "ELECTRICAL BATTERY VOLTAGE:1": 28,
+    "ELECTRICAL BATTERY VOLTAGE:2": 28,
+    "ELECTRICAL MAIN BUS VOLTAGE:1": 0,
+    "ELECTRICAL MAIN BUS VOLTAGE:2": 0,
+    "ELECTRICAL MASTER BATTERY:1": 1,
+    "ENG ANTI ICE:1": 0,
+    "ENG ANTI ICE:2": 0,
+    "EXTERNAL POWER ON:1": 0,
+    "FLAPS HANDLE INDEX": 2,
+    "FLAPS NUM HANDLE POSITIONS": 5,
+    "GENERAL ENG GENERATOR ACTIVE:1": 0,
+    "GENERAL ENG GENERATOR ACTIVE:2": 0,
+    "HYDRAULIC PRESSURE:1": 2844.1288960161983,
+    "HYDRAULIC PRESSURE:2": 2874.569838833456,
+    "HYDRAULIC PRESSURE:3": 2956.7240423057146,
+    "HYDRAULIC RESERVOIR PERCENT:1": 96.96465071601172,
+    "HYDRAULIC RESERVOIR PERCENT:2": 98.00247125638028,
+    "HYDRAULIC RESERVOIR PERCENT:3": 98.55746807685742,
+    "LEADING EDGE FLAPS LEFT PERCENT": 77.77777910232544,
+    "LEADING EDGE FLAPS RIGHT PERCENT": 77.77777910232544,
+    "PITOT HEAT": 1,
+    "RADIO HEIGHT": 237.279948253072,
+    "SPOILERS ARMED": 0,
+    "SPOILERS HANDLE POSITION": 0.6653238087892532,
+    "STRUCTURAL DEICE SWITCH": 0
+  }
+}

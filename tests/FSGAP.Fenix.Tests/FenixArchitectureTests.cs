@@ -97,7 +97,8 @@ public class FenixArchitectureTests
     public void No_synaptic_a220_code_exists_in_the_fenix_provider()
     {
         // BLOCK 10A scope guard: the Synaptic A220 audit is discovery only. No Synaptic variable, detection or overlay
-        // exists in any packaged assembly; the read-only harness lives in the sample.
+        // exists in FSGAP.Fenix (nor in the vendor-neutral assemblies, checked by their own tests); the read-only harness
+        // lives in the sample. The future FSGAP.Synaptic assembly is outside this guard and will carry these names.
         Assert.False(BinaryContains(Fenix, "A22X"));
         Assert.DoesNotContain(Fenix.GetTypes(), t => t.FullName!.Contains("Synaptic", StringComparison.OrdinalIgnoreCase));
     }

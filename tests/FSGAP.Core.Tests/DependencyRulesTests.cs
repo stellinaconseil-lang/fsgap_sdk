@@ -18,7 +18,8 @@ public class DependencyRulesTests
     [Fact]
     public void Core_contains_no_vendor_specific_type_or_member()
     {
-        string[] forbidden = ["Fenix", "Fnx", "Pmdg", "Lvar", "Efb", "SimConnect"];
+        // Vendor-neutral assembly: no vendor name. The vendor assemblies (FSGAP.Fenix, the future FSGAP.Synaptic) may use theirs.
+        string[] forbidden = ["Fenix", "Fnx", "Pmdg", "Lvar", "Efb", "SimConnect", "Synaptic", "A22X"];
         var names = typeof(AircraftProviderRegistry).Assembly.GetTypes()
             .SelectMany(t => t.GetMembers(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic
                     | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.DeclaredOnly)
