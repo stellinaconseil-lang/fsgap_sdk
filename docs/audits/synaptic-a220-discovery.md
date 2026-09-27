@@ -427,8 +427,8 @@ tests and fixtures may use those names freely, exactly as FSGAP.Fenix uses "Feni
 
 - **No vendor marker.** Detection relies on configuration strings; a preset rename breaks it (§3).
 - **Registration only derived** for Marketplace liveries (§5; one of ten folders is inconsistent with its operator).
-- **Documentation drift.** Two documented variables contradict live behaviour (`APU Switch` enum, `Flap Lever` never
-  moves). Every future overlay variable must be live-proven, not taken from the docs.
+- **Documentation drift.** Three documented variables contradict live behaviour: the `APU Switch` enum (1 never seen),
+  `Flap Lever` (never moves) and the `Autobrake` level order (the pilot's first level read 4, documented as HI). Every future overlay variable must be live-proven, not taken from the docs.
 - **Untested fields.** Warnings, reverser, antiskid and hydraulics still need a
   dedicated check in 10B qualification.
 - **AoA at standstill** reads ±180°: harmless but must be documented for consumers.
