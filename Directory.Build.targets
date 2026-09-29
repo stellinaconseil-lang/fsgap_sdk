@@ -1,0 +1,27 @@
+<Project>
+
+  <!--
+    Package protection (Synaptic A220 development safety gate).
+
+    FSHANGAR restores FSGAP 0.9.0 from artifacts/packages. A pack must never replace a package that a consumer may
+    already have restored, because NuGet caches packages by id and version: a different file under the same version is
+    silently ignored by machines that already have it and silently used by those that do not.
+
+    - 0.9.0 can no longer be packed from this branch.
+    - No pack may overwrite an existing .nupkg with the same id and version, in the output folder or in the stable feed
+      folder artifacts/packages. Bump the version instead (0.10.0-preview.2, ...).
+  -->
+  <Target Name="FsgapProtectPublishedPackages" BeforeTargets="GenerateNuspec" Condition="'$(IsPackable)' == 'true'">
+    <PropertyGroup>
+      <_FsgapPackageFile>$(PackageId).$(PackageVersion).nupkg</_FsgapPackageFile>
+      <_FsgapStableFeed>$(MSBuildThisFileDirectory)artifacts/packages</_FsgapStableFeed>
+    </PropertyGroup>
+    <Error Condition="'$(PackageVersion)' == '0.9.0'"
+           Text="FSGAP 0.9.0 is immutable (consumed by FSHANGAR). Refusing to pack $(PackageId) 0.9.0." />
+    <Error Condition="Exists('$(PackageOutputPath)/$(_FsgapPackageFile)')"
+           Text="$(_FsgapPackageFile) already exists in $(PackageOutputPath). Refusing to overwrite a published package version; bump the version." />
+    <Error Condition="Exists('$(_FsgapStableFeed)/$(_FsgapPackageFile)')"
+           Text="$(_FsgapPackageFile) already exists in the stable feed $(_FsgapStableFeed). Refusing to shadow it; bump the version." />
+  </Target>
+
+</Project>
