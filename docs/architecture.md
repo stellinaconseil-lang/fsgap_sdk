@@ -185,7 +185,10 @@ properties. Units are part of property names.
 - `Engines[]` (oil, starter, thrust lever and reverser since 0.9.0).
 - `Apu`.
 - `InertialReferences[]`.
-- `FuelPumps[]`.
+- `FuelPumps[]`: since 0.10, each pump has `Mode` (`FuelPumpMode`: `Off`, `Auto`, `On`), the canonical control
+  position, next to the binary `IsOn`. `IsOn` is known only when the source supplies a binary ON/OFF state; with
+  `Mode = Auto` it is `Unavailable`, never guessed as true or false. `FuelPumpMode` has no "unknown" member: an
+  unreadable mode is a `TelemetryValue` in the `Unknown` or `Unavailable` state.
 - `ElectricalBuses[]`, and `Batteries[]` since 0.9.0.
 - `HydraulicSystems[]` (reservoir quantity since 0.9.0).
 - `FireZones[]`.

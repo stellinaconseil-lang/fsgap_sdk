@@ -36,6 +36,7 @@ public class FenixSystemGoldenFixtureTests
 
         Assert.Equal(s.Expected.Ir, state.InertialReferences.Select(i => Legacy(i.Mode.Value)));
         Assert.Equal(s.Expected.Pumps, state.FuelPumps.Select(p => p.IsOn.Value ? "ON" : "OFF"));
+        Assert.Equal(s.Expected.Pumps, state.FuelPumps.Select(p => p.Mode.Value == FuelPumpMode.On ? "ON" : "OFF"));
         Assert.Equal(
             s.Expected.Handles,
             state.EngineFirePanels.Select(p => p.HandlePulled).Append(state.ApuFireHandlePulled).Select(h => h.Value ? "PULLED" : "STOWED"));

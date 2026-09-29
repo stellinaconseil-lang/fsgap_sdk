@@ -33,6 +33,26 @@ public class TelemetryFreshnessTests
     }
 
     [Fact]
+    public void A_stale_fuel_pump_mode_turns_unknown_like_is_on()
+    {
+        // BLOCK 10B.1: Mode is aged with the other pump values; a fresh one is kept.
+        var telemetry = AircraftTelemetry.Unavailable(Now) with
+        {
+            FuelPumps =
+            [
+                new FuelPumpTelemetry { Id = "left", Name = "Left", Mode = TelemetryValue<FuelPumpMode>.Known(FuelPumpMode.Auto, Now.AddSeconds(-20)) },
+                new FuelPumpTelemetry { Id = "right", Name = "Right", Mode = TelemetryValue<FuelPumpMode>.Known(FuelPumpMode.On, Now.AddSeconds(-1)) },
+            ],
+        };
+
+        var aged = TelemetryFreshness.ExpireStaleValues(telemetry, StaleAfter);
+
+        Assert.Equal(ValueState.Unknown, aged.FuelPumps[0].Mode.State);
+        Assert.Equal(Now.AddSeconds(-20), aged.FuelPumps[0].Mode.ObservedAt);
+        Assert.Equal(FuelPumpMode.On, aged.FuelPumps[1].Mode.Value);
+    }
+
+    [Fact]
     public void Original_snapshot_is_not_modified()
     {
         var telemetry = AircraftTelemetry.Unavailable(Now) with
