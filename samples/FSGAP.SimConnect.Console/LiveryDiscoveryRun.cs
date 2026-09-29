@@ -35,14 +35,16 @@ internal static class LiveryDiscoveryRun
 
             // -- Phase A: enumerate everything -----------------------------------------------------------------------
             var memoryBefore = SimulatorWorkingSetMb();
-            var enumeration = await simulator.ExperimentalEnumerateAircraftLiveriesAsync(cancellationToken).ConfigureAwait(false);
-            var rows = enumeration.Entries.Select(e => (e.AircraftTitle, e.LiveryName)).ToArray();
+            // BLOCK 10B.1: the production, vendor-neutral service (IInstalledLiveryService) on the same connection.
+            var clock = Stopwatch.StartNew();
+            var liveries = await simulator.GetInstalledAircraftLiveriesAsync(cancellationToken).ConfigureAwait(false);
+            var elapsed = clock.Elapsed;
+            var rows = liveries.Select(l => (AircraftTitle: l.AircraftTitle, LiveryName: l.LiveryName ?? string.Empty)).ToArray();
             var summary = LiveryDiscoveryAnalysis.Summarize(rows);
-            print("livery", $"enumeration: {summary.Rows} rows, {summary.UniqueTitles} titles, {summary.UniqueLiveries} livery names, {enumeration.Packets} packets, header {enumeration.HeaderSize} B, entry {enumeration.EntrySize} B, {enumeration.Elapsed.TotalMilliseconds:0} ms");
-            print("livery", $"first packet header: {enumeration.FirstPacketHeaderHex}");
+            print("livery", $"enumeration: {summary.Rows} rows, {summary.UniqueTitles} titles, {summary.UniqueLiveries} livery names, {elapsed.TotalMilliseconds:0} ms");
             await File.WriteAllTextAsync(
                 Path.Combine(outputDirectory, "enumeration-all.json"),
-                JsonSerializer.Serialize(new { summary, enumeration.Packets, enumeration.HeaderSize, enumeration.EntrySize, ElapsedMs = enumeration.Elapsed.TotalMilliseconds, Rows = rows.Select(r => new { Title = r.AircraftTitle, Livery = r.LiveryName }) }, Json),
+                JsonSerializer.Serialize(new { summary, ElapsedMs = elapsed.TotalMilliseconds, Rows = rows.Select(r => new { Title = r.AircraftTitle, Livery = r.LiveryName }) }, Json),
                 cancellationToken).ConfigureAwait(false);
 
             // -- Synaptic A220 rows (exact titles only) ---------------------------------------------------------------
@@ -95,7 +97,7 @@ internal static class LiveryDiscoveryRun
                     a220Rows = a220.Select(r => new { r.AircraftTitle, r.LiveryName }),
                     a220Groups = groups,
                     otherTitlesContainingA220 = nearA220,
-                    layout = new { enumeration.Packets, enumeration.HeaderSize, enumeration.EntrySize, ElapsedMs = Math.Round(enumeration.Elapsed.TotalMilliseconds) },
+                    layout = new { HeaderSize = 28, EntrySize = 512, ElapsedMs = Math.Round(elapsed.TotalMilliseconds) },
                 }, Json),
                 cancellationToken).ConfigureAwait(false);
             await File.WriteAllTextAsync(

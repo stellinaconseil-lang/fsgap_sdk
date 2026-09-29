@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json;
 using FSGAP.SimConnect.Console;
 using FSGAP.SimConnect.Native;
@@ -6,58 +5,12 @@ using FSGAP.SimConnect.Native;
 namespace FSGAP.SimConnect.Tests;
 
 /// <summary>
-/// BLOCK 10A.5 (experimental livery / registration discovery): packet parsing, ledger bookkeeping and the sample's
-/// audit-only analysis helpers. None of this needs MSFS; the live runs are manual (docs/audits/synaptic-a220-livery-discovery.md).
+/// BLOCK 10A.5 (experimental livery / registration discovery): ledger bookkeeping and the sample's audit-only analysis
+/// helpers. The production packet parsing and the livery service are tested in InstalledLiveryServiceTests. None of this needs MSFS; the live runs are manual (docs/audits/synaptic-a220-livery-discovery.md).
 /// </summary>
 public class LiveryDiscoveryTests
 {
     private static readonly string FixtureDirectory = Path.Combine(AppContext.BaseDirectory, "Fixtures", "synaptic");
-
-    // -- enumeration packet parsing -------------------------------------------------------------------------------------
-
-    [Fact]
-    public void Parses_the_live_layout_28_byte_header_and_one_spare_512_byte_slot()
-    {
-        // Live MSFS 2024: 40 988 bytes announcing 79 entries = 28 + 80 × 512.
-        var packet = Packet(requestId: 7, entryNumber: 3, outOf: 201, [("A220-300", "Air France A220-300"), ("A220-300 - No Cabin", "Delta A220-300")], spareSlots: 1);
-
-        var parsed = LiveryListParser.Parse(packet);
-
-        Assert.Equal(7u, parsed.RequestId);
-        Assert.Equal(3u, parsed.EntryNumber);
-        Assert.Equal(201u, parsed.OutOf);
-        Assert.Equal(28, parsed.HeaderSize);
-        Assert.Equal(512, parsed.EntrySize);
-        Assert.Equal([new RawLiveryEntry("A220-300", "Air France A220-300"), new RawLiveryEntry("A220-300 - No Cabin", "Delta A220-300")], parsed.Entries);
-    }
-
-    [Fact]
-    public void Parses_an_exact_packet_and_keeps_empty_livery_names()
-    {
-        var parsed = LiveryListParser.Parse(Packet(1, 0, 1, [("A220-300", string.Empty)], spareSlots: 0));
-
-        Assert.Equal(new RawLiveryEntry("A220-300", string.Empty), Assert.Single(parsed.Entries));
-    }
-
-    [Fact]
-    public void Request_id_is_read_before_parsing_to_filter_foreign_answers()
-    {
-        Assert.Equal(0x46534801u, LiveryListParser.RequestIdOf(Packet(0x46534801, 0, 1, [("T", "L")], 0)));
-    }
-
-    [Fact]
-    public void Truncated_or_misaligned_packets_are_rejected_not_guessed()
-    {
-        Assert.Throws<FormatException>(() => LiveryListParser.Parse(new byte[20]));
-        var misaligned = Packet(1, 0, 1, [("A", "B"), ("C", "D")], 0)[..^100];
-        Assert.Throws<FormatException>(() => LiveryListParser.Parse(misaligned));
-    }
-
-    [Fact]
-    public void An_empty_packet_has_no_entries()
-    {
-        Assert.Empty(LiveryListParser.Parse(Packet(1, 0, 1, [], 0)).Entries);
-    }
 
     // -- ledger (cleanup bookkeeping) ----------------------------------------------------------------------------------
 
@@ -197,25 +150,5 @@ public class LiveryDiscoveryTests
             probes.Where(p => p.GetProperty("requested").GetProperty("TailNumber").GetString() == string.Empty),
             p => Assert.Equal("Blank", p.GetProperty("emptyTailOutcome").GetString()));
         Assert.All(json.RootElement.GetProperty("runs").EnumerateArray(), r => Assert.Empty(r.GetProperty("ledger").GetProperty("Remaining").EnumerateArray()));
-    }
-
-    private static byte[] Packet(uint requestId, uint entryNumber, uint outOf, IReadOnlyList<(string Title, string Livery)> entries, int spareSlots)
-    {
-        var buffer = new byte[LiveryListParser.DocumentedHeaderSize + ((entries.Count + spareSlots) * LiveryListParser.DocumentedEntrySize)];
-        BitConverter.GetBytes((uint)buffer.Length).CopyTo(buffer, 0);
-        BitConverter.GetBytes(6u).CopyTo(buffer, 4);
-        BitConverter.GetBytes(38u).CopyTo(buffer, 8);
-        BitConverter.GetBytes(requestId).CopyTo(buffer, 12);
-        BitConverter.GetBytes((uint)entries.Count).CopyTo(buffer, 16);
-        BitConverter.GetBytes(entryNumber).CopyTo(buffer, 20);
-        BitConverter.GetBytes(outOf).CopyTo(buffer, 24);
-        for (var i = 0; i < entries.Count; i++)
-        {
-            var offset = LiveryListParser.DocumentedHeaderSize + (i * LiveryListParser.DocumentedEntrySize);
-            Encoding.UTF8.GetBytes(entries[i].Title).CopyTo(buffer, offset);
-            Encoding.UTF8.GetBytes(entries[i].Livery).CopyTo(buffer, offset + 256);
-        }
-
-        return buffer;
     }
 }

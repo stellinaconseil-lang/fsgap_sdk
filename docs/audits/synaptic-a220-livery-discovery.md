@@ -236,6 +236,9 @@ Cache (`synaptic-aircraft-catalog.json`, under `DataDirectory`): `Model`, `Liver
 `Registration`, `RegistrationSource`, `RegistrationConfidence`, `LastObserved`. It makes folders learned from the live
 aircraft survive restarts, which is what turns "derived when loaded once" into a usable hangar.
 
+> **BLOCK 10B.1 note.** Livery enumeration is now a production, vendor-neutral service (`IInstalledLiveryService`,
+> [../simulator-installed-liveries.md](../simulator-installed-liveries.md)). AI probing stays an internal diagnostic.
+
 ## 12. Contract and transport review (proposals only)
 
 - **Generic capability.** Livery enumeration is not Synaptic-specific: every MSFS 2024 aircraft is listed. It belongs

@@ -21,7 +21,10 @@ Version 0.9.0. It provides:
 - **Fenix failures** through the local Fenix EFB: a normalized catalog of 40 failure keys (the failures the
   applications use today), trigger, clear and read of the active failures, never exposing a Fenix id;
 - **a simulator airport service** (`IAirportService`): the nearest airports to any coordinate, from the simulator's own
-  facility list, on the same single connection.
+  facility list, on the same single connection;
+- **installed aircraft liveries** (`IInstalledLiveryService`, 0.10 preview): every (aircraft title, livery name) pair
+  MSFS 2024 can load, including streamed marketplace content, on the same single connection;
+- **fuel pump mode** (0.10 preview): `FuelPumpTelemetry.Mode` (`Off` / `Auto` / `On`) next to the binary `IsOn`.
 
 Parking search, flight loading, the APU operating state and the electrical buses are not implemented yet. 0.9.0 closes
 the generic telemetry gaps that blocked moving FSHANGAR onto FSGAP; that migration is the next step. See
@@ -115,6 +118,7 @@ docs/fenix-system-telemetry.md  the Fenix system telemetry: variables, transport
 docs/fenix-failures.md    the Fenix failure provider: EFB transport, catalogue, key policy, results, lifecycle
 docs/fenix-failure-mapping.md  FailureKey ↔ Fenix id table (reference for the server migration)
 docs/simulator-airport-service.md  the airport service: native mechanism, reflection boundary, search, limits
+docs/simulator-installed-liveries.md  the installed-livery enumeration: contract, native mechanism, packet layout, limits
 docs/decisions/         architecture decision records (ADRs)
 docs/audits/            BLOCK 1 audit of the existing Fenix/MSFS integrations, mapping and extraction plan;
                         BLOCK 10A read-only discovery audit of the Synaptic A220-300 (no provider yet)

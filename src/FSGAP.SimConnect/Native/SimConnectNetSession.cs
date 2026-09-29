@@ -43,13 +43,22 @@ internal sealed class SimConnectNetSession : ISimConnectSession
 
     private static int _nextAirportRequestId = 0x46534700;
 
-    /// <summary>BLOCK 10A.5: time allowed for the livery enumeration answer and for an AI object id to be assigned.</summary>
+    /// <summary>
+    /// Time allowed for the whole livery enumeration answer. Live: 15 815 rows in 201 packets arrived in 60–73 ms, so this
+    /// leaves two orders of magnitude of margin while still bounding the wait.
+    /// </summary>
+    internal static readonly TimeSpan LiveryListTimeout = TimeSpan.FromSeconds(10);
+
+    private static int _nextLiveryRequestId = 0x46534C00;
+
+    /// <summary>BLOCK 10A.5 (experimental AI probes): time allowed for an AI object id to be assigned or removed.</summary>
     internal static readonly TimeSpan LiveryDiscoveryTimeout = TimeSpan.FromSeconds(15);
 
     private static int _nextDiscoveryRequestId = 0x46534800;
 
     private readonly SimConnectClient _client;
     private readonly SemaphoreSlim _airportRequests = new(1, 1);
+    private readonly SemaphoreSlim _liveryRequests = new(1, 1);
     private readonly SemaphoreSlim _discoveryRequests = new(1, 1);
     private int _disposed;
 
@@ -164,73 +173,83 @@ internal sealed class SimConnectNetSession : ISimConnectSession
     }
 
     /// <inheritdoc />
-    /// <remarks>BLOCK 10A.5, experimental. Same pattern as the airport list: one request id, packets gathered from the
-    /// public raw-message event until <c>OutOf</c> packets arrived.</remarks>
-    public async Task<LiveryEnumeration> EnumerateAircraftLiveriesAsync(CancellationToken cancellationToken)
+    /// <remarks>
+    /// <para>
+    /// One request at a time on this connection, each with its own request id. Packets arrive through the public
+    /// <c>RawMessageReceived</c> event on the library's message thread; the handler reads the request id straight from
+    /// native memory, copies only the packets of this request (the pointer is valid during the callback only), and hands
+    /// them to a <see cref="LiveryListAssembly"/> under a lock. Continuations run elsewhere.
+    /// </para>
+    /// <para>
+    /// The request ends when every packet 0 … <c>dwOutOf</c> − 1 has arrived, on the first malformed packet
+    /// (<see cref="FormatException"/>), after <see cref="LiveryListTimeout"/> (<see cref="TimeoutException"/>: an
+    /// incomplete list is never returned), or on cancellation. The handler is always detached.
+    /// </para>
+    /// </remarks>
+    public async Task<IReadOnlyList<RawLiveryEntry>> RequestAircraftLiveriesAsync(CancellationToken cancellationToken)
     {
-        await _discoveryRequests.WaitAsync(cancellationToken).ConfigureAwait(false);
+        await _liveryRequests.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            var requestId = unchecked((uint)Interlocked.Increment(ref _nextDiscoveryRequestId));
+            var assembly = new LiveryListAssembly(unchecked((uint)Interlocked.Increment(ref _nextLiveryRequestId)));
             var gate = new object();
-            var received = new Dictionary<uint, LiveryListParser.Packet>();
-            string? firstHeader = null;
-            var done = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            var clock = System.Diagnostics.Stopwatch.StartNew();
+            var done = new TaskCompletionSource<IReadOnlyList<RawLiveryEntry>>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             void OnRaw(object? sender, RawSimConnectMessageEventArgs e)
             {
-                if (e.MessageId != SimConnectRecvId.EnumerateSimobjectAndLiveryList || e.DataSize < LiveryListParser.DocumentedHeaderSize)
+                if (e.MessageId != SimConnectRecvId.EnumerateSimobjectAndLiveryList
+                    || e.DataSize < LiveryListParser.HeaderSize
+                    || unchecked((uint)System.Runtime.InteropServices.Marshal.ReadInt32(e.DataPointer, 12)) != assembly.RequestId)
                 {
-                    return;
+                    return; // another message, or another request's answer
                 }
 
                 var buffer = new byte[e.DataSize];
                 System.Runtime.InteropServices.Marshal.Copy(e.DataPointer, buffer, 0, (int)e.DataSize);
-                if (LiveryListParser.RequestIdOf(buffer) != requestId)
+                lock (gate)
                 {
-                    return;
-                }
-
-                try
-                {
-                    var packet = LiveryListParser.Parse(buffer);
-                    lock (gate)
+                    if (done.Task.IsCompleted)
                     {
-                        firstHeader ??= Convert.ToHexString(buffer, 0, Math.Min(buffer.Length, 64));
-                        received[packet.EntryNumber] = packet;
-                        if (received.Count >= Math.Max(packet.OutOf, 1))
+                        return;
+                    }
+
+                    try
+                    {
+                        assembly.Accept(buffer);
+                        if (assembly.IsComplete)
                         {
-                            done.TrySetResult();
+                            done.TrySetResult(assembly.ToList());
                         }
                     }
-                }
-                catch (FormatException ex)
-                {
-                    done.TrySetException(ex);
+                    catch (FormatException ex)
+                    {
+                        done.TrySetException(ex);
+                    }
                 }
             }
 
             _client.RawMessageReceived += OnRaw;
             try
             {
-                var hr = await LiveryInterop.EnumerateAsync(_client, requestId, LiveryInterop.AircraftObjectType, cancellationToken).ConfigureAwait(false);
+                var hr = await LiveryInterop.EnumerateAsync(_client, assembly.RequestId, LiveryInterop.AircraftObjectType, cancellationToken).ConfigureAwait(false);
                 if (hr != 0)
                 {
                     throw new InvalidOperationException($"The simulator rejected the livery enumeration (HRESULT 0x{hr:X8}).");
                 }
 
-                await done.Task.WaitAsync(LiveryDiscoveryTimeout, cancellationToken).ConfigureAwait(false);
-                lock (gate)
+                try
                 {
-                    var packets = received.OrderBy(p => p.Key).Select(p => p.Value).ToArray();
-                    return new LiveryEnumeration(
-                        packets.SelectMany(p => p.Entries).ToArray(),
-                        packets.Length,
-                        packets[0].HeaderSize,
-                        packets.Max(p => p.EntrySize),
-                        firstHeader ?? string.Empty,
-                        clock.Elapsed);
+                    return await done.Task.WaitAsync(LiveryListTimeout, cancellationToken).ConfigureAwait(false);
+                }
+                catch (TimeoutException)
+                {
+                    int received;
+                    lock (gate)
+                    {
+                        received = assembly.PacketCount;
+                    }
+
+                    throw new TimeoutException($"The livery enumeration did not complete within {LiveryListTimeout.TotalSeconds:0} s ({received} packets received).");
                 }
             }
             finally
@@ -240,9 +259,10 @@ internal sealed class SimConnectNetSession : ISimConnectSession
         }
         finally
         {
-            _discoveryRequests.Release();
+            _liveryRequests.Release();
         }
     }
+
 
     /// <inheritdoc />
     /// <remarks>
@@ -339,7 +359,7 @@ internal sealed class SimConnectNetSession : ISimConnectSession
                 OnGround = position.OnGround ? 1u : 0u,
                 Airspeed = 0,
             };
-            var hr = await LiveryInterop.CreateNonAtcAircraftAsync(_client, containerTitle, livery, tailNumber, initial, createRequestId, cancellationToken).ConfigureAwait(false);
+            var hr = await AiProbeInterop.CreateNonAtcAircraftAsync(_client, containerTitle, livery, tailNumber, initial, createRequestId, cancellationToken).ConfigureAwait(false);
             probe = probe with { CreateHResult = hr };
             if (hr != 0)
             {
@@ -401,7 +421,7 @@ internal sealed class SimConnectNetSession : ISimConnectSession
         var clock = System.Diagnostics.Stopwatch.StartNew();
         using var timeout = new CancellationTokenSource(LiveryDiscoveryTimeout);
         var removeRequestId = unchecked((uint)Interlocked.Increment(ref _nextDiscoveryRequestId));
-        var hr = await LiveryInterop.RemoveObjectAsync(_client, objectId, removeRequestId, timeout.Token).ConfigureAwait(false);
+        var hr = await AiProbeInterop.RemoveObjectAsync(_client, objectId, removeRequestId, timeout.Token).ConfigureAwait(false);
         var latency = clock.Elapsed;
         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
         bool stillThere;

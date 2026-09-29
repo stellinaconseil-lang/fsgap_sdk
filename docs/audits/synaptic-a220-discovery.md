@@ -21,6 +21,11 @@ Companion files:
 - [fixtures/synaptic-a220/](fixtures/synaptic-a220/): eight sanitized live captures (the eighth is the landing rollout) (descriptor, generic FSGAP
   snapshot with value states, the 57 documented variables, 33 stock SimVars) for BLOCK 10B tests.
 
+> **BLOCK 10B.1 note (0.10.0-preview.1, branch `feature/synaptic-a220`).** The two generic foundations this audit asked
+> for now exist: `FuelPumpTelemetry.Mode` (`Off` / `Auto` / `On`, gap G-F1) and the vendor-neutral
+> `IInstalledLiveryService` ([../simulator-installed-liveries.md](../simulator-installed-liveries.md)). `FSGAP.Synaptic`
+> itself is **not** implemented yet.
+
 ## 0. Headline (10A-LIVE)
 
 1. **Detection works without a vendor marker.** No descriptor field names Synaptic or iniBuilds. The product is

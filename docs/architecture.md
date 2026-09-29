@@ -364,6 +364,15 @@ Tests pin the version and the signatures. Parking and `FlightLoad` are still to 
   means "nothing in range".
 - Details, live validation and parity with FSHANGAR: [simulator-airport-service.md](simulator-airport-service.md).
 
+### Installed aircraft liveries (0.10 preview)
+
+- `SimConnectSimulator` implements `IInstalledLiveryService` (Abstractions): every (aircraft title, livery name) pair
+  the simulator enumerates (`SimConnect_EnumerateSimObjectsAndLiveries`), marketplace content included, in its order,
+  duplicates kept. Nothing else: registration, operator, livery folder and preset merging are provider business.
+- One native request per call on the **single** connection, through the library dispatcher; concurrent callers share
+  it; a bounded, validated multi-packet assembly; `SimulatorServiceException` as for airports.
+- Details and the OFFICIAL vs EMPIRICAL packet layout: [simulator-installed-liveries.md](simulator-installed-liveries.md).
+
 ### Packaging and distribution
 
 - All projects target `net8.0`, with nullable reference types and implicit usings.

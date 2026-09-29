@@ -126,6 +126,8 @@ public class ArchitectureTests
             "S_OH_", "I_OH_", "S_MIP_", "I_MIP_", "I_ENG_FIRE", "L:S_", "L:I_",
             "F_PNEUMATIC", "F_ELEC_", "F_HYD_", "B_INT_SFCDC", "saveManual", "fenix/failures", "8083",
             "A22X", "INI_GPU",
+            // BLOCK 10B.1: the livery service is generic; no Synaptic or A220 filtering literal may exist in these binaries.
+            "Synaptic", "A220",
         ];
         Assembly[] assemblies = [Transport, typeof(IAircraftProvider).Assembly, typeof(ObservableState<>).Assembly];
 
