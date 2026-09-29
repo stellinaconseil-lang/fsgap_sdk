@@ -11,15 +11,17 @@ BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 | `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.9.0 |
 | `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.9.0 |
 | `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321: recognition, normalized identity, installed livery catalog ([details](fenix-identity-and-catalog.md)), generic-telemetry policy and system telemetry ([details](fenix-system-telemetry.md)), failures through the EFB ([details](fenix-failures.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.9.0 |
+| `FSGAP.Synaptic` | Provider for the Synaptic Simulations A220-300: recognition, normalized identity, generic-telemetry policy and a 6-variable overlay, installed livery catalog from the simulator enumeration, no failures ([details](synaptic-a220.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.10.0-preview.2 |
 | `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)), generic telemetry ([details](generic-telemetry.md)), batched variable reader, airport service ([details](simulator-airport-service.md)) | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.9.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
 
 ```text
 FSGAP.Abstractions  <-  FSGAP.Core  <-  FSGAP.Fenix
+                                    <-  FSGAP.Synaptic
                                     <-  FSGAP.SimConnect   (-> SimConnect.NET)
 ```
 
 Compile-time dependencies always point towards `FSGAP.Abstractions`. `FSGAP.SimConnect` never depends on
-`FSGAP.Fenix`. Tests enforce the rule:
+a provider, and providers never depend on each other or on `FSGAP.SimConnect`. Tests enforce the rule:
 
 - `FSGAP.Abstractions` references only the base class library;
 - its public surface names no vendor, simulator library or application;
@@ -168,6 +170,28 @@ The session also owns per-aircraft resources.
 4. If no provider supports the aircraft, the result is `NotSupported`.
 
 Provider ids are unique, case-insensitively.
+
+### Multiple aircraft providers (0.10 preview)
+
+Fenix and Synaptic are registered side by side; more providers follow the same rules.
+
+- **Runtime, generic resolution.** The host resolves each detected aircraft through `AircraftProviderRegistry.Resolve`.
+  No code anywhere branches on an aircraft type to pick a provider ("if A220 then Synaptic"), and there is no fallback
+  provider: an aircraft no provider accepts is `NotSupported` and gets no session.
+- **Recognition is each provider's own, and strict.** Fenix recognizes its titles; Synaptic requires the exact preset
+  title plus `ATC MODEL` and `ATC TYPE`. A provider never claims a look-alike (AI models, Asobo passive aircraft).
+- **Conflicts are explicit.** Two providers at the same highest specificity give `Ambiguous` with the candidates
+  listed; registration order never decides (tested in both orders). `Dedicated` beats `Generic`.
+- **One connection.** Every provider reads through the host's single `SimConnectSimulator`
+  (`ISimulatorVariableReader`, `IAircraftDetector`, generic telemetry, `IInstalledLiveryService`).
+- **One session per loaded aircraft.** On an aircraft change the host disposes the old session before attaching the
+  next one. A disposed session stops its reads; a session whose aircraft was replaced publishes `Unavailable` even
+  before disposal. Capabilities and the failure provider belong to the session: an A220 session never carries the
+  Fenix EFB failure provider (`FailureCapabilities.None`, `UnsupportedFailureProvider`).
+- **Vendor-neutral additions only.** The A220 needed `FuelPumpMode` (AUTO) and `AircraftIdentity.RegistrationSource`
+  (authoritative / observed / derived); both are generic. Architecture tests keep `Synaptic`, `A22X` and `A220` out of
+  Abstractions, Core, SimConnect and Fenix.
+- Tests: `MultiProviderTests` in `FSGAP.Synaptic.Tests` (the only test project referencing two providers).
 
 ### Collections for multiple systems
 
