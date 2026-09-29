@@ -24,7 +24,12 @@ Version 0.9.0. It provides:
   facility list, on the same single connection;
 - **installed aircraft liveries** (`IInstalledLiveryService`, 0.10 preview): every (aircraft title, livery name) pair
   MSFS 2024 can load, including streamed marketplace content, on the same single connection;
-- **fuel pump mode** (0.10 preview): `FuelPumpTelemetry.Mode` (`Off` / `Auto` / `On`) next to the binary `IsOn`.
+- **fuel pump mode** (0.10 preview): `FuelPumpTelemetry.Mode` (`Off` / `Auto` / `On`) next to the binary `IsOn`;
+- **Synaptic A220-300 provider** (`FSGAP.Synaptic`, 0.10 preview, automated qualification only): strict recognition,
+  normalized identity with a conservative registration and its source, the generic telemetry with the values known to
+  be wrong masked plus boost pump modes, APU switch and bleed selection and engine fire pushbuttons, a catalog of the
+  installed A220 liveries from the simulator enumeration, no failures. It is registered next to the Fenix provider;
+  the registry picks the provider per loaded aircraft (see `docs/synaptic-a220.md`).
 
 Parking search, flight loading, the APU operating state and the electrical buses are not implemented yet. 0.9.0 closes
 the generic telemetry gaps that blocked moving FSHANGAR onto FSGAP; that migration is the next step. See
@@ -107,6 +112,8 @@ src/
                         PollingTelemetryStream, null-object providers
   FSGAP.Fenix/          FenixAircraftProvider (recognition, identity, telemetry, failures), FenixOptions and
                         FenixInstalledAircraftCatalog (installed liveries, registration resolution)
+  FSGAP.Synaptic/       SynapticAircraftProvider (A220-300 recognition, identity, telemetry; no failures) and
+                        SynapticInstalledAircraftCatalog (liveries from the simulator enumeration, registrations)
   FSGAP.SimConnect/     SimConnectSimulator: MSFS connection lifecycle, simulation state, aircraft detection,
                         generic telemetry, variable reader, airport service
                         (the only assembly referencing SimConnect.NET)
@@ -119,9 +126,10 @@ docs/fenix-failures.md    the Fenix failure provider: EFB transport, catalogue, 
 docs/fenix-failure-mapping.md  FailureKey ↔ Fenix id table (reference for the server migration)
 docs/simulator-airport-service.md  the airport service: native mechanism, reflection boundary, search, limits
 docs/simulator-installed-liveries.md  the installed-livery enumeration: contract, native mechanism, packet layout, limits
+docs/synaptic-a220.md   the Synaptic A220-300 provider: detection, identity, registration, policy, overlay, catalog
 docs/decisions/         architecture decision records (ADRs)
 docs/audits/            BLOCK 1 audit of the existing Fenix/MSFS integrations, mapping and extraction plan;
-                        BLOCK 10A read-only discovery audit of the Synaptic A220-300 (no provider yet)
+                        BLOCK 10A read-only discovery audit of the Synaptic A220-300 (evidence for FSGAP.Synaptic)
 ```
 
 ## Usage
@@ -143,6 +151,13 @@ registry.Register(new FenixAircraftProvider(
     simulatorVariables: simulator,                  // Fenix variables, read on the same connection
     aircraftDetector: simulator.AircraftDetector,   // stop reading when another aircraft is loaded
     fenixOptions: new FenixOptions()));             // Fenix failures through the local EFB
+
+var synapticLiveries = new SynapticInstalledAircraftCatalog(options, simulator);   // simulator livery enumeration
+registry.Register(new SynapticAircraftProvider(     // side by side: the registry picks per loaded aircraft
+    synapticLiveries,
+    genericTelemetry: simulator.Telemetry,
+    simulatorVariables: simulator,
+    aircraftDetector: simulator.AircraftDetector));
 
 var resolution = registry.Resolve(aircraft);
 if (resolution.IsResolved)
@@ -196,5 +211,6 @@ dotnet run --project samples/FSGAP.SimConnect.Console -- --minutes 1
 ```
 
 `dotnet pack` produces versioned NuGet packages (`FSGAP.Abstractions`, `FSGAP.Core`, `FSGAP.Fenix`,
-`FSGAP.SimConnect`) in `artifacts/packages/`. Applications will consume them from a package feed with a pinned version (see
+`FSGAP.Synaptic`, `FSGAP.SimConnect`) in `artifacts/packages/` (preview versions in `artifacts/preview-packages/`; the build refuses to overwrite a
+package or to produce 0.9.0 again). Applications will consume them from a package feed with a pinned version (see
 `docs/decisions/0003-nuget-distribution.md`). Nothing is published yet.
