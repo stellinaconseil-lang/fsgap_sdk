@@ -14,7 +14,10 @@ public interface IAircraftSession : IAsyncDisposable
     /// <summary><see cref="IAircraftProvider.ProviderId"/> of the provider that opened the session.</summary>
     string ProviderId { get; }
 
-    /// <summary>Normalized identity of the attached aircraft.</summary>
+    /// <summary>
+    /// Normalized identity of the attached aircraft. It may change while the session lives when the simulator updates
+    /// metadata of the same loaded aircraft (for example its registration); read it when needed rather than once.
+    /// </summary>
     AircraftIdentity Identity { get; }
 
     /// <summary>What the provider can do for this aircraft.</summary>

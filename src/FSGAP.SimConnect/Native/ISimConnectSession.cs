@@ -74,8 +74,14 @@ internal interface ISimConnectSession : IAsyncDisposable
     /// <exception cref="FormatException">A packet does not match the known layout.</exception>
     Task<IReadOnlyList<RawAirport>> RequestAirportsAsync(CancellationToken cancellationToken);
 
-    /// <summary>BLOCK 10A.5, experimental: enumerates every (aircraft title, livery name) pair on this connection.</summary>
-    Task<LiveryEnumeration> EnumerateAircraftLiveriesAsync(CancellationToken cancellationToken);
+    /// <summary>
+    /// Enumerates every (aircraft title, livery name) pair the simulator reports, on this connection, and gathers every
+    /// packet of the answer (see <see cref="LiveryInterop"/> and <see cref="LiveryListAssembly"/>).
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The library is not compatible, or the simulator rejected the request.</exception>
+    /// <exception cref="TimeoutException">The complete answer did not arrive in time.</exception>
+    /// <exception cref="FormatException">A packet does not match the layout.</exception>
+    Task<IReadOnlyList<RawLiveryEntry>> RequestAircraftLiveriesAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// BLOCK 10A.5, experimental: creates one non-ATC AI aircraft, reads its identity strings from its own object id,

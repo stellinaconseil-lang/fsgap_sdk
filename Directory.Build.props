@@ -10,7 +10,12 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <Deterministic>true</Deterministic>
 
-    <Version>0.9.0</Version>
+    <!--
+      Development version of the feature/synaptic-a220 branch. 0.9.0 is immutable: it is the version FSHANGAR restores
+      from artifacts/packages. Preview packages go to a separate folder (below) and Directory.Build.targets refuses to
+      pack 0.9.0 or to overwrite any existing package. 0.10.0 final is reserved for after the BLOCK 10B.3 qualification.
+    -->
+    <Version>0.10.0-rc.1</Version>
     <Product>FSGAP_SDK</Product>
     <Authors>FSGAP_SDK contributors</Authors>
     <RepositoryUrl>https://github.com/stellinaconseil-lang/fsgap_sdk</RepositoryUrl>
@@ -24,7 +29,8 @@
     <IsPackable>true</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageOutputPath>$(MSBuildThisFileDirectory)artifacts/packages</PackageOutputPath>
+    <!-- Not artifacts/packages: that folder is FSHANGAR's "fsgap-local" NuGet source and must only hold stable releases. -->
+    <PackageOutputPath>$(MSBuildThisFileDirectory)artifacts/preview-packages</PackageOutputPath>
   </PropertyGroup>
   <ItemGroup Condition="!$(MSBuildProjectName.EndsWith('.Tests'))">
     <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />

@@ -121,6 +121,7 @@ public class FenixTelemetryCompositionTests
 
         Assert.Equal(ValueState.Unknown, composed.InertialReferences[0].Mode.State);
         Assert.Equal(ValueState.Unknown, composed.FuelPumps[0].IsOn.State);
+        Assert.Equal(ValueState.Unknown, composed.FuelPumps[0].Mode.State);
         Assert.Equal(ValueState.Unknown, composed.Engines[0].FireHandlePulled.State);
         Assert.Equal(ValueState.Unknown, composed.HydraulicSystems[0].PressurePsi.State);
         Assert.Equal(ValueState.Unavailable, composed.HydraulicSystems[2].PressurePsi.State);

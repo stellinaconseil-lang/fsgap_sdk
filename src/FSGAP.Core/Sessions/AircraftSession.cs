@@ -13,19 +13,36 @@ namespace FSGAP.Core.Sessions;
 /// </summary>
 public sealed class AircraftSession : IAircraftSession
 {
+    private readonly Func<AircraftIdentity> _identity;
     private int _disposed;
 
-    /// <summary>Creates a session.</summary>
+    /// <summary>Creates a session with a fixed identity.</summary>
     public AircraftSession(
         string providerId,
         AircraftIdentity identity,
         AircraftCapabilities capabilities,
         ITelemetryProvider telemetry,
         IFailureProvider failures)
+        : this(providerId, Fixed(identity ?? throw new ArgumentNullException(nameof(identity))), capabilities, telemetry, failures)
+    {
+    }
+
+    /// <summary>
+    /// Creates a session whose <see cref="Identity"/> is read from <paramref name="identity"/> on each access, so that
+    /// a provider can reflect metadata that changes while the same aircraft stays loaded (for example a registration,
+    /// see <see cref="AircraftContinuity"/>). The function must be cheap, thread-safe and never return
+    /// <see langword="null"/>.
+    /// </summary>
+    public AircraftSession(
+        string providerId,
+        Func<AircraftIdentity> identity,
+        AircraftCapabilities capabilities,
+        ITelemetryProvider telemetry,
+        IFailureProvider failures)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(providerId);
         ProviderId = providerId;
-        Identity = identity ?? throw new ArgumentNullException(nameof(identity));
+        _identity = identity ?? throw new ArgumentNullException(nameof(identity));
         Capabilities = capabilities ?? throw new ArgumentNullException(nameof(capabilities));
         Telemetry = telemetry ?? throw new ArgumentNullException(nameof(telemetry));
         Failures = failures ?? throw new ArgumentNullException(nameof(failures));
@@ -35,7 +52,8 @@ public sealed class AircraftSession : IAircraftSession
     public string ProviderId { get; }
 
     /// <inheritdoc />
-    public AircraftIdentity Identity { get; }
+    public AircraftIdentity Identity =>
+        _identity() ?? throw new InvalidOperationException($"The '{ProviderId}' session identity function returned null.");
 
     /// <inheritdoc />
     public AircraftCapabilities Capabilities { get; }
@@ -60,6 +78,8 @@ public sealed class AircraftSession : IAircraftSession
             await DisposeComponentAsync(Failures).ConfigureAwait(false);
         }
     }
+
+    private static Func<AircraftIdentity> Fixed(AircraftIdentity identity) => () => identity;
 
     private static ValueTask DisposeComponentAsync(object component)
     {

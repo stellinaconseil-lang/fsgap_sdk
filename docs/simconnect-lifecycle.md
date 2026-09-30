@@ -11,7 +11,7 @@ providers. Since 0.5.0 it also reads the generic flight telemetry on the same co
 A single public type:
 
 ```csharp
-public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariableReader, IAirportService   // + IAsyncDisposable
+public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariableReader, IAirportService, IInstalledLiveryService   // + IAsyncDisposable
 {
     public SimConnectSimulator(FsgapOptions options, ILogger<SimConnectSimulator>? logger = null, TimeProvider? timeProvider = null);
 
@@ -27,6 +27,9 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
     // 0.8.0: airports of the simulator's reality bubble near a point (docs/simulator-airport-service.md)
     public Task<IReadOnlyList<AirportInfo>> FindNearbyAirportsAsync(GeoPosition position, AirportSearchOptions? options = null, CancellationToken cancellationToken = default);
     public Task<AirportInfo?> FindNearestAirportAsync(GeoPosition position, AirportSearchOptions? options = null, CancellationToken cancellationToken = default);
+
+    // 0.10 preview: every installed aircraft livery (docs/simulator-installed-liveries.md)
+    public Task<IReadOnlyList<InstalledLivery>> GetInstalledAircraftLiveriesAsync(CancellationToken cancellationToken = default);
 
     public Task StartAsync(CancellationToken cancellationToken = default);
     public Task StopAsync(CancellationToken cancellationToken = default);

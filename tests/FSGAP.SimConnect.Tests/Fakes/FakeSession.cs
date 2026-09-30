@@ -180,8 +180,35 @@ internal sealed class FakeSession : ISimConnectSession
 
     public int AirportRequests => Volatile.Read(ref _airportRequests);
 
-    public Task<LiveryEnumeration> EnumerateAircraftLiveriesAsync(CancellationToken cancellationToken) =>
-        throw new NotSupportedException("BLOCK 10A.5 livery discovery is live-only.");
+    /// <summary>The livery enumeration answer.</summary>
+    public IReadOnlyList<RawLiveryEntry> Liveries { get; set; } = [];
+
+    /// <summary>When set, livery requests fail with it.</summary>
+    public Exception? LiveryFailure { get; set; }
+
+    /// <summary>When set, livery requests wait for it (a slow answer).</summary>
+    public TaskCompletionSource? LiveryGate { get; set; }
+
+    private int _liveryRequests;
+
+    public int LiveryRequests => Volatile.Read(ref _liveryRequests);
+
+    public async Task<IReadOnlyList<RawLiveryEntry>> RequestAircraftLiveriesAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Interlocked.Increment(ref _liveryRequests);
+        if (LiveryGate is { } gate)
+        {
+            await gate.Task.WaitAsync(cancellationToken);
+        }
+
+        if (LiveryFailure is { } failure)
+        {
+            throw failure;
+        }
+
+        return Liveries;
+    }
 
     public Task<AiProbeResult> ProbeAiAircraftAsync(string containerTitle, string livery, string tailNumber, AiProbePosition position, TimeSpan settle, AiObjectLedger ledger, CancellationToken cancellationToken) =>
         throw new NotSupportedException("BLOCK 10A.5 AI probes are live-only.");

@@ -1,0 +1,206 @@
+{
+  "_comment": "BLOCK 10A.5 live capture: SimConnect_EnumerateSimObjectsAndLiveries (aircraft) filtered to the two Synaptic A220 preset titles. Titles and livery names exactly as MSFS returned them.",
+  "totals": {
+    "Rows": 15815,
+    "UniqueTitles": 13521,
+    "UniqueLiveries": 1164
+  },
+  "a220Rows": [
+    {
+      "AircraftTitle": "A220-300",
+      "LiveryName": ""
+    },
+    {
+      "AircraftTitle": "A220-300",
+      "LiveryName": "Synaptic House A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300",
+      "LiveryName": "Air Baltic A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300",
+      "LiveryName": "Air Canada A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300",
+      "LiveryName": "Air France A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300",
+      "LiveryName": "Breeze A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300",
+      "LiveryName": "Delta A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300",
+      "LiveryName": "ITA Airways A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300",
+      "LiveryName": "JetBlue A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300",
+      "LiveryName": "Korean Air A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300",
+      "LiveryName": "Swiss A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300",
+      "LiveryName": "White A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300 - No Cabin",
+      "LiveryName": ""
+    },
+    {
+      "AircraftTitle": "A220-300 - No Cabin",
+      "LiveryName": "Synaptic House A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300 - No Cabin",
+      "LiveryName": "Air Baltic A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300 - No Cabin",
+      "LiveryName": "Air Canada A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300 - No Cabin",
+      "LiveryName": "Air France A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300 - No Cabin",
+      "LiveryName": "Breeze A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300 - No Cabin",
+      "LiveryName": "Delta A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300 - No Cabin",
+      "LiveryName": "ITA Airways A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300 - No Cabin",
+      "LiveryName": "JetBlue A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300 - No Cabin",
+      "LiveryName": "Korean Air A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300 - No Cabin",
+      "LiveryName": "Swiss A220-300"
+    },
+    {
+      "AircraftTitle": "A220-300 - No Cabin",
+      "LiveryName": "White A220-300"
+    }
+  ],
+  "a220Groups": [
+    {
+      "LiveryName": "Air Baltic A220-300",
+      "Titles": [
+        "A220-300",
+        "A220-300 - No Cabin"
+      ],
+      "ExactDuplicateRows": 0
+    },
+    {
+      "LiveryName": "Air Canada A220-300",
+      "Titles": [
+        "A220-300",
+        "A220-300 - No Cabin"
+      ],
+      "ExactDuplicateRows": 0
+    },
+    {
+      "LiveryName": "Air France A220-300",
+      "Titles": [
+        "A220-300",
+        "A220-300 - No Cabin"
+      ],
+      "ExactDuplicateRows": 0
+    },
+    {
+      "LiveryName": "Breeze A220-300",
+      "Titles": [
+        "A220-300",
+        "A220-300 - No Cabin"
+      ],
+      "ExactDuplicateRows": 0
+    },
+    {
+      "LiveryName": "Delta A220-300",
+      "Titles": [
+        "A220-300",
+        "A220-300 - No Cabin"
+      ],
+      "ExactDuplicateRows": 0
+    },
+    {
+      "LiveryName": "ITA Airways A220-300",
+      "Titles": [
+        "A220-300",
+        "A220-300 - No Cabin"
+      ],
+      "ExactDuplicateRows": 0
+    },
+    {
+      "LiveryName": "JetBlue A220-300",
+      "Titles": [
+        "A220-300",
+        "A220-300 - No Cabin"
+      ],
+      "ExactDuplicateRows": 0
+    },
+    {
+      "LiveryName": "Korean Air A220-300",
+      "Titles": [
+        "A220-300",
+        "A220-300 - No Cabin"
+      ],
+      "ExactDuplicateRows": 0
+    },
+    {
+      "LiveryName": "Swiss A220-300",
+      "Titles": [
+        "A220-300",
+        "A220-300 - No Cabin"
+      ],
+      "ExactDuplicateRows": 0
+    },
+    {
+      "LiveryName": "Synaptic House A220-300",
+      "Titles": [
+        "A220-300",
+        "A220-300 - No Cabin"
+      ],
+      "ExactDuplicateRows": 0
+    },
+    {
+      "LiveryName": "White A220-300",
+      "Titles": [
+        "A220-300",
+        "A220-300 - No Cabin"
+      ],
+      "ExactDuplicateRows": 0
+    }
+  ],
+  "otherTitlesContainingA220": [
+    "Asobo PassiveAircraft A220-100",
+    "Asobo PassiveAircraft A220-300"
+  ],
+  "layout": {
+    "Packets": 201,
+    "HeaderSize": 28,
+    "EntrySize": 512,
+    "ElapsedMs": 68
+  }
+}

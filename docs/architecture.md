@@ -11,15 +11,17 @@ BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 | `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.9.0 |
 | `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.9.0 |
 | `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321: recognition, normalized identity, installed livery catalog ([details](fenix-identity-and-catalog.md)), generic-telemetry policy and system telemetry ([details](fenix-system-telemetry.md)), failures through the EFB ([details](fenix-failures.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.9.0 |
+| `FSGAP.Synaptic` | Provider for the Synaptic Simulations A220-300: recognition, normalized identity, generic-telemetry policy and a 6-variable overlay, installed livery catalog from the simulator enumeration, no failures ([details](synaptic-a220.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.10.0-preview.2 |
 | `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)), generic telemetry ([details](generic-telemetry.md)), batched variable reader, airport service ([details](simulator-airport-service.md)) | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.9.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
 
 ```text
 FSGAP.Abstractions  <-  FSGAP.Core  <-  FSGAP.Fenix
+                                    <-  FSGAP.Synaptic
                                     <-  FSGAP.SimConnect   (-> SimConnect.NET)
 ```
 
 Compile-time dependencies always point towards `FSGAP.Abstractions`. `FSGAP.SimConnect` never depends on
-`FSGAP.Fenix`. Tests enforce the rule:
+a provider, and providers never depend on each other or on `FSGAP.SimConnect`. Tests enforce the rule:
 
 - `FSGAP.Abstractions` references only the base class library;
 - its public surface names no vendor, simulator library or application;
@@ -169,6 +171,52 @@ The session also owns per-aircraft resources.
 
 Provider ids are unique, case-insensitively.
 
+### Multiple aircraft providers (0.10 preview)
+
+Fenix and Synaptic are registered side by side; more providers follow the same rules.
+
+- **Runtime, generic resolution.** The host resolves each detected aircraft through `AircraftProviderRegistry.Resolve`.
+  No code anywhere branches on an aircraft type to pick a provider ("if A220 then Synaptic"), and there is no fallback
+  provider: an aircraft no provider accepts is `NotSupported` and gets no session.
+- **Recognition is each provider's own, and strict.** Fenix recognizes its titles; Synaptic requires the exact preset
+  title plus `ATC MODEL` and `ATC TYPE`. A provider never claims a look-alike (AI models, Asobo passive aircraft).
+- **Conflicts are explicit.** Two providers at the same highest specificity give `Ambiguous` with the candidates
+  listed; registration order never decides (tested in both orders). `Dedicated` beats `Generic`.
+- **One connection.** Every provider reads through the host's single `SimConnectSimulator`
+  (`ISimulatorVariableReader`, `IAircraftDetector`, generic telemetry, `IInstalledLiveryService`).
+- **One session per loaded aircraft.** On an aircraft change the host disposes the old session before attaching the
+  next one. A disposed session stops its reads; a session whose aircraft was replaced publishes `Unavailable` even
+  before disposal. Capabilities and the failure provider belong to the session: an A220 session never carries the
+  Fenix EFB failure provider (`FailureCapabilities.None`, `UnsupportedFailureProvider`).
+- **Vendor-neutral additions only.** The A220 needed `FuelPumpMode` (AUTO) and `AircraftIdentity.RegistrationSource`
+  (authoritative / observed / derived); both are generic. Architecture tests keep `Synaptic`, `A22X` and `A220` out of
+  Abstractions, Core, SimConnect and Fenix.
+- Tests: `MultiProviderTests` in `FSGAP.Synaptic.Tests` (the only test project referencing two providers).
+
+### Session continuity vs aircraft metadata (0.10.0-preview.4)
+
+`AircraftDescriptor` carries both what is loaded and metadata the simulator changes while the same aircraft stays
+loaded. **Session continuity is not full descriptor equality.**
+
+- `AircraftContinuity.IsSameLoadedAircraft(previous, current)` (Core) is the one rule: all descriptor fields equal
+  except `Registration` (`ATC ID`). The ATC ID was seen changing several times within seconds of a load (BLOCK 10B.3:
+  8 of 15 emissions, on the Synaptic A220 and on a Fenix); every other field stays structural until proven volatile,
+  and fields added later are structural by default.
+- **Livery changes replace the session.** A livery change (name or folder) is a reload in the simulator, and providers
+  look up installed-livery data (registration, operator, engine) by the folder; keeping the session would need a
+  provider-level re-attach for no benefit.
+- **Hosts**: keep the session when `IsSameLoadedAircraft(last, current)`; otherwise dispose it, resolve again and
+  attach. Providers must not base `Match` support on the registration, so no new resolution is needed for a metadata
+  update. The detector still publishes ATC ID updates (they are metadata consumers may show).
+- **Providers**: their "aircraft replaced" checks (stop polling, publish Unavailable, refuse failure commands) use the
+  same rule, so a session survives an ATC ID change with its polling loops and failure provider.
+- **Identity follows the metadata**: `IAircraftSession.Identity` is read on demand and may change during the session.
+  `AircraftIdentityTracker` (Core) re-runs the provider's own identity resolution when the detector reports new
+  metadata for the same aircraft; `AircraftSession` accepts it through an additive `Func<AircraftIdentity>`
+  constructor. Registration rules stay provider-specific: Fenix still prefers its catalog, then the ATC ID (so an
+  uncatalogued livery's registration follows the ATC ID); Synaptic still ignores an ATC ID the livery folder does not
+  corroborate. There is no identity-change event: consumers read the identity when they need it.
+
 ### Collections for multiple systems
 
 Engines, inertial references, fuel pumps, electrical buses, batteries, hydraulic systems, fire zones, **gear units** and
@@ -185,7 +233,10 @@ properties. Units are part of property names.
 - `Engines[]` (oil, starter, thrust lever and reverser since 0.9.0).
 - `Apu`.
 - `InertialReferences[]`.
-- `FuelPumps[]`.
+- `FuelPumps[]`: since 0.10, each pump has `Mode` (`FuelPumpMode`: `Off`, `Auto`, `On`), the canonical control
+  position, next to the binary `IsOn`. `IsOn` is known only when the source supplies a binary ON/OFF state; with
+  `Mode = Auto` it is `Unavailable`, never guessed as true or false. `FuelPumpMode` has no "unknown" member: an
+  unreadable mode is a `TelemetryValue` in the `Unknown` or `Unavailable` state.
 - `ElectricalBuses[]`, and `Batteries[]` since 0.9.0.
 - `HydraulicSystems[]` (reservoir quantity since 0.9.0).
 - `FireZones[]`.
@@ -360,6 +411,15 @@ Tests pin the version and the signatures. Parking and `FlightLoad` are still to 
 - **Errors.** `SimulatorServiceException` separates "simulator unavailable" from "query failed". An empty answer
   means "nothing in range".
 - Details, live validation and parity with FSHANGAR: [simulator-airport-service.md](simulator-airport-service.md).
+
+### Installed aircraft liveries (0.10 preview)
+
+- `SimConnectSimulator` implements `IInstalledLiveryService` (Abstractions): every (aircraft title, livery name) pair
+  the simulator enumerates (`SimConnect_EnumerateSimObjectsAndLiveries`), marketplace content included, in its order,
+  duplicates kept. Nothing else: registration, operator, livery folder and preset merging are provider business.
+- One native request per call on the **single** connection, through the library dispatcher; concurrent callers share
+  it; a bounded, validated multi-packet assembly; `SimulatorServiceException` as for airports.
+- Details and the OFFICIAL vs EMPIRICAL packet layout: [simulator-installed-liveries.md](simulator-installed-liveries.md).
 
 ### Packaging and distribution
 

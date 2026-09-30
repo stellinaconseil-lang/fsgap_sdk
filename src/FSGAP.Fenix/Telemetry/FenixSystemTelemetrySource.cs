@@ -1,5 +1,6 @@
 using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Simulator;
+using FSGAP.Core.Sessions;
 using FSGAP.Fenix.Variables;
 using Microsoft.Extensions.Logging;
 
@@ -87,9 +88,10 @@ internal sealed class FenixSystemTelemetrySource : IAsyncDisposable
 
     /// <summary>
     /// Whether the simulator now reports a <i>different</i> aircraft from the one this session was attached to.
-    /// Nothing loaded (null) is not a replacement: it is a gap, handled by freshness.
+    /// Nothing loaded (null) is not a replacement: it is a gap, handled by freshness. A registration (ATC ID) change
+    /// is not one either (<see cref="AircraftContinuity"/>).
     /// </summary>
-    internal bool AircraftReplaced => _detector?.Current is { } loaded && !loaded.Equals(_attached);
+    internal bool AircraftReplaced => _detector?.Current is { } loaded && !AircraftContinuity.IsSameLoadedAircraft(_attached, loaded);
 
     /// <summary>Starts one polling loop per group. Called once.</summary>
     internal void Start()

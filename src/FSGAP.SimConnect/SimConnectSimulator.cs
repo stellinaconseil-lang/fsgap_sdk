@@ -36,7 +36,7 @@ namespace FSGAP.SimConnect;
 /// <item><description>After disposal, Start throws <see cref="ObjectDisposedException"/>.</description></item>
 /// </list>
 /// </remarks>
-public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariableReader, IAirportService
+public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariableReader, IAirportService, IInstalledLiveryService
 {
     /// <summary>Identity poll interval while connecting or while the aircraft is changing.</summary>
     internal static readonly TimeSpan IdentityFastInterval = TimeSpan.FromSeconds(2);
@@ -81,6 +81,7 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
     private readonly SemaphoreSlim _lifecycle = new(1, 1);
     private readonly object _clockGate = new();
     private readonly object _airportGate = new();
+    private readonly object _liveryGate = new();
 
     private long? _sessionStartedAt;
     private CancellationTokenSource? _runCts;
@@ -88,6 +89,7 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
     private bool _disposed;
     private volatile LiveSession? _connectedSession;
     private AirportListCache? _airportCache;
+    private LiveryListRequest? _liveryRequest;
 
     /// <summary>Creates the connection. Nothing happens until <see cref="StartAsync"/>.</summary>
     /// <param name="options">Host options; <see cref="FsgapOptions.ApplicationName"/> is the SimConnect client name.</param>
@@ -204,6 +206,68 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
         var nearby = await FindNearbyAirportsAsync(position, (options ?? AirportSearchOptions.Default) with { MaxResults = 1 }, cancellationToken)
             .ConfigureAwait(false);
         return nearby.Count == 0 ? null : nearby[0];
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// <para>
+    /// One native request (<c>SimConnect_EnumerateSimObjectsAndLiveries</c> for aircraft) on this transport's connection,
+    /// through the library's dispatcher; every packet of the answer is gathered before anything is returned. Concurrent
+    /// callers share the request in flight; nothing is cached once it has answered, so each later call asks the
+    /// simulator again. A caller's cancellation only stops its own wait.
+    /// </para>
+    /// <para>
+    /// Rows are returned in the simulator's order, duplicates included. A row without an aircraft title is dropped (it
+    /// names nothing); an empty livery name becomes <see langword="null"/>. No interpretation (vendor, model, preset,
+    /// registration) is made here.
+    /// </para>
+    /// </remarks>
+    public async Task<IReadOnlyList<InstalledLivery>> GetInstalledAircraftLiveriesAsync(CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        cancellationToken.ThrowIfCancellationRequested();
+        var live = _connectedSession;
+        if (live is null || !live.Session.IsConnected)
+        {
+            throw new SimulatorServiceException(SimulatorServiceError.SimulatorUnavailable, SimulatorNotConnected);
+        }
+
+        Task<IReadOnlyList<RawLiveryEntry>> request;
+        lock (_liveryGate)
+        {
+            var inFlight = _liveryRequest;
+            if (inFlight is not null && ReferenceEquals(inFlight.Session, live.Session) && !inFlight.Request.IsCompleted)
+            {
+                request = inFlight.Request;
+            }
+            else
+            {
+                request = RequestLiveryListAsync(live);
+                _liveryRequest = new LiveryListRequest(live.Session, request);
+            }
+        }
+
+        IReadOnlyList<RawLiveryEntry> raw;
+        try
+        {
+            raw = await request.WaitAsync(cancellationToken).ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new SimulatorServiceException(SimulatorServiceError.SimulatorUnavailable, ConnectionLost);
+        }
+        catch (Exception ex) when (ex is not (OperationCanceledException or SimulatorServiceException))
+        {
+            if (!live.Session.IsConnected || live.Lifetime.IsCancellationRequested)
+            {
+                throw new SimulatorServiceException(SimulatorServiceError.SimulatorUnavailable, ConnectionLost, ex);
+            }
+
+            _logger.LogWarning(ex, "The livery enumeration failed");
+            throw new SimulatorServiceException(SimulatorServiceError.QueryFailed, $"The livery enumeration failed: {ex.Message}", ex);
+        }
+
+        return InstalledLiveryMapper.ToInstalledLiveries(raw);
     }
 
     /// <inheritdoc />
@@ -770,14 +834,6 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
     }
 
     /// <summary>
-    /// BLOCK 10A.5 — EXPERIMENTAL, internal, discovery only (visible to the live sample). Enumerates every installed
-    /// aircraft (title, livery) pair on this transport's connection. Not part of any public contract.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">The simulator is not connected.</exception>
-    internal Task<LiveryEnumeration> ExperimentalEnumerateAircraftLiveriesAsync(CancellationToken cancellationToken) =>
-        (_connectedSession ?? throw new InvalidOperationException(SimulatorNotConnected)).Session.EnumerateAircraftLiveriesAsync(cancellationToken);
-
-    /// <summary>
     /// BLOCK 10A.5 — EXPERIMENTAL, internal, discovery only (visible to the live sample). Creates one AI aircraft with
     /// the given title, livery and tail number on this transport's connection, reads its identity strings, removes it.
     /// </summary>
@@ -803,6 +859,13 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
             ? native.RemoveAndConfirmAsync(objectId, ledger)
             : throw new InvalidOperationException("AI object removal needs the SimConnect.NET session.");
 
+    private async Task<IReadOnlyList<RawLiveryEntry>> RequestLiveryListAsync(LiveSession live)
+    {
+        // ForceYielding: never continue on the native message thread.
+        await Task.Yield();
+        return await live.Session.RequestAircraftLiveriesAsync(live.Lifetime).ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+    }
+
     private async Task<IReadOnlyList<RawAirport>> RequestAirportListAsync(LiveSession live)
     {
         // ForceYielding: never continue on the native message thread.
@@ -812,6 +875,9 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
 
     /// <summary>The connected native session and the token that ends with it.</summary>
     private sealed record LiveSession(ISimConnectSession Session, CancellationToken Lifetime);
+
+    /// <summary>The livery enumeration in flight on one connection, shared by concurrent callers.</summary>
+    private sealed record LiveryListRequest(ISimConnectSession Session, Task<IReadOnlyList<RawLiveryEntry>> Request);
 
     /// <summary>One airport-list request of one connection, and when it was sent.</summary>
     private sealed record AirportListCache(ISimConnectSession Session, long RequestedAt, Task<IReadOnlyList<RawAirport>> Request);

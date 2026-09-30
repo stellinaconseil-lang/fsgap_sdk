@@ -67,7 +67,7 @@ the EFB, documented in [fenix-failures.md](fenix-failures.md).
 | FSGAP field | Source | Raw → normalized | Not provided |
 |---|---|---|---|
 | `InertialReferences[i]` (Index 1–3) `.Mode` | `L:S_OH_NAV_IR{1,2,3}_MODE` | 0 → `Off`, 1 → `Navigation`, 2 → `Attitude`; anything else → Unknown | `Aligned`, `Fault`: Unavailable (no validated source; never inferred from the selector) |
-| `FuelPumps[id].IsOn`, ids `left-1`, `left-2`, `center-1`, `center-2`, `right-1`, `right-2` | `L:S_OH_FUEL_{LEFT,CENTER,RIGHT}_{1,2}` | 0 → false, 1 → true; other → Unknown. **Switch position only**, not pump pressure | `Fault` (low pressure): Unavailable |
+| `FuelPumps[id].IsOn` and, since 0.10, `FuelPumps[id].Mode`, ids `left-1`, `left-2`, `center-1`, `center-2`, `right-1`, `right-2` | `L:S_OH_FUEL_{LEFT,CENTER,RIGHT}_{1,2}` | 0 → `IsOn` false / `Mode` `Off`, 1 → true / `On`; other → both Unknown. A Fenix pump is a two-position pushbutton, so `Mode` is never `Auto`. **Switch position only**, not pump pressure | `Fault` (low pressure): Unavailable |
 | `Engines[n].FireHandlePulled` | `L:S_OH_FIRE_ENG{1,2}_BUTTON` | 0 STOWED → false, 1 PULLED → true | — |
 | `Engines[n].FireWarningLit` | `L:I_OH_FIRE_ENG{1,2}_BUTTON` | 0/1 → false/true. **Lit on a real fire *and* during a FIRE TEST** | — |
 | `Engines[n].FireDetected`, `Apu.FireDetected` | — | — | **Unavailable.** No source distinguishes a fire from a test. |

@@ -71,6 +71,66 @@ public class FenixSystemMappingTests
     [Theory]
     [InlineData(0.0, false)]
     [InlineData(1.0, true)]
+    public void Characterization_each_fenix_pump_switch_reports_is_on_from_its_raw_position(double raw, bool expected)
+    {
+        // BLOCK 10B.1 regression gate: pinned before the fuel pump mode was added. IsOn must keep exactly this meaning.
+        var state = ApplyCockpit(Cockpit(r =>
+        {
+            foreach (var index in new[] { Idx.FuelLeft1, Idx.FuelLeft2, Idx.FuelCenter1, Idx.FuelCenter2, Idx.FuelRight1, Idx.FuelRight2 })
+            {
+                r[(int)index] = raw;
+            }
+        }));
+
+        Assert.All(state.FuelPumps, p =>
+        {
+            Assert.Equal(expected, p.IsOn.Value);
+            Assert.Equal(At, p.IsOn.ObservedAt);
+            Assert.Equal(ValueState.Unavailable, p.Fault.State);
+        });
+    }
+
+    [Theory]
+    [InlineData(2.0)]
+    [InlineData(0.5)]
+    [InlineData(double.NaN)]
+    public void Characterization_an_unproven_fenix_pump_value_is_unknown(double raw)
+    {
+        var state = ApplyCockpit(Cockpit(r => r[(int)Idx.FuelLeft1] = raw));
+
+        Assert.Equal(ValueState.Unknown, state.FuelPumps[0].IsOn.State);
+        Assert.False(state.FuelPumps[1].IsOn.Value);
+    }
+
+    [Theory]
+    [InlineData(0.0, false, "Off")]
+    [InlineData(1.0, true, "On")]
+    public void Fenix_pump_mode_is_off_or_on_and_agrees_with_is_on(double raw, bool isOn, string mode)
+    {
+        var state = ApplyCockpit(Cockpit(r => r[(int)Idx.FuelRight2] = raw));
+        var pump = state.FuelPumps.Single(p => p.Id == "right-2");
+
+        Assert.Equal(isOn, pump.IsOn.Value);
+        Assert.Equal(Enum.Parse<FuelPumpMode>(mode), pump.Mode.Value);
+        Assert.Equal(At, pump.Mode.ObservedAt);
+        Assert.All(state.FuelPumps, p => Assert.NotEqual(FuelPumpMode.Auto, p.Mode.GetValueOrDefault(FuelPumpMode.Off)));
+    }
+
+    [Theory]
+    [InlineData(2.0)]
+    [InlineData(0.5)]
+    [InlineData(double.NaN)]
+    public void An_unproven_fenix_pump_value_is_an_unknown_mode_never_auto(double raw)
+    {
+        var pump = ApplyCockpit(Cockpit(r => r[(int)Idx.FuelLeft1] = raw)).FuelPumps[0];
+
+        Assert.Equal(ValueState.Unknown, pump.Mode.State);
+        Assert.Equal(ValueState.Unknown, pump.IsOn.State);
+    }
+
+    [Theory]
+    [InlineData(0.0, false)]
+    [InlineData(1.0, true)]
     public void Two_state_switches_map_exactly(double raw, bool expected)
     {
         Assert.Equal(expected, FenixSystemMapper.Discrete(raw, At).Value);

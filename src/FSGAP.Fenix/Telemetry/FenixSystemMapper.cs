@@ -47,7 +47,7 @@ internal static class FenixSystemMapper
                 Ir(3, At(FenixVariables.CockpitIndex.Ir3Mode), observedAt),
             ],
             FuelPumps = Pumps
-                .Select(p => new FuelPumpTelemetry { Id = p.Id, Name = p.Name, IsOn = Discrete(At(p.Raw), observedAt) })
+                .Select(p => new FuelPumpTelemetry { Id = p.Id, Name = p.Name, IsOn = Discrete(At(p.Raw), observedAt), Mode = PumpMode(At(p.Raw), observedAt) })
                 .ToArray(),
             EngineFirePanels =
             [
@@ -123,6 +123,17 @@ internal static class FenixSystemMapper
         0.0 => TelemetryValue<bool>.Known(false, observedAt),
         1.0 => TelemetryValue<bool>.Known(true, observedAt),
         _ => TelemetryValue<bool>.Unknown,
+    };
+
+    /// <summary>
+    /// A Fenix pump switch is a two-position pushbutton (0 OFF, 1 ON; proven live): Off or On, never Auto. Anything else:
+    /// Unknown, exactly as <see cref="Discrete"/> for <c>IsOn</c>, so the two views always agree.
+    /// </summary>
+    internal static TelemetryValue<FuelPumpMode> PumpMode(double raw, DateTimeOffset observedAt) => raw switch
+    {
+        0.0 => TelemetryValue<FuelPumpMode>.Known(FuelPumpMode.Off, observedAt),
+        1.0 => TelemetryValue<FuelPumpMode>.Known(FuelPumpMode.On, observedAt),
+        _ => TelemetryValue<FuelPumpMode>.Unknown,
     };
 
     private static InertialReferenceTelemetry Ir(int index, double raw, DateTimeOffset observedAt) =>

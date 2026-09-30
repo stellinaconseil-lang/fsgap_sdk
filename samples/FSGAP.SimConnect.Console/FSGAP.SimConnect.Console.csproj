@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\FSGAP.SimConnect\FSGAP.SimConnect.csproj" />
     <ProjectReference Include="..\..\src\FSGAP.Fenix\FSGAP.Fenix.csproj" />
+    <ProjectReference Include="..\..\src\FSGAP.Synaptic\FSGAP.Synaptic.csproj" />
   </ItemGroup>
 
 </Project>

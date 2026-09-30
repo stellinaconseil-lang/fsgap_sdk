@@ -10,7 +10,7 @@ public class DependencyRulesTests
 {
     // Vendor words are forbidden in the vendor-neutral assemblies only (Abstractions, Core, SimConnect, Fenix for the
     // Synaptic ones). A vendor assembly such as FSGAP.Fenix or the future FSGAP.Synaptic legitimately uses its own names.
-    private static readonly string[] ForbiddenNames = ["SimConnect", "Fenix", "Fnx", "Pmdg", "Efb", "Lvar", "Hvar", "Hangar", "Flippp", "VendorId", "Synaptic", "A22X"];
+    private static readonly string[] ForbiddenNames = ["SimConnect", "Fenix", "Fnx", "Pmdg", "Efb", "Lvar", "Hvar", "Hangar", "Flippp", "VendorId", "Synaptic", "A22X", "A220"];
 
     private static readonly Assembly Abstractions = typeof(IAircraftProvider).Assembly;
 

@@ -88,7 +88,7 @@ public static class TelemetryFreshness
             },
             InertialReferences = telemetry.InertialReferences
                 .Select(i => i with { Mode = E(i.Mode), Aligned = E(i.Aligned), Fault = E(i.Fault) }).ToArray(),
-            FuelPumps = telemetry.FuelPumps.Select(p => p with { IsOn = E(p.IsOn), Fault = E(p.Fault) }).ToArray(),
+            FuelPumps = telemetry.FuelPumps.Select(p => p with { IsOn = E(p.IsOn), Mode = E(p.Mode), Fault = E(p.Fault) }).ToArray(),
             ElectricalBuses = telemetry.ElectricalBuses.Select(b => b with { Powered = E(b.Powered) }).ToArray(),
             HydraulicSystems = telemetry.HydraulicSystems
                 .Select(h => h with { Pressurized = E(h.Pressurized), PressurePsi = E(h.PressurePsi), ReservoirPercent = E(h.ReservoirPercent) })

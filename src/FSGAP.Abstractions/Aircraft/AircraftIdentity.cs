@@ -50,6 +50,12 @@ public sealed record AircraftIdentity
     /// <summary>Registration / tail number.</summary>
     public string? Registration { get; init; }
 
+    /// <summary>
+    /// Where <see cref="Registration"/> came from (since 0.10), or <see langword="null"/> when the provider does not
+    /// state it (every 0.9 provider) or there is no registration.
+    /// </summary>
+    public RegistrationSource? RegistrationSource { get; init; }
+
     /// <summary>Livery name.</summary>
     public string? Livery { get; init; }
 }

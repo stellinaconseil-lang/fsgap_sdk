@@ -1,24 +1,29 @@
 <Project>
 
   <!--
-    Package protection: FSGAP 0.9.0 is immutable.
+    Package protection: published FSGAP packages are immutable.
 
-    The 0.9.0 packages in artifacts/packages were built on 2026-09-24 from e2f27eb and are restored by FSHANGAR (its
-    "fsgap-local" NuGet source). main has evolved since while still declaring 0.9.0, so packing main would produce
-    different binaries under the same package identity. NuGet caches packages by id and version: machines that already
-    restored 0.9.0 would keep the old files, others would silently get the new ones.
+    FSHANGAR restores FSGAP 0.9.0 from artifacts/packages (its "fsgap-local" NuGet source); those packages were built on
+    2026-09-24 from e2f27eb. NuGet caches packages by id and version: a different file under the same version is
+    silently ignored by machines that already restored it and silently used by those that did not. So:
 
-    - Packing version 0.9.0 always fails. main may build and test normally, but can never create another 0.9.0 package.
-    - No pack may overwrite an existing .nupkg with the same id and version in the output folder. Bump the version.
+    - Packing version 0.9.0 always fails. The tree may build and test normally, but can never create another 0.9.0.
+    - No pack may overwrite an existing .nupkg with the same id and version in the output folder (preview/RC packages
+      in artifacts/preview-packages, final releases in artifacts/releases/<version>, see Directory.Build.props).
+    - No pack may shadow a package with the same id and version in the stable feed folder artifacts/packages.
+    Bump the version instead.
   -->
   <Target Name="FsgapProtectPublishedPackages" BeforeTargets="GenerateNuspec" Condition="'$(IsPackable)' == 'true'">
     <PropertyGroup>
       <_FsgapPackageFile>$(PackageId).$(PackageVersion).nupkg</_FsgapPackageFile>
+      <_FsgapStableFeed>$(MSBuildThisFileDirectory)artifacts/packages</_FsgapStableFeed>
     </PropertyGroup>
     <Error Condition="'$(PackageVersion)' == '0.9.0'"
            Text="FSGAP 0.9.0 is immutable and must never be rebuilt or repacked (the published 0.9.0 packages are consumed by FSHANGAR). Refusing to pack $(PackageId) 0.9.0; develop under a new version." />
     <Error Condition="Exists('$(PackageOutputPath)/$(_FsgapPackageFile)')"
            Text="$(_FsgapPackageFile) already exists in $(PackageOutputPath). Refusing to overwrite a published package version; bump the version." />
+    <Error Condition="Exists('$(_FsgapStableFeed)/$(_FsgapPackageFile)')"
+           Text="$(_FsgapPackageFile) already exists in the stable feed $(_FsgapStableFeed). Refusing to shadow it; bump the version." />
   </Target>
 
 </Project>

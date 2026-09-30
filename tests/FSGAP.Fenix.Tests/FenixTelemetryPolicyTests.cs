@@ -45,6 +45,22 @@ public class FenixTelemetryPolicyTests
         Assert.Equal(generic.FlightControls.FlapsHandlePercent, fenix.FlightControls.FlapsHandlePercent);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void The_generic_reverser_passes_through_unchanged_on_fenix(bool engaged)
+    {
+        // Regression guard for 0.10.0-preview.5: the Synaptic A220 masks the generic reverser; Fenix must not.
+        var generic = Generic() with
+        {
+            Engines = [new EngineTelemetry { Index = 1, ReverserEngaged = TelemetryValue<bool>.Known(engaged, At) }, new EngineTelemetry { Index = 2, ReverserEngaged = TelemetryValue<bool>.Known(engaged, At) }],
+        };
+
+        var fenix = FenixGenericTelemetryPolicy.Apply(generic);
+
+        Assert.All(fenix.Engines, e => Assert.Equal(TelemetryValue<bool>.Known(engaged, At), e.ReverserEngaged));
+    }
+
     [Fact]
     public void Apu_bleed_is_masked_until_verified_on_fenix_and_the_0_9_generic_sections_are_kept()
     {
