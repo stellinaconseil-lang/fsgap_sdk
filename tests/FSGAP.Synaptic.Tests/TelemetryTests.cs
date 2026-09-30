@@ -47,6 +47,7 @@ public class TelemetryTests
         Assert.Equal(ValueState.Unavailable, e.StarterActive.State);
         Assert.Equal(ValueState.Unavailable, e.OilTemperatureCelsius.State);
         Assert.Equal(ValueState.Unavailable, e.OilPressurePsi.State);
+        Assert.Equal(ValueState.Unavailable, e.ReverserEngaged.State);
         Assert.Equal(ValueState.Unavailable, masked.Engines[1].Running.State);
         Assert.Equal(ValueState.Unavailable, masked.Apu.BleedOn.State);
         Assert.Equal(ValueState.Unavailable, masked.Pressurization.CabinAltitudeFeet.State);
@@ -63,7 +64,6 @@ public class TelemetryTests
         Assert.Equal(80.2, e.N2Percent.Value);
         Assert.Equal(696, e.EgtCelsius.Value);
         Assert.Equal(14, e.ThrottleLeverPercent.Value);
-        Assert.False(e.ReverserEngaged.Value); // not tested live, not proven wrong: kept
         Assert.False(masked.LandingGear.AntiskidActive.Value); // idem
         Assert.False(masked.Warnings.Overspeed.Value);
         Assert.Equal(1100, masked.Flight.AltitudeFeet.Value);
@@ -71,6 +71,33 @@ public class TelemetryTests
         Assert.Equal(0, masked.FlightControls.SpeedBrakeDeploymentPercent.Value);
         Assert.Equal(32, masked.LandingGear.BrakeLeftPercent.Value);
         Assert.Equal(21.7, masked.Environment.OutsideAirTemperatureCelsius.Value);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void The_generic_reverser_is_unavailable_whatever_it_says(bool generic)
+    {
+        // BLOCK 10B.3C: the generic value read false while the EICAS showed REV on both engines.
+        var snapshot = Generic() with
+        {
+            Engines = [new EngineTelemetry { Index = 1, ReverserEngaged = K(generic), ThrottleLeverPercent = K(-20) }, new EngineTelemetry { Index = 2, ReverserEngaged = K(generic) }],
+        };
+
+        var masked = SynapticGenericTelemetryPolicy.Apply(snapshot);
+
+        Assert.All(masked.Engines, e => Assert.Equal(ValueState.Unavailable, e.ReverserEngaged.State));
+        Assert.Equal(-20, masked.Engines[0].ThrottleLeverPercent.Value); // the lever is still published, never read as a reverser state
+    }
+
+    [Fact]
+    public void The_composed_session_snapshot_never_publishes_a_reverser_state()
+    {
+        var snapshot = Generic() with { Engines = [new EngineTelemetry { Index = 1, ReverserEngaged = K(true) }, new EngineTelemetry { Index = 2, ReverserEngaged = K(false) }] };
+
+        var t = SynapticTelemetryComposer.Compose(snapshot, SynapticSystemMapper.Apply([1, 1, 0, 0, 0, 0], At), aircraftReplaced: false, StaleAfter);
+
+        Assert.All(t.Engines, e => Assert.Equal(ValueState.Unavailable, e.ReverserEngaged.State));
     }
 
     // -- overlay mapping --------------------------------------------------------------------------------------------------

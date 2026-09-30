@@ -1,6 +1,6 @@
 # FSGAP.Synaptic — Synaptic Simulations A220-300 provider
 
-Status: **0.10.0-preview.4**: automated qualification (BLOCK 10B.2), live qualification (BLOCK 10B.3, results below), APU switch fix (preview.3), session continuity across ATC ID changes (preview.4).
+Status: **0.10.0-preview.5**: automated qualification (BLOCK 10B.2), live qualification (BLOCK 10B.3, results below), APU switch fix (preview.3), session continuity across ATC ID changes (preview.4), reverser masked (preview.5).
 The evidence behind every choice below is in [audits/synaptic-a220-discovery.md](audits/synaptic-a220-discovery.md)
 (variables, BLOCK 10A-LIVE sessions) and [audits/synaptic-a220-livery-discovery.md](audits/synaptic-a220-livery-discovery.md)
 (liveries and registrations, BLOCK 10A.5).
@@ -87,9 +87,9 @@ default). Once the detector reports another aircraft the session publishes `Unav
 ### Generic policy
 
 Masked to `Unavailable` (**GENERIC_WRONG** in BLOCK 10A-LIVE): engine `Running`, `FuelFlowKilogramsPerHour`,
-`StarterActive`, `OilTemperatureCelsius`, `OilPressurePsi`; `Apu.BleedOn` (replaced by the overlay);
+`StarterActive`, `OilTemperatureCelsius`, `OilPressurePsi`, `ReverserEngaged` (since preview.5, see below); `Apu.BleedOn` (replaced by the overlay);
 `Pressurization` (cabin altitude and rate). Everything else passes through, including fields not yet exercised live
-but never shown wrong: flight-envelope warnings, reverser, `LandingGear.AntiskidActive` (inconclusive: never true,
+but never shown wrong: flight-envelope warnings, `LandingGear.AntiskidActive` (inconclusive: never true,
 no skid seen). They are the BLOCK 10B.3 live checks.
 
 Declared sections: `FlightState`, `Warnings`, `Engines`, `LandingGear`, `FlightControls`, `Environment` (generic) and
@@ -140,7 +140,7 @@ None. Capabilities declare `FailureCapabilities.None`; `Failures` is `Unsupporte
 
 ## Tests
 
-`tests/FSGAP.Synaptic.Tests` (109 tests): recognition and look-alikes, identity, registration parser and precedence,
+`tests/FSGAP.Synaptic.Tests` (112 tests): recognition and look-alikes, identity, registration parser and precedence,
 policy mask and pass-through, overlay mapping (all pump values, APU, fire, unexpected values), composition (replaced,
 stale), sessions (capabilities, `FailureCapabilities.None`, read cadence, stop on dispose and on aircraft change,
 expiry on read failure), catalog (fixture, dedupe, learn, cache roundtrip, corrupt cache, refresh failure), the
@@ -168,7 +168,7 @@ LFKJ → LFMN (ILS 04L). Nothing was written to the aircraft; no AI object was c
 | Generic pass-through | position, altitude, IAS/GS/VS, heading, attitude, G, weight, N1/N2/EGT (within 0.6 % / 0.5 % / 6 °C of the EICAS), throttle, gear handle and units (retraction 14 s, extension 14 s), flap handle and trailing-edge surfaces (FLAP 1 = slats only → 0 %, FULL → 100 %), speed brake / ground spoilers (99 %), brakes (100/100), steering, touchdown VS (−631 ft/min at LFMN), overspeed warning (N → Y at 355 kt, cockpit clacker heard) |
 | Masked fields | fuel flow, oil temperature and pressure, cabin altitude and rate: EICAS showed 200 kg/h, 117 °C, 108–122 psi, CAB ALT 6 500 ft; FSGAP Unavailable as designed |
 | Antiskid | false through two maximum-braking roll-outs: still unproven (no skid evidence), not masked |
-| Reverse | not tested (reverse could not be selected) |
+| Reverse | not selectable in 10B.3; **WRONG** in 10B.3C: EICAS REV on both engines, generic `GENERAL ENG REVERSE THRUST ENGAGED` false on both (throttle −20 % at every reverse setting). Masked in preview.5 |
 | Failures | `FailureCapabilities.None`, `UnsupportedFailureProvider`; 0 EFB requests during the whole session |
 | Switching | Synaptic → Fenix → Synaptic live: old session disposed each time, A22X reads stop at disposal, Fenix reads stop at disposal, Fenix failure provider (40 keys) returns on the Fenix |
 | Connection / cost | 1 native connection throughout; overlay 6 variables, one group, 0.47–0.50 read/s |
@@ -189,7 +189,19 @@ its registration stays folder-derived (an incoherent ATC ID is still never promo
 it to Observed). The 10B.3 sequence replayed in `SessionContinuityTests` opens 7 sessions instead of 15. A livery
 change still replaces the session.
 
-### Qualification status (preview.4)
+### Reverser (0.10.0-preview.5)
 
-APU switch corrected in preview.3; fire control validated and documented as a latched state; reverse **NOT_TESTED**;
-antiskid **STILL_UNPROVEN**; master alerts deferred; failures None; MSFS disconnect/reconnect not tested live.
+The generic `GENERAL ENG REVERSE THRUST ENGAGED:n` is invalid on the A220: BLOCK 10B.3C showed REV (green) on both N1
+gauges at reverse idle and full reverse while it read 0 on both engines. The official Synaptic variable inventory
+(docs/audits/synaptic-a220-variable-mapping.csv) has no reverser state, only throttle angle, raw axis and detent
+calibration; the throttle lever read about −20 % at every reverse setting. Strategy: **mask** —
+`Engines[n].ReverserEngaged` is Unavailable on a Synaptic session (generic true or false alike). The throttle is still
+published as `ThrottleLeverPercent` and is never used to infer a reverser state, amount or availability. Fenix is
+unchanged.
+
+### Qualification status (preview.5)
+
+APU switch corrected in preview.3 and validated live in 10B.3C (0 → off, 1 RUN → on, 2 START → on); session continuity
+across ATC ID changes validated live in 10B.3C (4 emissions, 3 ATC-ID-only, 1 session, 0 disposed); fire control
+validated and documented as a latched state; reverser masked (preview.5); antiskid **STILL_UNPROVEN**; master alerts
+deferred; failures None; MSFS disconnect/reconnect not tested live.

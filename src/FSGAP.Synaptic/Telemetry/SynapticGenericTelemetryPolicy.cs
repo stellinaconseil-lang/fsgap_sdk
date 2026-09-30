@@ -15,13 +15,16 @@ namespace FSGAP.Synaptic.Telemetry;
 /// <item><description><c>Engines[n].StarterActive</c>: never true during either engine start.</description></item>
 /// <item><description><c>Engines[n].OilTemperatureCelsius</c>: constant at about the OAT (EICAS 32–51 °C).</description></item>
 /// <item><description><c>Engines[n].OilPressurePsi</c>: 25–30 % below the EICAS, identical on both engines.</description></item>
+/// <item><description><c>Engines[n].ReverserEngaged</c>: false on both engines while the EICAS showed REV on both,
+/// at reverse idle and full reverse (BLOCK 10B.3C). No documented Synaptic variable gives the reverser state, and the
+/// throttle position (about −20 % at every reverse setting) must not stand in for it, so the field stays Unavailable.</description></item>
 /// <item><description><c>Apu.BleedOn</c>: false while APU bleed started both engines (the overlay supplies the selection).</description></item>
 /// <item><description><c>Pressurization</c> (both fields): disagreed with the EICAS on the ground and froze at 8 132 ft in cruise.</description></item>
 /// </list>
 /// <para>
 /// <b>Kept:</b> everything else the generic transport reads. That includes fields validated live (position, speeds,
 /// attitude, N1, N2, EGT, throttle, gear, flaps, surfaces, touchdown, speed brake, weather) and fields not proven wrong
-/// (the four envelope warnings, reverser, antiskid). An untested field is not a wrong field.
+/// (the four envelope warnings, antiskid). An untested field is not a wrong field.
 /// </para>
 /// <para>
 /// The generic electrical, battery and hydraulic SimVars (dead or suspect on the A220) are not read by the generic
@@ -80,6 +83,7 @@ internal static class SynapticGenericTelemetryPolicy
                 StarterActive = TelemetryValue<bool>.Unavailable,
                 OilTemperatureCelsius = TelemetryValue<double>.Unavailable,
                 OilPressurePsi = TelemetryValue<double>.Unavailable,
+                ReverserEngaged = TelemetryValue<bool>.Unavailable,
             }).ToArray(),
             Apu = generic.Apu with { BleedOn = TelemetryValue<bool>.Unavailable },
             Pressurization = new PressurizationTelemetry(),
