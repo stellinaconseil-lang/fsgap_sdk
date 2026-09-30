@@ -176,3 +176,25 @@ LFKJ → LFMN (ILS 04L). Nothing was written to the aircraft; no AI object was c
 Follow-up in 0.10.0-preview.3: `APU Switch` = 1 now reads `MasterSwitchOn = true`; the engine fire mapping is
 unchanged and documented as a latched "fire control activated" state. Still open: master caution/warning, cabin altitude
 and ELT alerts are not exposed (no contract field).
+
+### Session churn during aircraft loading (BLOCK 10B.3A analysis, not fixed)
+
+The 15 sessions of the 10B.3 run came from 15 descriptor emissions, of which only **7 were real aircraft or livery
+changes**; the other **8 changed only `ATC ID`** (Synaptic: C-FFCO, I-OVTU, I-FZRQ, empty; Fenix: G-EUYY → I-RQUV →
+G-EUYY), a few seconds after each load. Trace:
+
+1. `SimConnectSimulator` publishes an `AircraftDescriptor` whenever any of its fields changes
+   (`ObservableState` with the record's default equality, which includes `Registration` = `ATC ID`).
+2. There is no session coordinator in Core: the host decides, and a host that re-attaches on every emission (the
+   sample does) recreates the session.
+3. A host that kept the session would not be better off: both providers' sessions compare the detector's current
+   descriptor to the attached one with full equality (`AircraftReplaced`), so an `ATC ID` change makes a running
+   session consider its aircraft replaced — it publishes Unavailable and stops reading. This is the same in
+   FSGAP.Fenix and FSGAP.Synaptic.
+
+Classification: **real architecture defect** (a volatile metadata field forces session replacement), no leak. Proposed
+vendor-neutral fix, pending a decision because it changes Fenix session behaviour: a "same loaded aircraft" comparison
+that ignores `ATC ID` only (the one field proven volatile; livery name and folder changed only on real livery changes),
+used by both providers' `AircraftReplaced` and offered to hosts for the replace-or-keep decision. Caveat: Fenix falls
+back to `ATC ID` for the registration of liveries missing from its catalog, and `IAircraftSession.Identity` cannot be
+updated, so keeping a session across an `ATC ID` change could keep a transient registration for such liveries.
