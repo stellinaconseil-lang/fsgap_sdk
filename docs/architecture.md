@@ -193,6 +193,30 @@ Fenix and Synaptic are registered side by side; more providers follow the same r
   Abstractions, Core, SimConnect and Fenix.
 - Tests: `MultiProviderTests` in `FSGAP.Synaptic.Tests` (the only test project referencing two providers).
 
+### Session continuity vs aircraft metadata (0.10.0-preview.4)
+
+`AircraftDescriptor` carries both what is loaded and metadata the simulator changes while the same aircraft stays
+loaded. **Session continuity is not full descriptor equality.**
+
+- `AircraftContinuity.IsSameLoadedAircraft(previous, current)` (Core) is the one rule: all descriptor fields equal
+  except `Registration` (`ATC ID`). The ATC ID was seen changing several times within seconds of a load (BLOCK 10B.3:
+  8 of 15 emissions, on the Synaptic A220 and on a Fenix); every other field stays structural until proven volatile,
+  and fields added later are structural by default.
+- **Livery changes replace the session.** A livery change (name or folder) is a reload in the simulator, and providers
+  look up installed-livery data (registration, operator, engine) by the folder; keeping the session would need a
+  provider-level re-attach for no benefit.
+- **Hosts**: keep the session when `IsSameLoadedAircraft(last, current)`; otherwise dispose it, resolve again and
+  attach. Providers must not base `Match` support on the registration, so no new resolution is needed for a metadata
+  update. The detector still publishes ATC ID updates (they are metadata consumers may show).
+- **Providers**: their "aircraft replaced" checks (stop polling, publish Unavailable, refuse failure commands) use the
+  same rule, so a session survives an ATC ID change with its polling loops and failure provider.
+- **Identity follows the metadata**: `IAircraftSession.Identity` is read on demand and may change during the session.
+  `AircraftIdentityTracker` (Core) re-runs the provider's own identity resolution when the detector reports new
+  metadata for the same aircraft; `AircraftSession` accepts it through an additive `Func<AircraftIdentity>`
+  constructor. Registration rules stay provider-specific: Fenix still prefers its catalog, then the ATC ID (so an
+  uncatalogued livery's registration follows the ATC ID); Synaptic still ignores an ATC ID the livery folder does not
+  corroborate. There is no identity-change event: consumers read the identity when they need it.
+
 ### Collections for multiple systems
 
 Engines, inertial references, fuel pumps, electrical buses, batteries, hydraulic systems, fire zones, **gear units** and

@@ -1,6 +1,6 @@
 # FSGAP.Synaptic — Synaptic Simulations A220-300 provider
 
-Status: **0.10.0-preview.3**: automated qualification (BLOCK 10B.2), live qualification (BLOCK 10B.3, results below), APU switch fix.
+Status: **0.10.0-preview.4**: automated qualification (BLOCK 10B.2), live qualification (BLOCK 10B.3, results below), APU switch fix (preview.3), session continuity across ATC ID changes (preview.4).
 The evidence behind every choice below is in [audits/synaptic-a220-discovery.md](audits/synaptic-a220-discovery.md)
 (variables, BLOCK 10A-LIVE sessions) and [audits/synaptic-a220-livery-discovery.md](audits/synaptic-a220-livery-discovery.md)
 (liveries and registrations, BLOCK 10A.5).
@@ -140,7 +140,7 @@ None. Capabilities declare `FailureCapabilities.None`; `Failures` is `Unsupporte
 
 ## Tests
 
-`tests/FSGAP.Synaptic.Tests` (104 tests): recognition and look-alikes, identity, registration parser and precedence,
+`tests/FSGAP.Synaptic.Tests` (109 tests): recognition and look-alikes, identity, registration parser and precedence,
 policy mask and pass-through, overlay mapping (all pump values, APU, fire, unexpected values), composition (replaced,
 stale), sessions (capabilities, `FailureCapabilities.None`, read cadence, stop on dispose and on aircraft change,
 expiry on read failure), catalog (fixture, dedupe, learn, cache roundtrip, corrupt cache, refresh failure), the
@@ -177,24 +177,19 @@ Follow-up in 0.10.0-preview.3: `APU Switch` = 1 now reads `MasterSwitchOn = true
 unchanged and documented as a latched "fire control activated" state. Still open: master caution/warning, cabin altitude
 and ELT alerts are not exposed (no contract field).
 
-### Session churn during aircraft loading (BLOCK 10B.3A analysis, not fixed)
+### Session churn during aircraft loading (found in 10B.3A, fixed in 0.10.0-preview.4)
 
 The 15 sessions of the 10B.3 run came from 15 descriptor emissions, of which only **7 were real aircraft or livery
 changes**; the other **8 changed only `ATC ID`** (Synaptic: C-FFCO, I-OVTU, I-FZRQ, empty; Fenix: G-EUYY → I-RQUV →
-G-EUYY), a few seconds after each load. Trace:
+G-EUYY). Cause: full descriptor equality was used both by hosts (re-attach on every emission) and inside both providers
+(`AircraftReplaced`, so a surviving session would still stop). Fix: the Core continuity rule
+([architecture.md § Session continuity](architecture.md#session-continuity-vs-aircraft-metadata-0100-preview4)),
+used by both providers and by the sample host. A Synaptic session now keeps its overlay loop across ATC ID changes;
+its registration stays folder-derived (an incoherent ATC ID is still never promoted, a corroborating one may upgrade
+it to Observed). The 10B.3 sequence replayed in `SessionContinuityTests` opens 7 sessions instead of 15. A livery
+change still replaces the session.
 
-1. `SimConnectSimulator` publishes an `AircraftDescriptor` whenever any of its fields changes
-   (`ObservableState` with the record's default equality, which includes `Registration` = `ATC ID`).
-2. There is no session coordinator in Core: the host decides, and a host that re-attaches on every emission (the
-   sample does) recreates the session.
-3. A host that kept the session would not be better off: both providers' sessions compare the detector's current
-   descriptor to the attached one with full equality (`AircraftReplaced`), so an `ATC ID` change makes a running
-   session consider its aircraft replaced — it publishes Unavailable and stops reading. This is the same in
-   FSGAP.Fenix and FSGAP.Synaptic.
+### Qualification status (preview.4)
 
-Classification: **real architecture defect** (a volatile metadata field forces session replacement), no leak. Proposed
-vendor-neutral fix, pending a decision because it changes Fenix session behaviour: a "same loaded aircraft" comparison
-that ignores `ATC ID` only (the one field proven volatile; livery name and folder changed only on real livery changes),
-used by both providers' `AircraftReplaced` and offered to hosts for the replace-or-keep decision. Caveat: Fenix falls
-back to `ATC ID` for the registration of liveries missing from its catalog, and `IAircraftSession.Identity` cannot be
-updated, so keeping a session across an `ATC ID` change could keep a transient registration for such liveries.
+APU switch corrected in preview.3; fire control validated and documented as a latched state; reverse **NOT_TESTED**;
+antiskid **STILL_UNPROVEN**; master alerts deferred; failures None; MSFS disconnect/reconnect not tested live.
