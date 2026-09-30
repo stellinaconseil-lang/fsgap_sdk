@@ -1,5 +1,6 @@
 using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Simulator;
+using FSGAP.Core.Sessions;
 using Microsoft.Extensions.Logging;
 
 namespace FSGAP.Synaptic.Telemetry;
@@ -65,7 +66,7 @@ internal sealed class SynapticSystemTelemetrySource : IAsyncDisposable
     }
 
     /// <summary>Whether the simulator now reports a different aircraft from the one this session was attached to.</summary>
-    internal bool AircraftReplaced => _detector?.Current is { } loaded && !loaded.Equals(_attached);
+    internal bool AircraftReplaced => _detector?.Current is { } loaded && !AircraftContinuity.IsSameLoadedAircraft(_attached, loaded);
 
     /// <summary>Starts the polling loop. Called once.</summary>
     internal void Start() => _loop = Task.Run(() => PollAsync(_stop.Token));

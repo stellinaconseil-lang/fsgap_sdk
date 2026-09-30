@@ -107,15 +107,12 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
             throw new NotSupportedException($"'{aircraft.Title}' is not the Synaptic A220-300.");
         }
 
-        var registration = _catalog is not null
-            ? _catalog.Learn(aircraft)
-            : RegistrationResolver.Resolve(null, aircraft.LiveryFolder, aircraft.Registration, cached: null);
-        var identity = SynapticIdentity.Create(registration?.Registration, registration?.Source, aircraft.Livery);
+        var identity = new AircraftIdentityTracker(aircraft, _aircraftDetector, ResolveIdentity);
 
         if (_genericTelemetry is null && _simulatorVariables is null)
         {
             return Task.FromResult<IAircraftSession>(new AircraftSession(
-                ProviderId, identity, AircraftCapabilities.None, new UnavailableTelemetryProvider(_timeProvider), UnsupportedFailureProvider.Instance));
+                ProviderId, identity.Get, AircraftCapabilities.None, new UnavailableTelemetryProvider(_timeProvider), UnsupportedFailureProvider.Instance));
         }
 
         var sections = TelemetryCapabilities.None;
@@ -133,7 +130,7 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
             sections = SynapticGenericTelemetryPolicy.Union(sections, SynapticGenericTelemetryPolicy.OverlaySections);
         }
 
-        bool AircraftReplaced() => _aircraftDetector?.Current is { } loaded && !loaded.Equals(aircraft);
+        bool AircraftReplaced() => _aircraftDetector?.Current is { } loaded && !AircraftContinuity.IsSameLoadedAircraft(aircraft, loaded);
         var staleAfter = _staleAfter;
         var telemetry = new TransformedTelemetryProvider(
             _genericTelemetry ?? new UnavailableTelemetryProvider(_timeProvider),
@@ -146,9 +143,21 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
 
         return Task.FromResult<IAircraftSession>(new AircraftSession(
             ProviderId,
-            identity,
+            identity.Get,
             new AircraftCapabilities { Telemetry = sections, Failures = FailureCapabilities.None },
             telemetry,
             UnsupportedFailureProvider.Instance));
+    }
+
+    /// <summary>
+    /// Identity for a descriptor of the attached aircraft. The registration follows the conservative resolver (and the
+    /// catalog's learned value); an incoherent ATC ID is never promoted, whichever descriptor carries it.
+    /// </summary>
+    private AircraftIdentity ResolveIdentity(AircraftDescriptor aircraft)
+    {
+        var registration = _catalog is not null
+            ? _catalog.Learn(aircraft)
+            : RegistrationResolver.Resolve(null, aircraft.LiveryFolder, aircraft.Registration, cached: null);
+        return SynapticIdentity.Create(registration?.Registration, registration?.Source, aircraft.Livery);
     }
 }

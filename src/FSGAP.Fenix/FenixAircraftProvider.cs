@@ -144,8 +144,8 @@ public sealed class FenixAircraftProvider : IAircraftProvider
             ?? throw new NotSupportedException($"'{aircraft.Title}' is not a Fenix A319/A320/A321.");
 
         var installed = await FindInstalledAsync(aircraft.LiveryFolder, cancellationToken).ConfigureAwait(false);
-        var identity = FenixIdentityResolver.Resolve(variant, aircraft, installed, _logger);
-        bool AircraftReplaced() => _aircraftDetector?.Current is { } loaded && !loaded.Equals(aircraft);
+        var identity = new AircraftIdentityTracker(aircraft, _aircraftDetector, loaded => FenixIdentityResolver.Resolve(variant, loaded, installed, _logger));
+        bool AircraftReplaced() => _aircraftDetector?.Current is { } loaded && !AircraftContinuity.IsSameLoadedAircraft(aircraft, loaded);
 
         // Failures: only for a recognized Fenix (this method refused anything else above) and only when configured.
         // The provider is created here, so no EFB request can exist without a Fenix session.
@@ -164,7 +164,7 @@ public sealed class FenixAircraftProvider : IAircraftProvider
         {
             return new AircraftSession(
                 ProviderId,
-                identity,
+                identity.Get,
                 _fenixOptions is null ? AircraftCapabilities.None : new AircraftCapabilities { Failures = failureCapabilities },
                 new UnavailableTelemetryProvider(_timeProvider),
                 failures);
@@ -196,7 +196,7 @@ public sealed class FenixAircraftProvider : IAircraftProvider
             systems);
         return new AircraftSession(
             ProviderId,
-            identity,
+            identity.Get,
             new AircraftCapabilities { Telemetry = sections, Failures = failureCapabilities },
             telemetry,
             failures);

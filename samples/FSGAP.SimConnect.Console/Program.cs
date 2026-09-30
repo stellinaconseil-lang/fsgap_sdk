@@ -28,6 +28,7 @@ using FSGAP.Abstractions.Geography;
 using FSGAP.Abstractions.Simulator;
 using FSGAP.Abstractions.Telemetry;
 using FSGAP.Core.Resolution;
+using FSGAP.Core.Sessions;
 using FSGAP.Fenix;
 using FSGAP.Synaptic;
 using FSGAP.SimConnect;
@@ -130,6 +131,8 @@ if (qualify)
 var connectedCount = 0;
 var sessionsOpened = 0;
 var sessionsDisposed = 0;
+var metadataUpdates = 0;
+AircraftDescriptor? lastDescribed = null;
 IAircraftSession? session = null;
 (string Source, ITelemetryProvider Provider) shown = ("generic", simulator.Telemetry);
 CancellationTokenSource? synapticProbeStop = null;
@@ -177,6 +180,19 @@ Print("sample", $"final status: {simulator.Status.State}");
 
 async Task DescribeAsync(AircraftDescriptor? aircraft)
 {
+    // Same loaded aircraft, new metadata (typically the ATC ID): keep the session; its identity follows.
+    var previous = lastDescribed;
+    lastDescribed = aircraft;
+    if (qualify && aircraft is not null && previous is not null && AircraftContinuity.IsSameLoadedAircraft(previous, aircraft))
+    {
+        metadataUpdates++;
+        Print("msfs", $"metadata update (same aircraft): AtcId '{previous.Registration}' -> '{aircraft.Registration}'");
+        Print("session", session is null
+            ? $"kept: no session (metadata updates {metadataUpdates})"
+            : $"kept {session.ProviderId} session: Registration='{session.Identity.Registration}' RegistrationSource={session.Identity.RegistrationSource?.ToString() ?? "null"} (metadata updates {metadataUpdates})");
+        return;
+    }
+
     if (session is not null)
     {
         var old = session;
@@ -317,7 +333,7 @@ async Task PrintCountersAsync(CancellationToken cancellationToken)
             var s = reader!.SynapticReads;
             var o = reader.OtherReads;
             Print("counters", string.Create(CultureInfo.InvariantCulture,
-                $"shown={shown.Source} a22xReads={s} (+{(s - lastSynaptic) / seconds:F2}/s, {reader.SynapticVariables} vars) otherProviderReads={o} (+{(o - lastOther) / seconds:F2}/s, {reader.OtherVariables} vars) efbCalls={efb!.Calls} connections={connectedCount} status={simulator.Status.State} sessions opened={sessionsOpened} disposed={sessionsDisposed}"));
+                $"shown={shown.Source} a22xReads={s} (+{(s - lastSynaptic) / seconds:F2}/s, {reader.SynapticVariables} vars) otherProviderReads={o} (+{(o - lastOther) / seconds:F2}/s, {reader.OtherVariables} vars) efbCalls={efb!.Calls} connections={connectedCount} status={simulator.Status.State} sessions opened={sessionsOpened} disposed={sessionsDisposed} metadataUpdates={metadataUpdates}"));
             (lastSynaptic, lastOther, last) = (s, o, now);
         }
     }
