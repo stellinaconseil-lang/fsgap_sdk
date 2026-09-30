@@ -13,7 +13,8 @@ write to the aircraft (no LVAR write, no H-Event, no K-Event), no change to FSHA
 
 > **BLOCK 10B.2 note.** The provider built from this audit now exists: `FSGAP.Synaptic`
 > ([synaptic-a220.md](../synaptic-a220.md)), automated qualification only. Two deliberate departures from §7.3/§9:
-> `L:A22X APU Switch` = 1 (never observed live) maps to Unknown instead of "on", and
+> `L:A22X APU Switch` = 1 (never observed live) maps to Unknown instead of "on" (BLOCK 10B.3 then observed 1 at RUN;
+> 0.10.0-preview.3 maps 1 and 2 to on), and
 > `LandingGear.AntiskidActive` is **not** masked (inconclusive, not proven wrong). Master alerts are deferred: no
 > existing contract field maps cleanly. The audit text below is unchanged.
 FSGAP stays 0.9.0. The block numbering follows the FSGAP BLOCK series; it is unrelated to the "BLOCK 10 — FLIPPP

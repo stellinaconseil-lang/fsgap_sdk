@@ -114,9 +114,10 @@ public class TelemetryTests
     [Theory]
     [InlineData(0.0, "false")]
     [InlineData(2.0, "true")]
-    [InlineData(1.0, "unknown")] // documented "Run", never observed live: not trusted
+    [InlineData(1.0, "true")] // selector at RUN, observed live in BLOCK 10B.3
+    [InlineData(0.5, "unknown")]
     [InlineData(3.0, "unknown")]
-    public void The_apu_switch_only_says_off_or_not_off_as_proven_live(double raw, string expected)
+    public void The_apu_switch_only_says_off_or_not_off(double raw, string expected)
     {
         var value = SynapticSystemMapper.ApuSwitchOn(raw, At);
 

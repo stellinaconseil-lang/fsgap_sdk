@@ -1,6 +1,6 @@
 # FSGAP.Synaptic — Synaptic Simulations A220-300 provider
 
-Status: **0.10.0-preview.2**, automated qualification only (BLOCK 10B.2). Live qualification is BLOCK 10B.3.
+Status: **0.10.0-preview.3**: automated qualification (BLOCK 10B.2), live qualification (BLOCK 10B.3, results below), APU switch fix.
 The evidence behind every choice below is in [audits/synaptic-a220-discovery.md](audits/synaptic-a220-discovery.md)
 (variables, BLOCK 10A-LIVE sessions) and [audits/synaptic-a220-livery-discovery.md](audits/synaptic-a220-livery-discovery.md)
 (liveries and registrations, BLOCK 10A.5).
@@ -103,9 +103,9 @@ One group of 6 variables, read every 2 s (≈ 0.5 read/s) on the shared reader:
 | Variable | Raw | Normalized |
 |---|---|---|
 | `L:A22X L Boost Pump`, `L:A22X R Boost Pump` | 0 / 1 / 2 / other | `FuelPumps[left/right]`: `Mode` Off / Auto / On / Unknown; `IsOn` false / **Unavailable** / true / Unknown (AUTO is never flattened to on or off); `Fault` Unavailable |
-| `L:A22X APU Switch` | 0 / 2 / other | `Apu.MasterSwitchOn` false / true / Unknown. `1` (documented "Run", never seen live) is **Unknown**. No selector mode. |
+| `L:A22X APU Switch` | 0 / 1 / 2 / other | `Apu.MasterSwitchOn` false / true / true / Unknown (1 = selector at RUN, 2 = after a held START; both seen live in BLOCK 10B.3). No selector mode. |
 | `L:A22X APU Bleed Off` | 0 / 1 / other | `Apu.BleedOn` (selection) true / false / Unknown. Not bleed flow. |
-| `L:A22X L Eng Fire`, `L:A22X R Eng Fire` | 0 / 1 / other | `Engines[1/2].FireHandlePulled` false / true / Unknown. `FireDetected`, `FireWarningLit` stay Unavailable. |
+| `L:A22X L Eng Fire`, `L:A22X R Eng Fire` | 0 / 1 / other | `Engines[1/2].FireHandlePulled` false / true / Unknown, meaning "engine fire control activated": the variable is a latched state that stays 1 after the momentary pushbutton is released, until the aircraft is reloaded (BLOCK 10B.3). `FireDetected`, `FireWarningLit` stay Unavailable. |
 
 `Apu.Available` and `Apu.Running` stay Unavailable (no readable source).
 
@@ -140,7 +140,7 @@ None. Capabilities declare `FailureCapabilities.None`; `Failures` is `Unsupporte
 
 ## Tests
 
-`tests/FSGAP.Synaptic.Tests` (103 tests): recognition and look-alikes, identity, registration parser and precedence,
+`tests/FSGAP.Synaptic.Tests` (104 tests): recognition and look-alikes, identity, registration parser and precedence,
 policy mask and pass-through, overlay mapping (all pump values, APU, fire, unexpected values), composition (replaced,
 stale), sessions (capabilities, `FailureCapabilities.None`, read cadence, stop on dispose and on aircraft change,
 expiry on read failure), catalog (fixture, dedupe, learn, cache roundtrip, corrupt cache, refresh failure), the
@@ -162,7 +162,7 @@ LFKJ → LFMN (ILS 04L). Nothing was written to the aircraft; no AI object was c
 | Enumeration / catalog | 15 815 rows, 24 A220 preset rows (2 unnamed) → 11 logical liveries in ~55 ms + ~45 ms; House/White listed without registration |
 | Cache restart | 3 learned liveries reloaded with folder, registration, source and last-observed time |
 | Fuel pumps | both pumps OFF / AUTO / ON: `Off`/false, `Auto`/Unavailable, `On`/true |
-| APU switch | raw 0 = OFF; **1 observed** (selector RUN after a brief START, 1 min 45 s); 2 after a held START, kept while the APU runs (spring-loaded START does not bring it back to 1). Production maps 1 → Unknown (see open points) |
+| APU switch | raw 0 = OFF; **1 observed** (selector RUN after a brief START, 1 min 45 s); 2 after a held START, kept while the APU runs (spring-loaded START does not bring it back to 1). 0.10.0-preview.3 maps 1 and 2 to `MasterSwitchOn = true` |
 | APU bleed | raw 1/0 ↔ selection off/on; generic `PNEUMATICS APU BLEED AIR` false throughout (mask confirmed) |
 | Engine fire pushbuttons | raw 0 → 1 on press, exposed as `FireHandlePulled`; the value **stays 1** after the momentary pushbutton is released (latched logical state), reset only by reloading the aircraft |
 | Generic pass-through | position, altitude, IAS/GS/VS, heading, attitude, G, weight, N1/N2/EGT (within 0.6 % / 0.5 % / 6 °C of the EICAS), throttle, gear handle and units (retraction 14 s, extension 14 s), flap handle and trailing-edge surfaces (FLAP 1 = slats only → 0 %, FULL → 100 %), speed brake / ground spoilers (99 %), brakes (100/100), steering, touchdown VS (−631 ft/min at LFMN), overspeed warning (N → Y at 355 kt, cockpit clacker heard) |
@@ -173,6 +173,6 @@ LFKJ → LFMN (ILS 04L). Nothing was written to the aircraft; no AI object was c
 | Switching | Synaptic → Fenix → Synaptic live: old session disposed each time, A22X reads stop at disposal, Fenix reads stop at disposal, Fenix failure provider (40 keys) returns on the Fenix |
 | Connection / cost | 1 native connection throughout; overlay 6 variables, one group, 0.47–0.50 read/s |
 
-Open points (not changed in 10B.3): `APU Switch` = 1 should read `MasterSwitchOn = true` (selector at RUN); the
-engine fire variable is a latched state rather than the pushbutton position; master caution/warning, cabin altitude
+Follow-up in 0.10.0-preview.3: `APU Switch` = 1 now reads `MasterSwitchOn = true`; the engine fire mapping is
+unchanged and documented as a latched "fire control activated" state. Still open: master caution/warning, cabin altitude
 and ELT alerts are not exposed (no contract field).

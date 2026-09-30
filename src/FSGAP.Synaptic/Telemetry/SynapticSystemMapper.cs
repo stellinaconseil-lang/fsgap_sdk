@@ -29,6 +29,8 @@ internal static class SynapticSystemMapper
             ],
             ApuMasterSwitchOn = ApuSwitchOn(At(SynapticVariables.Index.ApuSwitch), observedAt),
             ApuBleedSelectedOn = BleedSelectedOn(At(SynapticVariables.Index.ApuBleedOff), observedAt),
+            // Latched logical state, not the pushbutton position: BLOCK 10B.3 saw 0 → 1 on press and 1 kept after the
+            // momentary pushbutton was released, until the aircraft was reloaded ("engine fire control activated").
             EngineFirePushbuttons =
             [
                 (1, Discrete(At(SynapticVariables.Index.LeftEngineFire), observedAt)),
@@ -54,14 +56,15 @@ internal static class SynapticSystemMapper
     }
 
     /// <summary>
-    /// APU switch, reduced to what the live evidence proves: 0 is off; 2 is a non-off position (seen for hours while
-    /// the APU ran). The documented 1 ("Run") was never observed, so it is Unknown rather than trusted; so is anything
-    /// else. No detailed selector mode is exposed.
+    /// APU switch, reduced to "selected on or not": 0 is OFF; 1 and 2 are both non-off positions. BLOCK 10B.3 saw 1
+    /// with the selector at RUN (after a brief START) and 2 after a held START, kept while the APU runs even once the
+    /// spring-loaded START has returned to RUN; which of 1/2 means what is not relied on, so no selector mode is
+    /// exposed. Anything else is Unknown.
     /// </summary>
     internal static TelemetryValue<bool> ApuSwitchOn(double raw, DateTimeOffset observedAt) => raw switch
     {
         0.0 => TelemetryValue<bool>.Known(false, observedAt),
-        2.0 => TelemetryValue<bool>.Known(true, observedAt),
+        1.0 or 2.0 => TelemetryValue<bool>.Known(true, observedAt),
         _ => TelemetryValue<bool>.Unknown,
     };
 
