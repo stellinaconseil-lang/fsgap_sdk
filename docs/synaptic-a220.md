@@ -146,3 +146,33 @@ stale), sessions (capabilities, `FailureCapabilities.None`, read cadence, stop o
 expiry on read failure), catalog (fixture, dedupe, learn, cache roundtrip, corrupt cache, refresh failure), the
 Fenix + Synaptic registry (both registration orders, ambiguity, generic vs dedicated), switching
 Fenix → Synaptic → Fenix → unsupported → Fenix on one shared reader, and architecture scans.
+
+## Live qualification (BLOCK 10B.3, 2026-09-30)
+
+Production providers only, through `samples/FSGAP.SimConnect.Console --qualify <dir>`: Fenix and Synaptic in one
+`AircraftProviderRegistry` on one `SimConnectSimulator`, with a pass-through reader counting A22X vs other reads, the
+raw A22X values as the provider received them, and an EFB request counter. MSFS 2024, LFKJ parking, then a flight
+LFKJ → LFMN (ILS 04L). Nothing was written to the aircraft; no AI object was created.
+
+| Area | Live result |
+|---|---|
+| Detection | `A220-300` and `A220-300 - No Cabin`, ATC MODEL `A220-300`, ATC TYPE `223`; registry `Resolved` to `synaptic` alone every time; Fenix A320 resolved to `fenix` alone |
+| Identity | as specified; Variant/Wingtip/Operator null |
+| Registration | Air France F-HZUF, Air Baltic YL-CSM, Delta N324DU, all `Derived`; the ATC ID changed during loads (C-FFCO, I-OVTU, empty) and was never used |
+| Enumeration / catalog | 15 815 rows, 24 A220 preset rows (2 unnamed) → 11 logical liveries in ~55 ms + ~45 ms; House/White listed without registration |
+| Cache restart | 3 learned liveries reloaded with folder, registration, source and last-observed time |
+| Fuel pumps | both pumps OFF / AUTO / ON: `Off`/false, `Auto`/Unavailable, `On`/true |
+| APU switch | raw 0 = OFF; **1 observed** (selector RUN after a brief START, 1 min 45 s); 2 after a held START, kept while the APU runs (spring-loaded START does not bring it back to 1). Production maps 1 → Unknown (see open points) |
+| APU bleed | raw 1/0 ↔ selection off/on; generic `PNEUMATICS APU BLEED AIR` false throughout (mask confirmed) |
+| Engine fire pushbuttons | raw 0 → 1 on press, exposed as `FireHandlePulled`; the value **stays 1** after the momentary pushbutton is released (latched logical state), reset only by reloading the aircraft |
+| Generic pass-through | position, altitude, IAS/GS/VS, heading, attitude, G, weight, N1/N2/EGT (within 0.6 % / 0.5 % / 6 °C of the EICAS), throttle, gear handle and units (retraction 14 s, extension 14 s), flap handle and trailing-edge surfaces (FLAP 1 = slats only → 0 %, FULL → 100 %), speed brake / ground spoilers (99 %), brakes (100/100), steering, touchdown VS (−631 ft/min at LFMN), overspeed warning (N → Y at 355 kt, cockpit clacker heard) |
+| Masked fields | fuel flow, oil temperature and pressure, cabin altitude and rate: EICAS showed 200 kg/h, 117 °C, 108–122 psi, CAB ALT 6 500 ft; FSGAP Unavailable as designed |
+| Antiskid | false through two maximum-braking roll-outs: still unproven (no skid evidence), not masked |
+| Reverse | not tested (reverse could not be selected) |
+| Failures | `FailureCapabilities.None`, `UnsupportedFailureProvider`; 0 EFB requests during the whole session |
+| Switching | Synaptic → Fenix → Synaptic live: old session disposed each time, A22X reads stop at disposal, Fenix reads stop at disposal, Fenix failure provider (40 keys) returns on the Fenix |
+| Connection / cost | 1 native connection throughout; overlay 6 variables, one group, 0.47–0.50 read/s |
+
+Open points (not changed in 10B.3): `APU Switch` = 1 should read `MasterSwitchOn = true` (selector at RUN); the
+engine fire variable is a latched state rather than the pushbutton position; master caution/warning, cabin altitude
+and ELT alerts are not exposed (no contract field).
