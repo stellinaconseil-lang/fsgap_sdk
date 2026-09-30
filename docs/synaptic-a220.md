@@ -1,6 +1,6 @@
 # FSGAP.Synaptic — Synaptic Simulations A220-300 provider
 
-Status: **0.10.0-rc.1** (same code as preview.5; accepted by Jean on 2026-09-30 with the two open points below): automated qualification (BLOCK 10B.2), live qualification (BLOCK 10B.3, results below), APU switch fix (preview.3), session continuity across ATC ID changes (preview.4), reverser masked (preview.5).
+Status: **0.10.0** (released from the 0.10.0-rc.1 code, accepted on 2026-09-30 with the open points below): automated qualification (BLOCK 10B.2), live qualification (BLOCK 10B.3, results below), APU switch fix (preview.3), session continuity across ATC ID changes (preview.4), reverser masked (preview.5).
 The evidence behind every choice below is in [audits/synaptic-a220-discovery.md](audits/synaptic-a220-discovery.md)
 (variables, BLOCK 10A-LIVE sessions) and [audits/synaptic-a220-livery-discovery.md](audits/synaptic-a220-livery-discovery.md)
 (liveries and registrations, BLOCK 10A.5).
@@ -206,6 +206,6 @@ across ATC ID changes validated live in 10B.3C (4 emissions, 3 ATC-ID-only, 1 se
 validated and documented as a latched state; reverser masked (preview.5); antiskid **STILL_UNPROVEN**; master alerts
 deferred; failures None; MSFS disconnect/reconnect not tested live.
 
-**Accepted for 0.10.0-rc.1 without live evidence:** the full forward → reverse → forward sequence with the reverser
+**Accepted for 0.10.0 without live evidence:** the full forward → reverse → forward sequence with the reverser
 masked (only a held reverse was observed: generic false, normalized Unavailable), and an MSFS disconnect/reconnect
 with the harness running (covered by automated lifecycle tests only).

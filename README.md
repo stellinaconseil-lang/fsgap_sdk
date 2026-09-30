@@ -1,6 +1,7 @@
 # FSGAP_SDK
 
-Version 0.9.0. It provides:
+Version 0.10.0, the first multi-provider release: Fenix A319/A320/A321 (`FSGAP.Fenix`) and Synaptic A220-300
+(`FSGAP.Synaptic`), side by side on one simulator connection. It provides:
 
 - contracts for aircraft providers, telemetry and failures;
 - normalized failure keys;
@@ -22,14 +23,17 @@ Version 0.9.0. It provides:
   applications use today), trigger, clear and read of the active failures, never exposing a Fenix id;
 - **a simulator airport service** (`IAirportService`): the nearest airports to any coordinate, from the simulator's own
   facility list, on the same single connection;
-- **installed aircraft liveries** (`IInstalledLiveryService`, 0.10 preview): every (aircraft title, livery name) pair
+- **installed aircraft liveries** (`IInstalledLiveryService`, 0.10.0): every (aircraft title, livery name) pair
   MSFS 2024 can load, including streamed marketplace content, on the same single connection;
-- **fuel pump mode** (0.10 preview): `FuelPumpTelemetry.Mode` (`Off` / `Auto` / `On`) next to the binary `IsOn`;
-- **Synaptic A220-300 provider** (`FSGAP.Synaptic`, 0.10 preview, automated qualification only): strict recognition,
-  normalized identity with a conservative registration and its source, the generic telemetry with the values known to
-  be wrong masked plus boost pump modes, APU switch and bleed selection and engine fire pushbuttons, a catalog of the
-  installed A220 liveries from the simulator enumeration, no failures. It is registered next to the Fenix provider;
-  the registry picks the provider per loaded aircraft (see `docs/synaptic-a220.md`).
+- **fuel pump mode** (0.10.0): `FuelPumpTelemetry.Mode` (`Off` / `Auto` / `On`) next to the binary `IsOn`;
+- **Synaptic A220-300 provider** (`FSGAP.Synaptic`, 0.10.0): strict recognition, normalized identity with a
+  conservative registration and its source, the generic telemetry with the values known to be wrong masked plus boost
+  pump modes, APU switch and bleed selection and engine fire pushbuttons, a catalog of the installed A220 liveries from
+  the simulator enumeration. It is registered next to the Fenix provider; the registry picks the provider per loaded
+  aircraft, and a session survives ATC ID changes (see `docs/synaptic-a220.md`). Known limitations in 0.10.0:
+  failures are not supported (`FailureCapabilities.None`); `ReverserEngaged` is deliberately Unavailable (the generic
+  MSFS value was proven false); antiskid is not qualified; master warning/caution are not exposed; an MSFS
+  disconnect/reconnect was not qualified live.
 
 Parking search, flight loading, the APU operating state and the electrical buses are not implemented yet. 0.9.0 closes
 the generic telemetry gaps that blocked moving FSHANGAR onto FSGAP; that migration is the next step. See
@@ -211,6 +215,7 @@ dotnet run --project samples/FSGAP.SimConnect.Console -- --minutes 1
 ```
 
 `dotnet pack` produces versioned NuGet packages (`FSGAP.Abstractions`, `FSGAP.Core`, `FSGAP.Fenix`,
-`FSGAP.Synaptic`, `FSGAP.SimConnect`) in `artifacts/packages/` (preview versions in `artifacts/preview-packages/`; the build refuses to overwrite a
-package or to produce 0.9.0 again). Applications will consume them from a package feed with a pinned version (see
+`FSGAP.Synaptic`, `FSGAP.SimConnect`): final versions in `artifacts/releases/<version>/`, pre-release versions in
+`artifacts/preview-packages/`. `artifacts/packages/` holds the immutable 0.9.0 packages; the build refuses to overwrite
+any package or to produce 0.9.0 again. Applications will consume them from a package feed with a pinned version (see
 `docs/decisions/0003-nuget-distribution.md`). Nothing is published yet.

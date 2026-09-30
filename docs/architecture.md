@@ -1,6 +1,6 @@
 # FSGAP_SDK architecture
 
-This document records the principles FSGAP_SDK is built on, the current design (version 0.9.0) and targets that are
+This document records the principles FSGAP_SDK is built on, the current design (version 0.10.0) and targets that are
 planned but not implemented. Individual decisions are recorded as ADRs in [decisions/](decisions/README.md). The
 BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 
@@ -8,11 +8,11 @@ BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 
 | Assembly | Role | Depends on | Status |
 |---|---|---|---|
-| `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.9.0 |
-| `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.9.0 |
-| `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321: recognition, normalized identity, installed livery catalog ([details](fenix-identity-and-catalog.md)), generic-telemetry policy and system telemetry ([details](fenix-system-telemetry.md)), failures through the EFB ([details](fenix-failures.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.9.0 |
-| `FSGAP.Synaptic` | Provider for the Synaptic Simulations A220-300: recognition, normalized identity, generic-telemetry policy and a 6-variable overlay, installed livery catalog from the simulator enumeration, no failures ([details](synaptic-a220.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.10.0-preview.2 |
-| `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)), generic telemetry ([details](generic-telemetry.md)), batched variable reader, airport service ([details](simulator-airport-service.md)) | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.9.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
+| `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.10.0 |
+| `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.10.0 |
+| `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321: recognition, normalized identity, installed livery catalog ([details](fenix-identity-and-catalog.md)), generic-telemetry policy and system telemetry ([details](fenix-system-telemetry.md)), failures through the EFB ([details](fenix-failures.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.10.0 |
+| `FSGAP.Synaptic` | Provider for the Synaptic Simulations A220-300: recognition, normalized identity, generic-telemetry policy and a 6-variable overlay, installed livery catalog from the simulator enumeration, no failures ([details](synaptic-a220.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.10.0 |
+| `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)), generic telemetry ([details](generic-telemetry.md)), batched variable reader, airport service ([details](simulator-airport-service.md)) | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.10.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
 
 ```text
 FSGAP.Abstractions  <-  FSGAP.Core  <-  FSGAP.Fenix
@@ -426,9 +426,11 @@ Tests pin the version and the signatures. Parking and `FlightLoad` are still to 
 - All projects target `net8.0`, with nullable reference types and implicit usings.
 - Warnings are treated as errors.
 - XML documentation is generated and required for every public member.
-- The single version, **0.4.0**, is defined in `Directory.Build.props`.
+- The single version, **0.10.0**, is defined in `Directory.Build.props`.
 - NuGet versions are pinned centrally in `Directory.Packages.props`.
-- `dotnet pack` writes versioned packages to `artifacts/packages/`.
+- `dotnet pack` writes final versions to `artifacts/releases/<version>/` and pre-release versions to
+  `artifacts/preview-packages/`; `artifacts/packages/` keeps the immutable 0.9.0 packages. `Directory.Build.targets`
+  refuses to pack 0.9.0, to overwrite a package, or to shadow one of `artifacts/packages/`.
 - Applications will consume them from a feed (GitHub Packages planned) with an explicitly pinned version. They
   never copy DLLs or sources ([ADR 0003](decisions/0003-nuget-distribution.md)).
 - Nothing is published yet.
