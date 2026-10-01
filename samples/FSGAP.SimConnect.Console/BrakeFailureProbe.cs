@@ -6,9 +6,9 @@
 // exactly ONE toggle. It never writes a SimVar, an L:var or Wear & Tear. Not a failure provider.
 //
 // Commands (stdin): fail L|R|T, verified L|R, note <text>, wt, status, quit.
-// Gates before any transmission: Synaptic A220 title, SIM ON GROUND, ground speed < 1 kt, no other toggle active, at most
-// two transmissions per event per run (inject + restore), T only after L and R were both restored AND verified by the
-// pilot, and only with the parking brake set.
+// Gates before an inject: Synaptic A220 title, SIM ON GROUND, ground speed < 1 kt, no other toggle active, at most two
+// transmissions per event per run (inject + restore), T only after L and R were both restored AND verified by the pilot,
+// and only with the parking brake set. A restore (the same toggle again) is only gated on the aircraft title.
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
@@ -290,9 +290,12 @@ internal static class BrakeFailureProbe
                 count = transmissions[eventName];
                 var otherActive = transmissions.Any(t => t.Key != eventName && t.Value % 2 == 1);
                 var title = simulator.AircraftDetector.Current?.Title ?? string.Empty;
+                // A restore (odd count: this failure is active) is a safety action: never gated on ground state or speed.
+                var restoring = count % 2 == 1;
                 refusal =
                     !LiveryDiscoveryAnalysis.IsSynapticA220(title) ? $"loaded aircraft '{title}' is not the Synaptic A220"
                     : values is null ? "no telemetry yet"
+                    : restoring ? null
                     : Value(values, "on_ground") < 0.5 ? "SIM ON GROUND is false"
                     : Value(values, "gs_kt") >= MaxTransmitGroundSpeedKnots ? $"ground speed {Value(values, "gs_kt"):0.0} kt: stop the aircraft first"
                     : otherActive ? "another brake failure is still active: restore it first"
