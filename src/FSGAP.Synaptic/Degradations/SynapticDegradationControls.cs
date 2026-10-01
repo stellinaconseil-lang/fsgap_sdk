@@ -1,12 +1,19 @@
 using FSGAP.Abstractions.Degradations;
 using FSGAP.Abstractions.Simulator;
+using FSGAP.Synaptic.Systems;
 
 namespace FSGAP.Synaptic.Degradations;
 
-/// <summary>One qualified control: the public descriptor and its private A22X mapping (variable, normal and degraded values).</summary>
-internal sealed record SynapticDegradationControl(DegradationDescriptor Descriptor, SimulatorVariable Variable, double Normal, double Degraded)
+/// <summary>One public controlled degradation: its descriptor and the registry control it forces (see <see cref="SynapticControls"/>).</summary>
+internal sealed record SynapticDegradationControl(DegradationDescriptor Descriptor, SynapticControl Control)
 {
     public DegradationKey Key => Descriptor.Key;
+
+    public SimulatorVariable Variable => Control.Variable;
+
+    public double Normal => Control.Normal!.Value;
+
+    public double Degraded => Control.Degraded;
 
     /// <summary>Restoration writes the qualified normal value.</summary>
     public double Restore => Normal;
@@ -14,17 +21,11 @@ internal sealed record SynapticDegradationControl(DegradationDescriptor Descript
 
 /// <summary>
 /// The controlled degradations qualified live on the Synaptic A220 (BLOCK 10C.3, 2026-10-01, ground only, one at a time):
-/// four documented A22X cockpit controls written with explicit set values and read back. Nothing else is ever written.
+/// four registry controls (<see cref="SynapticControls"/>) written with explicit set values and read back. The public
+/// degradation catalog stays limited to these four; the failure recipes may use other registry controls.
 /// </summary>
-/// <remarks>
-/// Deliberately absent: <c>Hyd 1 SOV</c> (value semantics unresolved: documented "selected on", normal reads 0), circuit
-/// breakers (no documented mapping or reset), probe heat (a ground-test pulse, not a switch), engine fire pushbuttons
-/// (latched until the aircraft is reloaded), native simulator failures, and the symmetric counterparts not yet qualified.
-/// </remarks>
 internal static class SynapticDegradationControls
 {
-    private const string LocalUnit = "number";
-
     private const DegradationOperations All = DegradationOperations.Apply | DegradationOperations.Restore | DegradationOperations.ReadState;
 
     internal static readonly IReadOnlyList<SynapticDegradationControl> Controls =
@@ -40,9 +41,7 @@ internal static class SynapticDegradationControls
                 Category = DegradationCategory.Electrical,
                 Operations = All,
             },
-            new SimulatorVariable("L:A22X L Gen Off", LocalUnit),
-            Normal: 0,
-            Degraded: 1),
+            SynapticControls.LeftGeneratorOff),
         new(
             new DegradationDescriptor
             {
@@ -54,9 +53,7 @@ internal static class SynapticDegradationControls
                 Category = DegradationCategory.Hydraulic,
                 Operations = All,
             },
-            new SimulatorVariable("L:A22X ACMP 3A", LocalUnit),
-            Normal: 1,
-            Degraded: 0),
+            SynapticControls.HydraulicPump3A),
         new(
             new DegradationDescriptor
             {
@@ -67,9 +64,7 @@ internal static class SynapticDegradationControls
                 Category = DegradationCategory.AirConditioning,
                 Operations = All,
             },
-            new SimulatorVariable("L:A22X L Pack Off", LocalUnit),
-            Normal: 0,
-            Degraded: 1),
+            SynapticControls.LeftPackOff),
         new(
             new DegradationDescriptor
             {
@@ -80,9 +75,7 @@ internal static class SynapticDegradationControls
                 Category = DegradationCategory.FlightControls,
                 Operations = All,
             },
-            new SimulatorVariable("L:A22X PFCC 1 Off", LocalUnit),
-            Normal: 0,
-            Degraded: 1),
+            SynapticControls.Pfcc1Off),
     ];
 
     internal static readonly DegradationCatalog Catalog = new(Controls.Select(c => c.Descriptor));

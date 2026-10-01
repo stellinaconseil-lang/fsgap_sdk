@@ -3,6 +3,7 @@ using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Capabilities;
 using FSGAP.Abstractions.Configuration;
 using FSGAP.Abstractions.Degradations;
+using FSGAP.Abstractions.Failures;
 using FSGAP.Abstractions.Simulator;
 using FSGAP.Abstractions.Telemetry;
 using FSGAP.Core.Degradations;
@@ -11,7 +12,9 @@ using FSGAP.Core.Sessions;
 using FSGAP.Core.Telemetry;
 using FSGAP.Synaptic.Degradations;
 using FSGAP.Synaptic.Detection;
+using FSGAP.Synaptic.Failures;
 using FSGAP.Synaptic.Identity;
+using FSGAP.Synaptic.Systems;
 using FSGAP.Synaptic.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -35,8 +38,11 @@ namespace FSGAP.Synaptic;
 /// simulator's single connection.
 /// </para>
 /// <para>
-/// <b>No failures.</b> The A220 documents no external failure interface; sessions declare
-/// <see cref="FailureCapabilities.None"/> and every command answers <c>NotSupported</c>.
+/// <b>Failures (0.12).</b> Given a variable writer on the same connection, sessions expose the same 40 normalized failure
+/// keys as the Fenix provider. The A220 documents no failure interface, so each executable key is realized by forcing
+/// documented cockpit controls into a degraded configuration (17 keys; validated, assumed or approximated recipes); keys
+/// with no documented control are listed with no operation. No native simulator failure event is used. Without a writer,
+/// <see cref="FailureCapabilities.None"/>.
 /// </para>
 /// <para>
 /// <b>Controlled degradations.</b> Given a variable writer on the same connection, sessions also offer four controlled
@@ -158,21 +164,28 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
                 staleAfter),
             overlay);
 
-        // Controlled degradations need both directions on the same connection; never a write without a read-back.
+        // Degradations and failures need both directions on the same connection; never a write without a read-back. They
+        // share one board (one owner per control, conflicts detected across both); the failure provider, disposed last by
+        // AircraftSession, disposes it.
         IDegradationProvider degradations = UnsupportedDegradationProvider.Instance;
         var degradationCapabilities = DegradationCapabilities.None;
+        IFailureProvider failures = UnsupportedFailureProvider.Instance;
+        var failureCapabilities = FailureCapabilities.None;
         if (_simulatorVariables is not null && _simulatorVariableWriter is not null)
         {
-            degradations = new SynapticDegradationProvider(_simulatorVariables, _simulatorVariableWriter, _aircraftDetector, aircraft, _logger);
+            var board = new SynapticControlBoard(_simulatorVariables, _simulatorVariableWriter, _aircraftDetector, aircraft, _logger);
+            degradations = new SynapticDegradationProvider(board, ownsBoard: false);
             degradationCapabilities = SynapticDegradationProvider.Capabilities;
+            failures = new SynapticFailureProvider(board, ownsBoard: true);
+            failureCapabilities = SynapticFailureProvider.Capabilities;
         }
 
         return Task.FromResult<IAircraftSession>(new AircraftSession(
             ProviderId,
             identity.Get,
-            new AircraftCapabilities { Telemetry = sections, Failures = FailureCapabilities.None, Degradations = degradationCapabilities },
+            new AircraftCapabilities { Telemetry = sections, Failures = failureCapabilities, Degradations = degradationCapabilities },
             telemetry,
-            UnsupportedFailureProvider.Instance,
+            failures,
             degradations));
     }
 

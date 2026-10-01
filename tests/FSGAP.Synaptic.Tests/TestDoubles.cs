@@ -190,12 +190,22 @@ internal sealed class FakeVariableWriter(FakeVariableReader reader) : ISimulator
 
     public bool Ignore { get; set; }
 
+    /// <summary>When set, writes succeed this many times, then every write throws <see cref="FailAfterWith"/>.</summary>
+    public int? FailAfter { get; set; }
+
+    public Exception FailAfterWith { get; set; } = new InvalidOperationException("The simulator is not connected.");
+
     public Task WriteAsync(SimulatorVariable variable, double value, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (Failure is { } failure)
         {
             return Task.FromException(failure);
+        }
+
+        if (FailAfter is { } limit && Writes.Count >= limit)
+        {
+            return Task.FromException(FailAfterWith);
         }
 
         Writes.Enqueue((variable, value));

@@ -14,7 +14,7 @@ namespace FSGAP.Synaptic.Tests;
 /// <summary>BLOCK 11.0: the four controlled degradations qualified live on the Synaptic A220 (BLOCK 10C.3).</summary>
 public class DegradationTests
 {
-    private static readonly SynapticDegradationProvider.Timing Fast = new(TimeSpan.FromMilliseconds(60), TimeSpan.FromMilliseconds(5), TimeSpan.FromSeconds(2));
+    private static readonly FSGAP.Synaptic.Systems.SynapticControlBoard.Timing Fast = new(TimeSpan.FromMilliseconds(60), TimeSpan.FromMilliseconds(5), TimeSpan.FromSeconds(2));
 
     private static readonly DegradationKey Generator = DegradationKey.Parse("electrical.generator.1.forced-off");
     private static readonly DegradationKey Pump = DegradationKey.Parse("hydraulic.system-3.electric-pump-a.forced-off");
@@ -383,7 +383,7 @@ public class DegradationTests
     // -- Provider and session surface ------------------------------------------------------------------------------------
 
     [Fact]
-    public async Task A_synaptic_session_offers_degradations_and_still_no_failure()
+    public async Task A_synaptic_session_offers_degradations_and_the_normalized_failures()
     {
         var reader = new FakeVariableReader();
         reader.Values["L:A22X ACMP 3A"] = 1;
@@ -392,10 +392,10 @@ public class DegradationTests
 
         await using var session = await provider.AttachAsync(Descriptors.AirFrance);
 
-        Assert.Same(FailureCapabilities.None, session.Capabilities.Failures);
-        Assert.Same(UnsupportedFailureProvider.Instance, session.Failures);
-        Assert.False(session.Capabilities.Failures.CanTriggerAny);
-        Assert.Equal(FailureCommandStatus.NotSupported, (await session.Failures.TriggerAsync(new FailureCommand(FailureKey.Parse("electrical.generator.1")))).Status);
+        // BLOCK 11.2: failures are no longer None on a Synaptic session with a writer.
+        Assert.Equal(40, session.Capabilities.Failures.Catalog.Count);
+        Assert.True(session.Capabilities.Failures.CanReadActiveFailures);
+        Assert.IsNotType<UnsupportedFailureProvider>(session.Failures);
         Assert.Equal(4, session.Capabilities.Degradations.Catalog.Count);
         Assert.Equal(1, session.Capabilities.Degradations.MaxActive);
         Assert.IsNotType<UnsupportedDegradationProvider>(session.Degradations);
