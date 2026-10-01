@@ -121,6 +121,15 @@ None. Capabilities declare `FailureCapabilities.None`; `Failures` is `Unsupporte
 `NotSupported`, reading active failures throws `NotSupportedException` as `CanReadActiveFailures` is false).
 `FSGAP.Synaptic` contains no `IFailureProvider`.
 
+## Controlled degradations (0.11.0-preview.1)
+
+Distinct from failures (see [controlled-degradations.md](controlled-degradations.md)). When the provider is given an
+`ISimulatorVariableWriter` (the same `SimConnectSimulator`) in addition to the variable reader, sessions declare four
+controlled degradations qualified live on the ground (BLOCK 10C.3): generator 1, hydraulic pump 3A, pack 1 and PFCC 1
+forced off. Explicit set values on four documented A22X controls, read before write, read back before success, one
+active at a time, restored on dispose only when the session applied them. `FailureCapabilities` stay `None`. Without a
+writer, `DegradationCapabilities.None`.
+
 ## Installed-aircraft catalog
 
 `SynapticInstalledAircraftCatalog` (`IInstalledAircraftCatalog`):

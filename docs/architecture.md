@@ -154,10 +154,20 @@ A snapshot can be shared across threads and consumers safely ([ADR 0007](decisio
 ### Provider and session are separate
 
 - `IAircraftProvider` holds `ProviderId`, `Match` (with `CanHandle` as a default shortcut) and `AttachAsync`.
-- `IAircraftSession` holds `Identity`, `Capabilities`, `Telemetry` and `Failures`, and implements
+- `IAircraftSession` holds `Identity`, `Capabilities`, `Telemetry`, `Failures` and (0.11) `Degradations`, and implements
   `IAsyncDisposable`.
 
 The session also owns per-aircraft resources.
+
+### Failures and controlled degradations are separate (0.11.0-preview.1)
+
+A failure is a component the aircraft itself represents as failed; a controlled degradation is a documented aircraft
+control FSGAP deliberately forces into a degraded configuration (a generator switch set OFF is not a generator failure).
+They have separate keys (`FailureKey` / `DegradationKey`), providers (`IFailureProvider` / `IDegradationProvider`)
+and capabilities (`FailureCapabilities` / `DegradationCapabilities`); a provider never maps one onto the other. Fenix
+offers failures and no degradation; the Synaptic A220 offers four degradations and no failure. Degradation writes go
+through `ISimulatorVariableWriter` (one local variable, explicit set, read back), implemented explicitly by the transport
+on its single connection. Details: [controlled-degradations.md](controlled-degradations.md).
 
 ### Provider resolution
 
