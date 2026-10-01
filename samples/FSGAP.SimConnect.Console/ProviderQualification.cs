@@ -99,3 +99,21 @@ internal static class QualificationLog
     public static void WriteJson(string directory, string name, object value) =>
         File.WriteAllText(Path.Combine(directory, name), JsonSerializer.Serialize(value, new JsonSerializerOptions { WriteIndented = true }));
 }
+
+/// <summary>
+/// BLOCK 11.1: the transport's writer as the Synaptic provider sees it, with every write logged and counted, so the live
+/// ownership tests can show that a write did or did not happen. Delegates to the same SimConnectSimulator.
+/// </summary>
+internal sealed class QualificationWriter(ISimulatorVariableWriter inner, Action<string, string> print) : ISimulatorVariableWriter
+{
+    private long _writes;
+
+    public long Writes => Interlocked.Read(ref _writes);
+
+    public async Task WriteAsync(SimulatorVariable variable, double value, CancellationToken cancellationToken = default)
+    {
+        var n = Interlocked.Increment(ref _writes);
+        print("write", $"#{n} {variable.Name} = {value.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+        await inner.WriteAsync(variable, value, cancellationToken).ConfigureAwait(false);
+    }
+}

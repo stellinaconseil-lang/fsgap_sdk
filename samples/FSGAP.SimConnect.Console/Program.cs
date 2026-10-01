@@ -18,6 +18,10 @@
 // side by side in an AircraftProviderRegistry on the one SimConnectSimulator; each detected aircraft is resolved by the
 // registry and the previous session disposed. Prints identity, registration source, capabilities, the Synaptic overlay,
 // the installed A220 catalog (live enumeration) and read/EFB counters (ProviderQualification.cs); logs to <directory>.
+// BLOCK 11.1: the Synaptic provider also gets the same simulator as its ISimulatorVariableWriter, so sessions expose
+// the production controlled degradations. --degradation-console (with --qualify) reads stdin commands that go only
+// through session.Degradations: deg list | deg state [key] | deg apply <key> | deg restore <key> | deg dispose
+// (cleanly disposes the session, then attaches a new one) | note <text>.
 using System.Diagnostics;
 using System.Globalization;
 using FSGAP.Abstractions;
@@ -53,6 +57,7 @@ var synapticFixtureDirectory = Arg(args, "--synaptic-fixture");
 var synapticProbe = args.Contains("--synaptic-probe") || synapticFixtureDirectory is not null;
 var qualifyDirectory = Arg(args, "--qualify");
 var qualify = qualifyDirectory is not null;
+var degradationConsole = qualify && args.Contains("--degradation-console");
 if (qualifyDirectory is not null)
 {
     QualificationLog.Open(qualifyDirectory);
@@ -118,7 +123,8 @@ if (qualify)
         genericTelemetry: simulator.Telemetry,
         simulatorVariables: reader,
         aircraftDetector: simulator.AircraftDetector,
-        telemetryOptions: options.Telemetry));
+        telemetryOptions: options.Telemetry,
+        simulatorVariableWriter: new QualificationWriter(simulator, Print))); // BLOCK 11.1: same SimConnectSimulator, same single connection, writes logged
     Print("qualify", $"providers: {string.Join(", ", registry.Providers.Select(p => p.ProviderId))}; one SimConnectSimulator; data {options.DataDirectory}");
     var cached = await synapticCatalog.GetAllAsync();
     Print("cache", $"Synaptic cache on startup: {cached.Count} liveries");
@@ -156,6 +162,7 @@ var watchers = new[]
         }
     }),
     qualify ? PrintCountersAsync(stop.Token) : Task.CompletedTask,
+    degradationConsole ? Task.Run(() => DegradationConsoleAsync(stop.Token)) : Task.CompletedTask, // stdin reads block: off the startup path
     Watch(simulator.State.WatchAsync(stop.Token), s => Print("state", $"paused={s.Paused} crashes={s.CrashCount} lastCrash={s.LastCrashAt:O}")),
     Watch(simulator.AircraftDetector.WatchAsync(stop.Token), a => DescribeAsync(a).GetAwaiter().GetResult()),
     PrintTelemetryAsync(stop.Token),
@@ -270,12 +277,109 @@ async Task QualifyAttachAsync(AircraftDescriptor aircraft)
     Print(providerId, $"Variant='{id.Variant}' Wingtip='{id.WingtipConfiguration}' Operator='{id.OperatorIcao}' Livery='{id.Livery}' Registration='{id.Registration}' RegistrationSource={id.RegistrationSource?.ToString() ?? "null"}");
     Print(providerId, $"Telemetry sections: flight={declared.FlightState} warnings={declared.Warnings} engines={declared.Engines} gear={declared.LandingGear} controls={declared.FlightControls} apu={declared.Apu} irs={declared.InertialReferences} fuelPumps={declared.FuelPumps} elec={declared.Electrical} hyd={declared.Hydraulics} fire={declared.Fire} press={declared.Pressurization} env={declared.Environment}");
     Print(providerId, $"Failures: provider={session.Failures.GetType().Name} readActive={failures.CanReadActiveFailures} catalog={failures.Catalog.Count} isNone={ReferenceEquals(failures, FSGAP.Abstractions.Capabilities.FailureCapabilities.None)}");
+    var degradations = session.Capabilities.Degradations;
+    Print(providerId, $"Degradations: provider={session.Degradations.GetType().Name} catalog={degradations.Catalog.Count} maxActive={degradations.MaxActive} isNone={ReferenceEquals(degradations, FSGAP.Abstractions.Capabilities.DegradationCapabilities.None)} keys=[{string.Join(", ", degradations.Catalog.Select(d => d.Key))}]");
     if (providerId == SynapticAircraftProvider.Id)
     {
         var learned = aircraft.LiveryFolder is null ? null : await synapticCatalog.FindByLiveryFolderAsync(aircraft.LiveryFolder);
         Print("synaptic", learned is null
             ? "Catalog: livery folder not (uniquely) known"
             : $"Catalog: {learned.Id} livery='{learned.Identity.Livery}' folder='{learned.LiveryFolder}' registration='{learned.Identity.Registration}' source={learned.Identity.RegistrationSource?.ToString() ?? "null"}");
+    }
+}
+
+// BLOCK 11.1: live validation of the production controlled degradations, through session.Degradations only.
+async Task DegradationConsoleAsync(CancellationToken cancellationToken)
+{
+    Print("deg", "console ready: deg list | deg state [key] | deg apply <key> | deg restore <key> | deg dispose | note <text>");
+    while (!cancellationToken.IsCancellationRequested)
+    {
+        var line = await Console.In.ReadLineAsync(cancellationToken);
+        if (line is null)
+        {
+            return;
+        }
+
+        var parts = line.Trim().Split(' ', 3, StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0)
+        {
+            continue;
+        }
+
+        if (parts[0] == "note")
+        {
+            Print("note", line.Trim().Length > 5 ? line.Trim()[5..] : string.Empty);
+            continue;
+        }
+
+        var current = session;
+        if (parts[0] != "deg" || parts.Length < 2)
+        {
+            Print("deg", "unknown command");
+            continue;
+        }
+
+        if (current is null)
+        {
+            Print("deg", "no session");
+            continue;
+        }
+
+        try
+        {
+            var catalogKeys = current.Capabilities.Degradations.Catalog.Select(d => d.Key).ToArray();
+            FSGAP.Abstractions.Degradations.DegradationKey? key = parts.Length > 2 ? FSGAP.Abstractions.Degradations.DegradationKey.Parse(parts[2]) : null;
+            switch (parts[1])
+            {
+                case "list":
+                    Print("deg", $"{current.ProviderId}: maxActive={current.Capabilities.Degradations.MaxActive} failuresNone={ReferenceEquals(current.Capabilities.Failures, FSGAP.Abstractions.Capabilities.FailureCapabilities.None)}");
+                    foreach (var d in current.Capabilities.Degradations.Catalog)
+                    {
+                        Print("deg", $"  {d.Key} [{d.Category}] ops={d.Operations} '{d.DisplayName}' — {d.Description}");
+                    }
+
+                    break;
+                case "state":
+                    foreach (var k in key is null ? catalogKeys : [key])
+                    {
+                        Print("deg", $"state {k} = {await current.Degradations.GetStateAsync(k, cancellationToken)}");
+                    }
+
+                    break;
+                case "apply" when key is not null:
+                case "restore" when key is not null:
+                {
+                    var clock = Stopwatch.StartNew();
+                    var result = parts[1] == "apply"
+                        ? await current.Degradations.ApplyAsync(key, cancellationToken)
+                        : await current.Degradations.RestoreAsync(key, cancellationToken);
+                    Print("deg", $"{parts[1]} {key}: status={result.Status} state={result.State} success={result.IsSuccess} message='{result.Message}' ({clock.ElapsedMilliseconds} ms)");
+                    Print("deg", $"state {key} = {await current.Degradations.GetStateAsync(key, cancellationToken)}");
+                    break;
+                }
+
+                case "dispose":
+                {
+                    // A clean session disposal while the simulator is connected and the same aircraft is loaded, then a new session.
+                    var clock = Stopwatch.StartNew();
+                    session = null;
+                    await current.DisposeAsync();
+                    sessionsDisposed++;
+                    Print("deg", $"session disposed cleanly in {clock.ElapsedMilliseconds} ms (opened {sessionsOpened}, disposed {sessionsDisposed}); attaching a new one");
+                    lastDescribed = null;
+                    await DescribeAsync(simulator.AircraftDetector.Current);
+                    break;
+                }
+
+                default:
+                    Print("deg", "unknown command");
+                    break;
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Print("deg", $"{ex.GetType().Name}: {ex.Message}");
+        }
     }
 }
 
