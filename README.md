@@ -1,5 +1,9 @@
 # FSGAP_SDK
 
+**FSGAP is a multi-aircraft SDK** for Microsoft Flight Simulator. Since 0.12.0-preview.2 an application references one
+package, `FSGAP`, and uses one `FsgapRuntime`: the runtime owns the single simulator connection and composes the
+built-in aircraft providers internally (see [Usage](#usage) and `docs/architecture.md`).
+
 Version 0.10.0, the first multi-provider release: Fenix A319/A320/A321 (`FSGAP.Fenix`) and Synaptic A220-300
 (`FSGAP.Synaptic`), side by side on one simulator connection. It provides:
 
@@ -109,6 +113,8 @@ FSGAP.Abstractions  --> nothing but the .NET base class library
 
 ```text
 src/
+  FSGAP/                FsgapRuntime: the application entry point (one package, one runtime, one connection);
+                        composes the built-in providers internally (Composition/)
   FSGAP.Abstractions/   contracts: providers and sessions, telemetry, capabilities, failures (FailureKey,
                         FailureCatalog), simulator (connection, state, aircraft detector), installed-aircraft
                         catalog, FsgapOptions
@@ -123,7 +129,8 @@ src/
                         generic telemetry, variable reader, airport service
                         (the only assembly referencing SimConnect.NET)
 tests/                  xUnit tests, one project per library (none needs MSFS)
-samples/                FSGAP.SimConnect.Console: live validation tool (not a package)
+samples/                FSGAP.Runtime.Console: the application sample (FSGAP runtime only);
+                        FSGAP.SimConnect.Console: internal research and qualification tooling (not an example)
 docs/architecture.md    principles, design and future targets
 docs/generic-telemetry.md  the generic telemetry: SimVars, groups, cadences, conversions, Fenix policy
 docs/fenix-system-telemetry.md  the Fenix system telemetry: variables, transport, overlay, LVAR inventory
@@ -139,35 +146,34 @@ docs/audits/            BLOCK 1 audit of the existing Fenix/MSFS integrations, m
 
 ## Usage
 
+FSGAP is **one multi-aircraft SDK**. An application references one package, `FSGAP`, creates one `FsgapRuntime`, and
+works with the loaded aircraft's normalized session. It never composes aircraft providers and never branches on the
+aircraft vendor: what an aircraft supports is read from `session.Capabilities`.
+
+```xml
+<PackageReference Include="FSGAP" Version="[0.12.0-preview.2]" />
+```
+
 ```csharp
-var options = new FsgapOptions { ApplicationName = "MyApp", DataDirectory = @"C:\ProgramData\MyApp\fsgap" };
-
-// Simulator: connects in the background, retries while MSFS is absent, reconnects after a loss.
-await using var simulator = new SimConnectSimulator(options, logger);
-await simulator.StartAsync();
-var aircraft = await simulator.AircraftDetector.WaitForAircraftAsync();   // TITLE, ATC ID, LIVERY FOLDER, LIVERY NAME
-
-var registry = new AircraftProviderRegistry();
-var fenixLiveries = new FenixInstalledAircraftCatalog(options);   // finds MSFS 2024 from UserCfg.opt
-await fenixLiveries.RefreshAsync();                                 // read-only scan, cached under DataDirectory
-registry.Register(new FenixAircraftProvider(
-    fenixLiveries,
-    genericTelemetry: simulator.Telemetry,          // generic MSFS telemetry
-    simulatorVariables: simulator,                  // Fenix variables, read on the same connection
-    aircraftDetector: simulator.AircraftDetector,   // stop reading when another aircraft is loaded
-    fenixOptions: new FenixOptions()));             // Fenix failures through the local EFB
-
-var synapticLiveries = new SynapticInstalledAircraftCatalog(options, simulator);   // simulator livery enumeration
-registry.Register(new SynapticAircraftProvider(     // side by side: the registry picks per loaded aircraft
-    synapticLiveries,
-    genericTelemetry: simulator.Telemetry,
-    simulatorVariables: simulator,
-    aircraftDetector: simulator.AircraftDetector));
-
-var resolution = registry.Resolve(aircraft);
-if (resolution.IsResolved)
+var options = new FsgapRuntimeOptions
 {
-    await using var session = await resolution.Selected.Provider.AttachAsync(aircraft);
+    Sdk = new FsgapOptions { ApplicationName = "MyApp", DataDirectory = @"C:\ProgramData\MyApp\fsgap" },
+};
+
+// One runtime: one simulator connection (connects in the background, retries while MSFS is absent, reconnects), and
+// the built-in aircraft providers (Fenix A319/A320/A321, Synaptic A220-300) composed internally.
+await using var runtime = new FsgapRuntime(options, loggerFactory);
+await runtime.StartAsync();
+
+await foreach (var state in runtime.WatchSessionAsync(cancellationToken))
+{
+    // Attached, NoAircraft, NotSupported (no provider for this aircraft), Ambiguous, AttachFailed.
+    if (state.Session is not { } session)
+    {
+        continue;
+    }
+
+    var identity = session.Identity;   // manufacturer, model, ICAO type, registration and its source, livery...
 
     if (session.Capabilities.Telemetry.FlightState)
     {
@@ -175,29 +181,44 @@ if (resolution.IsResolved)
         if (telemetry.Flight.IndicatedAirspeedKnots.TryGetValue(out var ias)) { /* a fresh reading, not a default */ }
     }
 
-    if (session.Capabilities.Telemetry.InertialReferences)
-    {
-        var telemetry = await session.Telemetry.GetSnapshotAsync();
-        var allInNav = telemetry.InertialReferences.All(ir => ir.Mode.TryGetValue(out var mode) && mode == InertialReferenceMode.Navigation);
-    }
-
-    // Keys come from the provider's catalog (session.Capabilities.Failures.Catalog), never from a vendor id.
+    // The same failure keys on every supported aircraft; per key, the capabilities say whether it can act.
     var blueLeak = new FailureCommand(FailureKey.Parse("hydraulic.blue.leak"), FailureTarget.HydraulicSystem("blue"));
     if (session.Capabilities.Failures.CanTrigger(blueLeak))
     {
         var result = await session.Failures.TriggerAsync(blueLeak);
-        // Succeeded, or Unavailable (EFB not reachable: nothing applied), Unconfirmed (may be applied: read before
-        // retrying), Rejected, Failed, NotSupported.
+        // Succeeded, or Unavailable (nothing applied), Unconfirmed (may be applied: read before retrying), Rejected,
+        // Failed, NotSupported.
+    }
+
+    if (session.Capabilities.Failures.CanReadActiveFailures)
+    {
+        var active = await session.Failures.GetActiveFailuresAsync();
+    }
+
+    // Controlled degradations (documented controls forced into a degraded configuration, not failures).
+    foreach (var degradation in session.Capabilities.Degradations.Catalog)
+    {
+        var current = await session.Degradations.GetStateAsync(degradation.Key);
     }
 }
 
-// Simulator services: the nearest airport to the aircraft (or any point), on the same connection.
-var flight = (await simulator.Telemetry.GetSnapshotAsync()).Flight;
+// Simulator services, whatever the aircraft: generic telemetry, nearest airport, installed aircraft of every family.
+var flight = (await runtime.GenericTelemetry.GetSnapshotAsync()).Flight;
 if (flight.LatitudeDegrees.TryGetValue(out var lat) && flight.LongitudeDegrees.TryGetValue(out var lon))
 {
-    var nearest = await simulator.FindNearestAirportAsync(new GeoPosition(lat, lon));   // null: none within 50 NM
+    var nearest = await runtime.Airports.FindNearestAirportAsync(new GeoPosition(lat, lon));   // null: none within 50 NM
+}
+
+foreach (var catalog in runtime.InstalledAircraft)
+{
+    var installed = await catalog.GetAllAsync();
 }
 ```
+
+The session is owned by the runtime (do not dispose it); disposing the runtime closes it, restoring what it applied when
+it can. Adding an aircraft family to FSGAP (for example iniBuilds or PMDG) changes nothing in the application. The
+provider-level types (`FSGAP.Fenix`, `FSGAP.Synaptic`, `FSGAP.SimConnect`) remain separate assemblies inside the SDK;
+their own documentation describes them, but applications do not use them.
 
 ## Build
 
@@ -212,11 +233,11 @@ dotnet test
 Live check against a running MSFS (see `docs/simconnect-lifecycle.md`):
 
 ```bash
-dotnet run --project samples/FSGAP.SimConnect.Console -- --minutes 1
+dotnet run --project samples/FSGAP.Runtime.Console -- --minutes 1
 ```
 
-`dotnet pack` produces versioned NuGet packages (`FSGAP.Abstractions`, `FSGAP.Core`, `FSGAP.Fenix`,
-`FSGAP.Synaptic`, `FSGAP.SimConnect`): final versions in `artifacts/releases/<version>/`, pre-release versions in
+`dotnet pack` produces versioned NuGet packages: `FSGAP`, the one package applications reference, and the SDK's
+internal packages it depends on (`FSGAP.Abstractions`, `FSGAP.Core`, `FSGAP.Fenix`, `FSGAP.Synaptic`, `FSGAP.SimConnect`): final versions in `artifacts/releases/<version>/`, pre-release versions in
 `artifacts/preview-packages/`. `artifacts/packages/` holds the immutable 0.9.0 packages; the build refuses to overwrite
 any package or to produce 0.9.0 again. Applications will consume them from a package feed with a pinned version (see
 `docs/decisions/0003-nuget-distribution.md`). Nothing is published yet.

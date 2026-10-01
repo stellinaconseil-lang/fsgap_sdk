@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Live validation tool for FSGAP.SimConnect. A sample, not a product: never packed or shipped. -->
+  <!--
+    INTERNAL research and qualification tooling (live validation, discovery harnesses, provider-level composition).
+    Not an application example: applications use the FSGAP runtime, see samples/FSGAP.Runtime.Console. Never packed.
+  -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>FSGAP.SimConnect.Console</RootNamespace>

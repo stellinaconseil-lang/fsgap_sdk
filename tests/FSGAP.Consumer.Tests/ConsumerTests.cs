@@ -181,3 +181,43 @@ public class ConsumerTests
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
 }
+
+/// <summary>BLOCK 12.1: application-facing examples show the runtime only.</summary>
+public class ApplicationExamplesTests
+{
+    private static readonly string[] ProviderComposition = ["new FenixAircraftProvider", "new SynapticAircraftProvider", "new AircraftProviderRegistry", "new SimConnectSimulator", ".Register("];
+
+    [Fact]
+    public void The_application_sample_composes_no_provider()
+    {
+        var sample = Path.Combine(Root(), "samples", "FSGAP.Runtime.Console");
+        var sources = Directory.GetFiles(sample, "*.cs*", SearchOption.TopDirectoryOnly).Select(File.ReadAllText).ToArray();
+
+        Assert.NotEmpty(sources);
+        Assert.All(ProviderComposition, pattern => Assert.DoesNotContain(sources, s => s.Contains(pattern, StringComparison.Ordinal)));
+        Assert.Contains(sources, s => s.Contains("new FsgapRuntime(", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void The_readme_usage_shows_the_runtime_only()
+    {
+        var readme = File.ReadAllText(Path.Combine(Root(), "README.md"));
+        var start = readme.IndexOf("## Usage", StringComparison.Ordinal);
+        var end = readme.IndexOf("\n## ", start + 1, StringComparison.Ordinal);
+        var usage = readme[start..end];
+
+        Assert.Contains("new FsgapRuntime(", usage, StringComparison.Ordinal);
+        Assert.All(ProviderComposition, pattern => Assert.DoesNotContain(pattern, usage, StringComparison.Ordinal));
+    }
+
+    private static string Root()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "FSGAP.sln")))
+        {
+            directory = directory.Parent;
+        }
+
+        return directory?.FullName ?? throw new DirectoryNotFoundException("FSGAP.sln");
+    }
+}

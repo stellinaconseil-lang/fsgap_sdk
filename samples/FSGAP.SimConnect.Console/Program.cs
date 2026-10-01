@@ -1,3 +1,6 @@
+// INTERNAL RESEARCH / QUALIFICATION TOOLING. Not an application example: it composes providers and the transport by hand
+// to observe them at a low level. Applications use the FSGAP runtime (samples/FSGAP.Runtime.Console).
+//
 // FSGAP live validation sample.
 //
 // Scans the installed Fenix liveries, starts the FSGAP simulator transport, and prints connection status changes,

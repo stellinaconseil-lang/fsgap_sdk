@@ -181,6 +181,9 @@ index 3 are wrong.
 
 The transport knows no aircraft. `FSGAP.Fenix` composes on it with Core's `TransformedTelemetryProvider`:
 
+> Provider-level API. Applications do not compose providers: they use `FsgapRuntime` (package `FSGAP`), which composes
+> this provider internally (see the README and [architecture.md](architecture.md#fsgap-is-a-multi-aircraft-sdk-0120-preview2)).
+
 ```csharp
 new FenixAircraftProvider(catalog, genericTelemetry: simulator.Telemetry /* , simulatorVariables, aircraftDetector (0.6.0) */)
 // session.Telemetry = generic snapshot → FenixGenericTelemetryPolicy.Apply → Fenix overlay (0.6.0) → Fenix snapshot

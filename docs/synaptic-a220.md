@@ -24,6 +24,9 @@ FSGAP.Abstractions  <-  FSGAP.Core  <-  FSGAP.Synaptic      (this provider)
   `IInstalledLiveryService` (catalog). Read-only: no LVAR, H-event or K-event write, no EFB, no WASM, and **no AI
   aircraft is ever created**.
 
+> Provider-level API. Applications do not compose providers: they use `FsgapRuntime` (package `FSGAP`), which composes
+> this provider internally (see the README and [architecture.md](architecture.md#fsgap-is-a-multi-aircraft-sdk-0120-preview2)).
+
 ```csharp
 var synapticLiveries = new SynapticInstalledAircraftCatalog(options, simulator);   // IInstalledLiveryService
 await synapticLiveries.RefreshAsync();

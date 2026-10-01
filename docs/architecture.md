@@ -4,10 +4,44 @@ This document records the principles FSGAP_SDK is built on, the current design (
 planned but not implemented. Individual decisions are recorded as ADRs in [decisions/](decisions/README.md). The
 BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 
+## FSGAP is a multi-aircraft SDK (0.12.0-preview.2)
+
+Applications (FSHANGAR, FLIPPP) depend on **one package and one entry point**: `FSGAP` and its `FsgapRuntime`. The
+runtime owns the single simulator connection and composes the aircraft providers internally:
+
+```text
+application (FSHANGAR, FLIPPP)
+        |  PackageReference Include="FSGAP"
+        v
+FSGAP  (FsgapRuntime: one SimConnectSimulator, one AircraftProviderRegistry, the current session)
+  ├─ Fenix      (FSGAP.Fenix: A319/A320/A321)
+  ├─ Synaptic   (FSGAP.Synaptic: A220-300)
+  ├─ future iniBuilds
+  └─ future PMDG
+```
+
+- **One package.** The application references `FSGAP`; the provider and transport packages come transitively.
+- **Provider selection is internal.** The runtime resolves each loaded aircraft through the existing
+  `AircraftProviderRegistry` and opens the session; an application never writes "if A220 then Synaptic".
+- **Capabilities determine the features.** Every session has the same surface (`Identity`, `Telemetry`, `Failures`,
+  `Degradations`, `Capabilities`); what an aircraft supports is read from `session.Capabilities` (for example the same 40
+  failure keys on Fenix and Synaptic, executable or not per key; degradations on Synaptic, none on Fenix).
+- **Adding an aircraft family changes no application.** A new provider is one deterministic registration in
+  `FSGAP/Composition/FsgapComposition.cs`; no reflection or plugin discovery.
+- **Modularity is kept.** Providers stay separate assemblies (isolation, own tests); only the distribution and the entry
+  point are single.
+- **One connection.** Every provider reads, writes and detects through the runtime's single `SimConnectSimulator`.
+
+Session lifecycle in the runtime: a new aircraft disposes the previous session before the next one is attached; a
+metadata-only change of the same loaded aircraft (ATC ID churn) keeps the session; an aircraft no provider supports, or
+that several providers claim equally, has no session (`FsgapSessionStatus.NotSupported` / `Ambiguous`), never a silent
+pick. Sessions are owned by the runtime; disposing it closes them.
+
 ## Assemblies and dependencies
 
 | Assembly | Role | Depends on | Status |
 |---|---|---|---|
+| `FSGAP` | Application entry point: `FsgapRuntime` (one connection, built-in provider composition, current session) | Abstractions, Core, SimConnect, Fenix, Synaptic | 0.12.0-preview.2 |
 | `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.10.0 |
 | `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.10.0 |
 | `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321: recognition, normalized identity, installed livery catalog ([details](fenix-identity-and-catalog.md)), generic-telemetry policy and system telemetry ([details](fenix-system-telemetry.md)), failures through the EFB ([details](fenix-failures.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.10.0 |

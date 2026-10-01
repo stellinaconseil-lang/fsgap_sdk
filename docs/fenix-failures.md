@@ -16,6 +16,9 @@ application ── FailureCommand(key, target) ──► session.Failures (Fenix
 
 ## Enabling it
 
+> Provider-level API. Applications do not compose providers: they use `FsgapRuntime` (package `FSGAP`), which composes
+> this provider internally (see the README and [architecture.md](architecture.md#fsgap-is-a-multi-aircraft-sdk-0120-preview2)).
+
 ```csharp
 var provider = new FenixAircraftProvider(
     catalog,
