@@ -506,6 +506,41 @@ internal sealed class SimConnectNetSession : ISimConnectSession
         }
     }
 
+    /// <summary>
+    /// BLOCK 10C.3 — RESEARCH ONLY: writes one local (L:) variable of the user aircraft once, on this connection, and gathers
+    /// any SimConnect exception packet for <see cref="NativeFailureObservationWindow"/>. The caller owns the whitelist.
+    /// </summary>
+    /// <returns>The exception packets received in the window (empty when the simulator raised none).</returns>
+    internal async Task<IReadOnlyList<string>> WriteLocalAsync(string name, string unit, double value, CancellationToken cancellationToken)
+    {
+        DiagnosticLocalWrite.Validate(name, unit, value);
+        await _discoveryRequests.WaitAsync(cancellationToken).ConfigureAwait(false);
+        var exceptions = new System.Collections.Concurrent.ConcurrentQueue<string>();
+
+        void OnRaw(object? sender, RawSimConnectMessageEventArgs e)
+        {
+            if (e.MessageId == SimConnectRecvId.Exception && e.DataSize >= 24)
+            {
+                var buffer = new byte[e.DataSize];
+                System.Runtime.InteropServices.Marshal.Copy(e.DataPointer, buffer, 0, (int)e.DataSize);
+                exceptions.Enqueue($"exception {BitConverter.ToUInt32(buffer, 12)} (send id {BitConverter.ToUInt32(buffer, 16)}, index {BitConverter.ToUInt32(buffer, 20)})");
+            }
+        }
+
+        _client.RawMessageReceived += OnRaw;
+        try
+        {
+            await _client.SimVars.SetAsync(name, unit, value, 0, cancellationToken).ConfigureAwait(false);
+            await Task.Delay(NativeFailureObservationWindow, CancellationToken.None).ConfigureAwait(false);
+            return exceptions.ToArray();
+        }
+        finally
+        {
+            _client.RawMessageReceived -= OnRaw;
+            _discoveryRequests.Release();
+        }
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (Interlocked.Exchange(ref _disposed, 1) != 0)

@@ -24,4 +24,9 @@
     <Compile Include="..\..\samples\FSGAP.SimConnect.Console\LiveryDiscoveryAnalysis.cs" Link="Discovery\LiveryDiscoveryAnalysis.cs" />
   </ItemGroup>
 
+  <!-- BLOCK 10C.3 (research only): the Synaptic controlled-degradation whitelist and safety model of the live sample. -->
+  <ItemGroup>
+    <Compile Include="..\..\samples\FSGAP.SimConnect.Console\SynapticDegradationCatalog.cs" Link="Discovery\SynapticDegradationCatalog.cs" />
+  </ItemGroup>
+
 </Project>

@@ -116,3 +116,26 @@ internal static class ClientEventInterop
     [DllImport("SimConnect.dll", EntryPoint = "SimConnect_TransmitClientEvent")]
     private static extern int TransmitClientEvent(IntPtr handle, uint objectId, uint eventId, uint data, uint groupId, uint flags);
 }
+
+/// <summary>
+/// BLOCK 10C.3 — RESEARCH ONLY: the transport-side guard of diagnostic writes. Only local (L:) variables of the user
+/// aircraft, with a unit and a finite value; never a simulation variable, never an event. The whitelist lives in the caller.
+/// </summary>
+internal static class DiagnosticLocalWrite
+{
+    /// <exception cref="ArgumentException">Not an L: variable, no unit, or a non-finite value.</exception>
+    internal static void Validate(string name, string unit, double value)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(unit);
+        if (!name.StartsWith("L:", StringComparison.Ordinal) || name.Length < 3)
+        {
+            throw new ArgumentException($"'{name}' is not a local (L:) variable.", nameof(name));
+        }
+
+        if (!double.IsFinite(value))
+        {
+            throw new ArgumentException("The value must be finite.", nameof(value));
+        }
+    }
+}

@@ -23,6 +23,11 @@
 // failure key events on the Synaptic A220 (NativeFailureMatrixProbe.cs, safety model NativeFailureMatrix). Samples flight,
 // engine, brake, system and Synaptic telemetry plus read-only Wear & Tear; transmits one allowed toggle only on a confirmed
 // command, within its gates. Logs CSV + JSONL to a timestamped campaign folder under <directory>.
+//
+// --synaptic-degradation <directory> (BLOCK 10C.3, RESEARCH ONLY): interactive qualification of reviewed Synaptic A220
+// controlled-degradation candidates (SynapticDegradationProbe.cs, whitelist SynapticDegradationCatalog.cs). Writes one
+// whitelisted L:var to an explicit applied or restore value only on a confirmed command, on the ground, parked, engines
+// running; reads it back. Logs CSV + JSONL to a timestamped folder under <directory>.
 using System.Diagnostics;
 using System.Globalization;
 using FSGAP.Abstractions;
@@ -68,6 +73,7 @@ if (qualifyDirectory is not null)
 var liveryDiscoveryDirectory = Arg(args, "--livery-discovery");
 var liveryProbes = int.TryParse(Arg(args, "--livery-probes"), out var requestedProbes) ? requestedProbes : 3;
 var nativeFailureMatrixDirectory = Arg(args, "--native-failure-matrix");
+var synapticDegradationDirectory = Arg(args, "--synaptic-degradation");
 var liveryCleanupIds = Arg(args, "--livery-cleanup")?.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(uint.Parse).ToArray();
 
 using var stop = new CancellationTokenSource();
@@ -173,6 +179,9 @@ var watchers = new[]
             : Task.CompletedTask,
     nativeFailureMatrixDirectory is not null
         ? NativeFailureMatrixProbe.RunAsync(simulator, nativeFailureMatrixDirectory, Print, stop.Token).ContinueWith(_ => stop.Cancel(), TaskScheduler.Default)
+        : Task.CompletedTask,
+    synapticDegradationDirectory is not null
+        ? SynapticDegradationProbe.RunAsync(simulator, synapticDegradationDirectory, Print, stop.Token).ContinueWith(_ => stop.Cancel(), TaskScheduler.Default)
         : Task.CompletedTask,
 };
 

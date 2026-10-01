@@ -873,6 +873,21 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
             : throw new InvalidOperationException("Diagnostic event transmission needs the SimConnect.NET session.");
     }
 
+    /// <summary>
+    /// BLOCK 10C.3 — RESEARCH ONLY, internal (visible to the live sample): writes one local (L:) variable of the user
+    /// aircraft once, on this transport's connection. The caller owns the whitelist; this only refuses non-local names
+    /// and non-finite values.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The simulator is not connected, or the session is not the SimConnect.NET one.</exception>
+    /// <exception cref="ArgumentException">Not an L: variable, or the value is not finite.</exception>
+    internal Task<IReadOnlyList<string>> ExperimentalWriteLocalAsync(string name, string unit, double value, CancellationToken cancellationToken)
+    {
+        DiagnosticLocalWrite.Validate(name, unit, value);
+        return (_connectedSession ?? throw new InvalidOperationException(SimulatorNotConnected)).Session is SimConnectNetSession native
+            ? native.WriteLocalAsync(name, unit, value, cancellationToken)
+            : throw new InvalidOperationException("Diagnostic writes need the SimConnect.NET session.");
+    }
+
     private async Task<IReadOnlyList<RawLiveryEntry>> RequestLiveryListAsync(LiveSession live)
     {
         // ForceYielding: never continue on the native message thread.
