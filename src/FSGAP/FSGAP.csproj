@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The FSGAP_SDK entry point for applications: one package, one runtime (FsgapRuntime) that owns the single simulator
+    connection and composes the built-in aircraft providers internally. Consumers reference only this package; the
+    provider packages come transitively and are never composed by the application.
+  -->
+  <PropertyGroup>
+    <RootNamespace>FSGAP</RootNamespace>
+    <PackageId>FSGAP</PackageId>
+    <Description>FSGAP_SDK, the multi-aircraft SDK for Microsoft Flight Simulator: one runtime that owns the single simulator connection, recognizes the loaded aircraft and opens a normalized session (identity, telemetry, failures, controlled degradations, capabilities) with the right built-in provider (Fenix A319/A320/A321, Synaptic A220-300). Applications reference this package only.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FSGAP.Abstractions\FSGAP.Abstractions.csproj" />
+    <ProjectReference Include="..\FSGAP.Core\FSGAP.Core.csproj" />
+    <ProjectReference Include="..\FSGAP.SimConnect\FSGAP.SimConnect.csproj" />
+    <ProjectReference Include="..\FSGAP.Fenix\FSGAP.Fenix.csproj" />
+    <ProjectReference Include="..\FSGAP.Synaptic\FSGAP.Synaptic.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="FSGAP.Tests" />
+  </ItemGroup>
+
+</Project>

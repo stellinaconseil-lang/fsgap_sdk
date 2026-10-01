@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <!--
+    A consumer-style project: exactly one reference, the top-level FSGAP project (in an application: one
+    PackageReference Include="FSGAP"). It must never reference a provider project directly.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FSGAP\FSGAP.csproj" />
+  </ItemGroup>
+
+</Project>
