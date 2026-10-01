@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>FSGAP.Synaptic</RootNamespace>
-    <Description>FSGAP_SDK aircraft provider for the Synaptic Simulations A220-300: aircraft recognition, normalized identity, generic telemetry with the A220 policy, a small documented cockpit overlay (fuel boost pump modes, APU switches, engine fire pushbuttons), and the installed A220 livery catalog built on the simulator's livery enumeration. No failures.</Description>
+    <Description>FSGAP_SDK aircraft provider for the Synaptic Simulations A220-300: aircraft recognition, normalized identity, generic telemetry with the A220 policy, a small documented cockpit overlay (fuel boost pump modes, APU switches, engine fire pushbuttons), the installed A220 livery catalog built on the simulator's livery enumeration, four controlled degradations, and the normalized failure key set of the Fenix provider realized through documented A22X control recipes (17 executable).</Description>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,4 +1,4 @@
-# Controlled degradations (0.11.0-rc.1)
+# Controlled degradations (0.11.0-rc.1, unchanged in 0.12.0-preview.1)
 
 ## Failures vs controlled degradations
 
@@ -21,7 +21,7 @@ Consumers check capabilities, never the aircraft vendor:
 | Provider | Failures | Degradations |
 |---|---|---|
 | Fenix A319/A320/A321 | supported (40 keys: trigger, clear, read active) | none (`DegradationCapabilities.None`) |
-| Synaptic A220-300 | none (`FailureCapabilities.None`) | 4 (below), when the provider is given a variable writer |
+| Synaptic A220-300 | since 0.12: the 40 Fenix keys, 17 executable through A22X control recipes ([synaptic-failures.md](synaptic-failures.md)); up to 0.11: none | 4 (below), when the provider is given a variable writer |
 
 ## Contract
 

@@ -11,7 +11,7 @@ BLOCK 1 audit of the existing integrations is in [audits/](audits/).
 | `FSGAP.Abstractions` | Public, vendor-neutral contracts and models | .NET base class library | 0.10.0 |
 | `FSGAP.Core` | Vendor-independent mechanisms: provider registry and resolution, session, observation helper, telemetry helpers | Abstractions | 0.10.0 |
 | `FSGAP.Fenix` | Provider for the Fenix A319/A320/A321: recognition, normalized identity, installed livery catalog ([details](fenix-identity-and-catalog.md)), generic-telemetry policy and system telemetry ([details](fenix-system-telemetry.md)), failures through the EFB ([details](fenix-failures.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.10.0 |
-| `FSGAP.Synaptic` | Provider for the Synaptic Simulations A220-300: recognition, normalized identity, generic-telemetry policy and a 6-variable overlay, installed livery catalog from the simulator enumeration, no failures ([details](synaptic-a220.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.10.0 |
+| `FSGAP.Synaptic` | Provider for the Synaptic Simulations A220-300: recognition, normalized identity, generic-telemetry policy and a 6-variable overlay, installed livery catalog from the simulator enumeration, controlled degradations and (0.12) the Fenix failure key set realized through A22X control recipes ([details](synaptic-a220.md), [failures](synaptic-failures.md)) | Abstractions, Core, M.E.Logging.Abstractions | 0.10.0 |
 | `FSGAP.SimConnect` | Generic MSFS transport: connection lifecycle, simulation state, aircraft detection ([details](simconnect-lifecycle.md)), generic telemetry ([details](generic-telemetry.md)), batched variable reader, airport service ([details](simulator-airport-service.md)) | Abstractions, Core, SimConnect.NET 0.2.2, M.E.Logging.Abstractions | 0.10.0 ([ADR 0004](decisions/0004-simconnect-layer-and-reflection.md)) |
 
 ```text
@@ -165,7 +165,10 @@ A failure is a component the aircraft itself represents as failed; a controlled 
 control FSGAP deliberately forces into a degraded configuration (a generator switch set OFF is not a generator failure).
 They have separate keys (`FailureKey` / `DegradationKey`), providers (`IFailureProvider` / `IDegradationProvider`)
 and capabilities (`FailureCapabilities` / `DegradationCapabilities`); a provider never maps one onto the other. Fenix
-offers failures and no degradation; the Synaptic A220 offers four degradations and no failure. Degradation writes go
+offers failures and no degradation; the Synaptic A220 offers four degradations and, since 0.12, the same 40 failure keys
+as Fenix, 17 of them executable through documented A22X controls ([synaptic-failures.md](synaptic-failures.md)); a
+Synaptic failure provider never maps onto the degradation API nor the reverse, they only share one control board per
+session so that no control is held twice. Degradation writes go
 through `ISimulatorVariableWriter` (one local variable, explicit set, read back), implemented explicitly by the transport
 on its single connection. Details: [controlled-degradations.md](controlled-degradations.md).
 

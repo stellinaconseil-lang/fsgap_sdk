@@ -31,7 +31,8 @@ Version 0.10.0, the first multi-provider release: Fenix A319/A320/A321 (`FSGAP.F
   pump modes, APU switch and bleed selection and engine fire pushbuttons, a catalog of the installed A220 liveries from
   the simulator enumeration. It is registered next to the Fenix provider; the registry picks the provider per loaded
   aircraft, and a session survives ATC ID changes (see `docs/synaptic-a220.md`). Known limitations in 0.10.0:
-  failures are not supported (`FailureCapabilities.None`); `ReverserEngaged` is deliberately Unavailable (the generic
+  failures are not supported (`FailureCapabilities.None`; 0.12.0-preview.1 adds the Fenix failure key set through A22X
+  control recipes, see `docs/synaptic-failures.md`); `ReverserEngaged` is deliberately Unavailable (the generic
   MSFS value was proven false); antiskid is not qualified; master warning/caution are not exposed; an MSFS
   disconnect/reconnect was not qualified live.
 
@@ -116,7 +117,7 @@ src/
                         PollingTelemetryStream, null-object providers
   FSGAP.Fenix/          FenixAircraftProvider (recognition, identity, telemetry, failures), FenixOptions and
                         FenixInstalledAircraftCatalog (installed liveries, registration resolution)
-  FSGAP.Synaptic/       SynapticAircraftProvider (A220-300 recognition, identity, telemetry; no failures) and
+  FSGAP.Synaptic/       SynapticAircraftProvider (A220-300 recognition, identity, telemetry, degradations, failures) and
                         SynapticInstalledAircraftCatalog (liveries from the simulator enumeration, registrations)
   FSGAP.SimConnect/     SimConnectSimulator: MSFS connection lifecycle, simulation state, aircraft detection,
                         generic telemetry, variable reader, airport service

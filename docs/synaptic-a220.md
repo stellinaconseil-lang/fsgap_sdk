@@ -117,9 +117,11 @@ One group of 6 variables, read every 2 s (≈ 0.5 read/s) on the shared reader:
 
 ## Failures
 
-None. Capabilities declare `FailureCapabilities.None`; `Failures` is `UnsupportedFailureProvider` (commands answer
-`NotSupported`, reading active failures throws `NotSupportedException` as `CanReadActiveFailures` is false).
-`FSGAP.Synaptic` contains no `IFailureProvider`.
+Since 0.12.0-preview.1, with a variable writer: `SynapticFailureProvider`, the same 40 normalized keys as the Fenix
+provider, 17 executable through documented A22X control recipes, 23 listed with no operation; trigger, clear and read
+active supported; several failures at once when their controls differ. See [synaptic-failures.md](synaptic-failures.md)
+(recipes, provenance, limits). Without a writer: `FailureCapabilities.None` and `UnsupportedFailureProvider`, as before.
+(Up to 0.11, the A220 exposed no failure at all.)
 
 ## Controlled degradations (0.11.0-rc.1)
 
