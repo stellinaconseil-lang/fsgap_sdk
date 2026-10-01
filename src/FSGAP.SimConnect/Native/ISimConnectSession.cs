@@ -66,6 +66,12 @@ internal interface ISimConnectSession : IAsyncDisposable
     Task<double[]> ReadVariablesAsync(IReadOnlyList<Abstractions.Simulator.SimulatorVariable> variables, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Writes one local (<c>L:</c>) variable of the user aircraft on this connection, for
+    /// <see cref="Abstractions.Simulator.ISimulatorVariableWriter"/> (bounds checked by the caller, see <see cref="LocalWrite"/>).
+    /// </summary>
+    Task WriteLocalAsync(Abstractions.Simulator.SimulatorVariable variable, double value, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Requests the airport list of the simulator's reality bubble on this connection and gathers every packet of the
     /// answer (see <see cref="FacilityInterop"/> and <see cref="AirportListParser"/>).
     /// </summary>

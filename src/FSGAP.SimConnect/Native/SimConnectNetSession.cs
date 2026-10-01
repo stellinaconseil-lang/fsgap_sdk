@@ -98,6 +98,9 @@ internal sealed class SimConnectNetSession : ISimConnectSession
     public Task<double[]> ReadVariablesAsync(IReadOnlyList<SimulatorVariable> variables, CancellationToken cancellationToken) =>
         VariableSetStructs.For(variables)(_client, cancellationToken);
 
+    public Task WriteLocalAsync(SimulatorVariable variable, double value, CancellationToken cancellationToken) =>
+        _client.SimVars.SetAsync(variable.Name, variable.Unit, value, 0, cancellationToken);
+
     /// <inheritdoc />
     /// <remarks>
     /// <para>

@@ -1,5 +1,6 @@
 using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Capabilities;
+using FSGAP.Abstractions.Degradations;
 using FSGAP.Abstractions.Failures;
 using FSGAP.Abstractions.Telemetry;
 
@@ -28,4 +29,10 @@ public interface IAircraftSession : IAsyncDisposable
 
     /// <summary>Normalized failures.</summary>
     IFailureProvider Failures { get; }
+
+    /// <summary>
+    /// Controlled degradations: documented aircraft controls FSGAP can force into a degraded configuration. Distinct from
+    /// <see cref="Failures"/>; check <see cref="AircraftCapabilities.Degradations"/> before use.
+    /// </summary>
+    IDegradationProvider Degradations { get; }
 }

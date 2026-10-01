@@ -17,4 +17,7 @@ public sealed record AircraftCapabilities
 
     /// <summary>Failure operations and types the provider supports.</summary>
     public FailureCapabilities Failures { get; init; } = FailureCapabilities.None;
+
+    /// <summary>Controlled-degradation operations the provider supports; independent from <see cref="Failures"/>.</summary>
+    public DegradationCapabilities Degradations { get; init; } = DegradationCapabilities.None;
 }

@@ -147,6 +147,29 @@ internal sealed class FakeSession : ISimConnectSession
     /// <summary>Every variable list read, in order.</summary>
     public ConcurrentQueue<IReadOnlyList<SimulatorVariable>> VariableReads { get; } = new();
 
+    /// <summary>Every local write, in order (variable, value).</summary>
+    public ConcurrentQueue<(SimulatorVariable Variable, double Value)> LocalWrites { get; } = new();
+
+    /// <summary>When set, <see cref="WriteLocalAsync"/> waits for it before completing (a slow native write).</summary>
+    public TaskCompletionSource? WriteGate { get; set; }
+
+    public async Task WriteLocalAsync(SimulatorVariable variable, double value, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (WriteGate is { } gate)
+        {
+            await gate.Task.WaitAsync(cancellationToken);
+        }
+
+        if (!_connected)
+        {
+            throw new InvalidOperationException("Connection closed.");
+        }
+
+        LocalWrites.Enqueue((variable, value));
+        Variables[variable.Name] = value;
+    }
+
     /// <summary>When set, <see cref="ReadVariablesAsync"/> waits for it before answering (a slow native read).</summary>
     public TaskCompletionSource? VariableReadGate { get; set; }
 

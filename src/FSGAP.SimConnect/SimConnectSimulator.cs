@@ -36,7 +36,7 @@ namespace FSGAP.SimConnect;
 /// <item><description>After disposal, Start throws <see cref="ObjectDisposedException"/>.</description></item>
 /// </list>
 /// </remarks>
-public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariableReader, IAirportService, IInstalledLiveryService
+public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariableReader, ISimulatorVariableWriter, IAirportService, IInstalledLiveryService
 {
     /// <summary>Identity poll interval while connecting or while the aircraft is changing.</summary>
     internal static readonly TimeSpan IdentityFastInterval = TimeSpan.FromSeconds(2);
@@ -170,6 +170,37 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
 
         var snapshot = variables.ToArray();
         return await session.ReadVariablesAsync(snapshot, cancellationToken).ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+    }
+
+    /// <summary>
+    /// Writes one local (<c>L:</c>) variable of the user aircraft on this transport's single connection. Explicit: the
+    /// transport exposes no public write method of its own; an aircraft provider receives it as its
+    /// <see cref="ISimulatorVariableWriter"/> and writes only the controls it has qualified.
+    /// </summary>
+    /// <exception cref="ArgumentException">Not a local variable, or the value is not finite.</exception>
+    /// <exception cref="InvalidOperationException">The simulator is not connected; nothing was written.</exception>
+    /// <exception cref="TimeoutException">The request was not taken within the write time limit.</exception>
+    async Task ISimulatorVariableWriter.WriteAsync(SimulatorVariable variable, double value, CancellationToken cancellationToken)
+    {
+        LocalWrite.Validate(variable, value);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        cancellationToken.ThrowIfCancellationRequested();
+        var session = _connectedSession?.Session;
+        if (session is null || !session.IsConnected)
+        {
+            throw new InvalidOperationException(SimulatorNotConnected);
+        }
+
+        using var limit = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        limit.CancelAfter(LocalWrite.Timeout);
+        try
+        {
+            await session.WriteLocalAsync(variable, value, limit.Token).ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new TimeoutException($"The simulator did not take the write of '{variable.Name}' within {LocalWrite.Timeout.TotalSeconds:0} s.");
+        }
     }
 
     /// <inheritdoc />
