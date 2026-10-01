@@ -29,11 +29,17 @@ public class SynapticArchitectureTests
     }
 
     [Fact]
-    public void No_failure_provider_and_no_write_path_exist()
+    public void No_failure_provider_and_the_only_write_path_is_the_bounded_variable_writer()
     {
         var types = Synaptic.GetTypes();
 
         Assert.DoesNotContain(types, t => !t.IsInterface && typeof(IFailureProvider).IsAssignableFrom(t));
+        // BLOCK 11.0: writes exist only for the qualified controlled degradations, through ISimulatorVariableWriter.
+        Assert.Equal(
+            ["SynapticAircraftProvider", "SynapticDegradationProvider"],
+            types.Where(t => t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic).Any(f => f.FieldType == typeof(ISimulatorVariableWriter) || Nullable.GetUnderlyingType(f.FieldType) == typeof(ISimulatorVariableWriter)))
+                .Select(t => t.Name).Order());
+        Assert.Equal(["WriteAsync"], typeof(ISimulatorVariableWriter).GetMethods().Select(m => m.Name));
         Assert.DoesNotContain(types, t => typeof(HttpClient).IsAssignableFrom(t)
             || t.GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).Any(f => f.FieldType == typeof(HttpClient)));
         Assert.Equal(["ReadAsync"], typeof(ISimulatorVariableReader).GetMethods().Select(m => m.Name));
@@ -60,6 +66,20 @@ public class SynapticArchitectureTests
         // Core, SimConnect and Fenix (checked by those projects' tests) is meaningful.
         Assert.True(BinaryContains(Synaptic, "L:A22X L Boost Pump"));
         Assert.True(BinaryContains(Synaptic, "L:A22X APU Bleed Off"));
+        Assert.True(BinaryContains(Synaptic, "L:A22X PFCC 1 Off"));
+        Assert.True(BinaryContains(Synaptic, "L:A22X ACMP 3A"));
+    }
+
+    [Fact]
+    public void Excluded_controls_are_never_written()
+    {
+        // BLOCK 10C.3 evidence: Hyd 1 SOV unresolved, circuit breakers unmapped, probe heat a test pulse, fire latched.
+        Assert.False(BinaryContains(Synaptic, "Hyd 1 SOV"));
+        Assert.False(BinaryContains(Synaptic, "Circuit Breaker"));
+        Assert.False(BinaryContains(Synaptic, "L:A22X Probe Heat"));
+        var written = FSGAP.Synaptic.Degradations.SynapticDegradationControls.Controls.Select(c => c.Variable.Name).ToArray();
+        Assert.Equal(["L:A22X L Gen Off", "L:A22X ACMP 3A", "L:A22X L Pack Off", "L:A22X PFCC 1 Off"], written);
+        Assert.DoesNotContain(written, n => n.Contains("Fire", StringComparison.Ordinal));
     }
 
     private static bool BinaryContains(Assembly assembly, string text)

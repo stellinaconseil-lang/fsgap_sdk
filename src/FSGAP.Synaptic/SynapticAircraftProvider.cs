@@ -2,11 +2,14 @@ using FSGAP.Abstractions;
 using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Capabilities;
 using FSGAP.Abstractions.Configuration;
+using FSGAP.Abstractions.Degradations;
 using FSGAP.Abstractions.Simulator;
 using FSGAP.Abstractions.Telemetry;
+using FSGAP.Core.Degradations;
 using FSGAP.Core.Failures;
 using FSGAP.Core.Sessions;
 using FSGAP.Core.Telemetry;
+using FSGAP.Synaptic.Degradations;
 using FSGAP.Synaptic.Detection;
 using FSGAP.Synaptic.Identity;
 using FSGAP.Synaptic.Telemetry;
@@ -35,6 +38,12 @@ namespace FSGAP.Synaptic;
 /// <b>No failures.</b> The A220 documents no external failure interface; sessions declare
 /// <see cref="FailureCapabilities.None"/> and every command answers <c>NotSupported</c>.
 /// </para>
+/// <para>
+/// <b>Controlled degradations.</b> Given a variable writer on the same connection, sessions also offer four controlled
+/// degradations qualified live (generator 1, hydraulic pump 3A, pack 1 and PFCC 1 forced off): documented cockpit controls
+/// FSGAP forces into a degraded configuration, never component failures. See <see cref="DegradationCapabilities"/>; one
+/// at a time, explicit set values, read back before success, restored on dispose only when this session applied them.
+/// </para>
 /// </remarks>
 public sealed class SynapticAircraftProvider : IAircraftProvider
 {
@@ -47,6 +56,7 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
     private readonly ITelemetryProvider? _genericTelemetry;
     private readonly ISimulatorVariableReader? _simulatorVariables;
     private readonly IAircraftDetector? _aircraftDetector;
+    private readonly ISimulatorVariableWriter? _simulatorVariableWriter;
     private readonly TimeSpan _staleAfter;
 
     /// <summary>Creates the provider.</summary>
@@ -60,6 +70,11 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
     /// <param name="simulatorVariables">Reader of simulator variables on the same connection, typically the <c>SimConnectSimulator</c>.</param>
     /// <param name="aircraftDetector">The same connection's aircraft detector (stops a session's reads when another aircraft is loaded).</param>
     /// <param name="telemetryOptions">Freshness limit; <see cref="TelemetryOptions"/> defaults otherwise.</param>
+    /// <param name="simulatorVariableWriter">
+    /// Writer of local variables on the same connection, typically the <c>SimConnectSimulator</c>. With it (and
+    /// <paramref name="simulatorVariables"/>), sessions offer the qualified controlled degradations; without it, they offer
+    /// none.
+    /// </param>
     /// <exception cref="ArgumentException">An option is invalid.</exception>
     public SynapticAircraftProvider(
         SynapticInstalledAircraftCatalog? installedAircraft = null,
@@ -68,7 +83,8 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
         ITelemetryProvider? genericTelemetry = null,
         ISimulatorVariableReader? simulatorVariables = null,
         IAircraftDetector? aircraftDetector = null,
-        TelemetryOptions? telemetryOptions = null)
+        TelemetryOptions? telemetryOptions = null,
+        ISimulatorVariableWriter? simulatorVariableWriter = null)
     {
         var telemetry = telemetryOptions ?? new TelemetryOptions();
         telemetry.Validate();
@@ -78,6 +94,7 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
         _genericTelemetry = genericTelemetry;
         _simulatorVariables = simulatorVariables;
         _aircraftDetector = aircraftDetector;
+        _simulatorVariableWriter = simulatorVariableWriter;
         _staleAfter = telemetry.StaleAfter;
     }
 
@@ -141,12 +158,22 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
                 staleAfter),
             overlay);
 
+        // Controlled degradations need both directions on the same connection; never a write without a read-back.
+        IDegradationProvider degradations = UnsupportedDegradationProvider.Instance;
+        var degradationCapabilities = DegradationCapabilities.None;
+        if (_simulatorVariables is not null && _simulatorVariableWriter is not null)
+        {
+            degradations = new SynapticDegradationProvider(_simulatorVariables, _simulatorVariableWriter, _aircraftDetector, aircraft, _logger);
+            degradationCapabilities = SynapticDegradationProvider.Capabilities;
+        }
+
         return Task.FromResult<IAircraftSession>(new AircraftSession(
             ProviderId,
             identity.Get,
-            new AircraftCapabilities { Telemetry = sections, Failures = FailureCapabilities.None },
+            new AircraftCapabilities { Telemetry = sections, Failures = FailureCapabilities.None, Degradations = degradationCapabilities },
             telemetry,
-            UnsupportedFailureProvider.Instance));
+            UnsupportedFailureProvider.Instance,
+            degradations));
     }
 
     /// <summary>

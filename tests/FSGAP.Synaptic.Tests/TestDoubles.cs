@@ -177,3 +177,100 @@ internal sealed class TempDirectory : IDisposable
         }
     }
 }
+
+/// <summary>
+/// Scriptable local-variable writer: records every write and, like the simulator, makes the value readable through the
+/// linked reader (unless <see cref="Ignore"/> is set, which models a write the aircraft does not take).
+/// </summary>
+internal sealed class FakeVariableWriter(FakeVariableReader reader) : ISimulatorVariableWriter
+{
+    public ConcurrentQueue<(SimulatorVariable Variable, double Value)> Writes { get; } = new();
+
+    public Exception? Failure { get; set; }
+
+    public bool Ignore { get; set; }
+
+    public Task WriteAsync(SimulatorVariable variable, double value, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (Failure is { } failure)
+        {
+            return Task.FromException(failure);
+        }
+
+        Writes.Enqueue((variable, value));
+        if (!Ignore)
+        {
+            reader.Values[variable.Name] = value;
+        }
+
+        return Task.CompletedTask;
+    }
+}
+
+/// <summary>Aircraft detector that streams every change to its watchers (connection loss = <see langword="null"/>).</summary>
+internal sealed class StreamingDetector(AircraftDescriptor? current) : IAircraftDetector
+{
+    private readonly object _gate = new();
+    private readonly List<System.Threading.Channels.Channel<AircraftDescriptor?>> _watchers = [];
+    private AircraftDescriptor? _current = current;
+
+    public int Watchers
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _watchers.Count;
+            }
+        }
+    }
+
+    public AircraftDescriptor? Current
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _current;
+            }
+        }
+    }
+
+    public void Publish(AircraftDescriptor? aircraft)
+    {
+        lock (_gate)
+        {
+            _current = aircraft;
+            foreach (var watcher in _watchers)
+            {
+                watcher.Writer.TryWrite(aircraft);
+            }
+        }
+    }
+
+    public async IAsyncEnumerable<AircraftDescriptor?> WatchAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var channel = System.Threading.Channels.Channel.CreateUnbounded<AircraftDescriptor?>();
+        lock (_gate)
+        {
+            _watchers.Add(channel);
+            channel.Writer.TryWrite(_current);
+        }
+
+        try
+        {
+            await foreach (var aircraft in channel.Reader.ReadAllAsync(cancellationToken))
+            {
+                yield return aircraft;
+            }
+        }
+        finally
+        {
+            lock (_gate)
+            {
+                _watchers.Remove(channel);
+            }
+        }
+    }
+}

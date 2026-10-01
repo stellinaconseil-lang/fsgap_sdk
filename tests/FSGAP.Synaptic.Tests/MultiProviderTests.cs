@@ -2,6 +2,8 @@ using FSGAP.Abstractions;
 using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Capabilities;
 using FSGAP.Abstractions.Simulator;
+using FSGAP.Abstractions.Degradations;
+using FSGAP.Core.Degradations;
 using FSGAP.Core.Failures;
 using FSGAP.Core.Resolution;
 using FSGAP.Fenix;
@@ -169,6 +171,42 @@ public class MultiProviderTests
         await host.DisposeAsync();
         Assert.Equal(4, host.Disposed.Count);
         Assert.Equal(host.Disposed.Count, host.Disposed.Distinct().Count());
+    }
+
+    [Fact]
+    public async Task Degradations_follow_the_provider_fenix_none_synaptic_four_fenix_none_and_fenix_is_never_written()
+    {
+        var clock = new CountingClock();
+        var reader = new FakeVariableReader();
+        reader.Values["L:A22X L Gen Off"] = 0;
+        var writer = new FakeVariableWriter(reader);
+        var detector = new FakeDetector(null);
+        var generic = new StampedGenericTelemetry(clock);
+        var registry = Registry(
+            new FenixAircraftProvider(null, clock, null, generic, reader, detector, fenixOptions: new FenixOptions(), efbHttpClient: new HttpClient(new CountingHandler())),
+            new SynapticAircraftProvider(null, clock, null, generic, reader, detector, simulatorVariableWriter: writer));
+        var host = new SessionHost(registry, detector);
+        var generator = DegradationKey.Parse("electrical.generator.1.forced-off");
+
+        var fenix = await host.LoadAsync(Descriptors.FenixA320);
+        Assert.Same(DegradationCapabilities.None, fenix!.Capabilities.Degradations);
+        Assert.Same(UnsupportedDegradationProvider.Instance, fenix.Degradations);
+        Assert.Equal(DegradationCommandStatus.NotSupported, (await fenix.Degradations.ApplyAsync(generator)).Status);
+        Assert.True(fenix.Capabilities.Failures.CanReadActiveFailures); // Fenix failures unchanged
+
+        var synaptic = await host.LoadAsync(Descriptors.Delta);
+        Assert.Equal(4, synaptic!.Capabilities.Degradations.Catalog.Count);
+        Assert.True((await synaptic.Degradations.ApplyAsync(generator)).IsSuccess);
+
+        // The next aircraft is loaded before the old session is disposed: the A220 is gone, so nothing is written to the
+        // Fenix (the A220's ownership is dropped, never carried into the new session).
+        var fenixAgain = await host.LoadAsync(Descriptors.FenixA321);
+        Assert.Same(UnsupportedDegradationProvider.Instance, fenixAgain!.Degradations);
+        Assert.Single(writer.Writes);
+        Assert.All(writer.Writes, w => Assert.StartsWith("L:A22X ", w.Variable.Name));
+
+        await host.DisposeAsync();
+        Assert.Single(writer.Writes);
     }
 
     /// <summary>Minimal host loop: one session at a time, disposed before the next aircraft is attached.</summary>
