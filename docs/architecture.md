@@ -159,7 +159,7 @@ A snapshot can be shared across threads and consumers safely ([ADR 0007](decisio
 
 The session also owns per-aircraft resources.
 
-### Failures and controlled degradations are separate (0.11.0-preview.1)
+### Failures and controlled degradations are separate (0.11)
 
 A failure is a component the aircraft itself represents as failed; a controlled degradation is a documented aircraft
 control FSGAP deliberately forces into a degraded configuration (a generator switch set OFF is not a generator failure).

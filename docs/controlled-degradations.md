@@ -1,4 +1,4 @@
-# Controlled degradations (0.11.0-preview.1)
+# Controlled degradations (0.11.0-rc.1)
 
 ## Failures vs controlled degradations
 
@@ -88,3 +88,24 @@ ignored on the A220; kept as research evidence on `research/synaptic-native-fail
 
 These degradations are visible in the cockpit (switch OFF light, EICAS message): a pilot sees a switch configuration, not
 a hidden failure.
+
+## Live validation of the production path (BLOCK 11.1, 0.11.0-preview.1, accepted)
+
+2026-10-01, LFKJ, A220-300 (No Cabin) Air France, on the ground, engines idle, one native connection. Everything went
+through the public API (`session.Degradations`: catalog, `GetStateAsync`, `ApplyAsync`, `RestoreAsync`, session
+disposal); the sample `--qualify --degradation-console` only wires the simulator as the provider's writer and logs each
+write.
+
+| Check | Result |
+|---|---|
+| Session | provider `synaptic`; `FailureCapabilities.None`; degradations supported, catalog 4, `MaxActive` 1; no raw variable name in the public catalog |
+| Baseline | the four states `Normal` |
+| Generator 1, ACMP 3A, pack 1, PFCC 1 | each: `ApplyAsync` `Succeeded` (45-76 ms) → `Applied`; cockpit effect confirmed by the pilot (OFF light, EICAS message, synoptic); `RestoreAsync` `Succeeded` → `Normal`; cockpit back to normal |
+| One active at a time | a second `ApplyAsync` while generator 1 was applied: `Rejected`, nothing written |
+| Ownership: pre-existing | L PACK set OFF by the pilot: `PreExisting`; apply and restore `Rejected`; clean disposal wrote nothing and the pack stayed OFF |
+| Manual pilot restore | after an FSGAP apply the pilot switched L GEN back on: `Normal`, ownership released, no further write (not even on disposal) |
+| Restore on disposal | generator 1 applied, session disposed cleanly: one restore write, no exception, cockpit back to normal, next session reads `Normal` |
+| Fenix (same build) | failures unchanged (40 keys, read active); degradations `None` |
+
+Not observed live: an ATC ID change while a degradation was applied (covered by automated tests), disconnection (by
+design no restore is expected without a connection; ownership drop covered by automated tests).
