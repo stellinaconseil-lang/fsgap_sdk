@@ -859,6 +859,20 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
             ? native.RemoveAndConfirmAsync(objectId, ledger)
             : throw new InvalidOperationException("AI object removal needs the SimConnect.NET session.");
 
+    /// <summary>
+    /// BLOCK 10C.1 — RESEARCH ONLY, internal (visible to the live sample): transmits exactly once one of the three
+    /// documented brake-failure toggles to the user aircraft on this transport's connection. Not a failure provider.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The simulator is not connected, or the session is not the SimConnect.NET one.</exception>
+    /// <exception cref="ArgumentException">The event is not an allowed diagnostic event.</exception>
+    internal Task<NativeFailureEventResult> ExperimentalTransmitNativeFailureEventAsync(string eventName, CancellationToken cancellationToken)
+    {
+        NativeFailureProbeEvents.IdOf(eventName);
+        return (_connectedSession ?? throw new InvalidOperationException(SimulatorNotConnected)).Session is SimConnectNetSession native
+            ? native.TransmitNativeFailureEventAsync(eventName, cancellationToken)
+            : throw new InvalidOperationException("Diagnostic event transmission needs the SimConnect.NET session.");
+    }
+
     private async Task<IReadOnlyList<RawLiveryEntry>> RequestLiveryListAsync(LiveSession live)
     {
         // ForceYielding: never continue on the native message thread.

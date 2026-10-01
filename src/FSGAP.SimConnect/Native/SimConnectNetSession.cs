@@ -54,12 +54,18 @@ internal sealed class SimConnectNetSession : ISimConnectSession
     /// <summary>BLOCK 10A.5 (experimental AI probes): time allowed for an AI object id to be assigned or removed.</summary>
     internal static readonly TimeSpan LiveryDiscoveryTimeout = TimeSpan.FromSeconds(15);
 
+    /// <summary>BLOCK 10C.1: how long exception packets are gathered after a diagnostic event is transmitted.</summary>
+    internal static readonly TimeSpan NativeFailureObservationWindow = TimeSpan.FromSeconds(1);
+
     private static int _nextDiscoveryRequestId = 0x46534800;
 
     private readonly SimConnectClient _client;
     private readonly SemaphoreSlim _airportRequests = new(1, 1);
     private readonly SemaphoreSlim _liveryRequests = new(1, 1);
     private readonly SemaphoreSlim _discoveryRequests = new(1, 1);
+
+    /// <summary>BLOCK 10C.1 diagnostic events already mapped on this connection (guarded by <see cref="_discoveryRequests"/>).</summary>
+    private readonly HashSet<string> _mappedNativeFailureEvents = new(StringComparer.Ordinal);
     private int _disposed;
 
     public SimConnectNetSession(SimConnectClient client)
@@ -441,6 +447,63 @@ internal sealed class SimConnectNetSession : ISimConnectSession
         }
 
         return (hr, !stillThere, latency);
+    }
+
+    /// <summary>
+    /// BLOCK 10C.1 — RESEARCH ONLY: maps (once per connection) and transmits one allowed brake-failure key event to the
+    /// user aircraft, then gathers any SimConnect exception packet for <see cref="NativeFailureObservationWindow"/>.
+    /// Serialized with the discovery requests; exactly one transmission per call.
+    /// </summary>
+    /// <exception cref="ArgumentException">The event is not one of <see cref="NativeFailureProbeEvents.ClientEventIds"/>.</exception>
+    internal async Task<NativeFailureEventResult> TransmitNativeFailureEventAsync(string eventName, CancellationToken cancellationToken)
+    {
+        var clientEventId = NativeFailureProbeEvents.IdOf(eventName);
+        await _discoveryRequests.WaitAsync(cancellationToken).ConfigureAwait(false);
+        var exceptions = new System.Collections.Concurrent.ConcurrentQueue<string>();
+
+        void OnRaw(object? sender, RawSimConnectMessageEventArgs e)
+        {
+            if (e.MessageId == SimConnectRecvId.Exception && e.DataSize >= 24)
+            {
+                var buffer = new byte[e.DataSize];
+                System.Runtime.InteropServices.Marshal.Copy(e.DataPointer, buffer, 0, (int)e.DataSize);
+                exceptions.Enqueue($"exception {BitConverter.ToUInt32(buffer, 12)} (send id {BitConverter.ToUInt32(buffer, 16)}, index {BitConverter.ToUInt32(buffer, 20)})");
+            }
+        }
+
+        _client.RawMessageReceived += OnRaw;
+        try
+        {
+            int? mapHr = null;
+            if (!_mappedNativeFailureEvents.Contains(eventName))
+            {
+                mapHr = await ClientEventInterop.MapAsync(_client, clientEventId, eventName, cancellationToken).ConfigureAwait(false);
+                if (mapHr >= 0)
+                {
+                    _mappedNativeFailureEvents.Add(eventName);
+                }
+            }
+
+            var sentAt = DateTimeOffset.UtcNow;
+            var transmitHr = mapHr is < 0
+                ? mapHr.Value
+                : await ClientEventInterop.TransmitToUserAsync(_client, clientEventId, cancellationToken).ConfigureAwait(false);
+            await Task.Delay(NativeFailureObservationWindow, CancellationToken.None).ConfigureAwait(false);
+            return new NativeFailureEventResult
+            {
+                EventName = eventName,
+                ClientEventId = clientEventId,
+                MapHResult = mapHr,
+                TransmitHResult = transmitHr,
+                Exceptions = exceptions.ToArray(),
+                SentAt = sentAt,
+            };
+        }
+        finally
+        {
+            _client.RawMessageReceived -= OnRaw;
+            _discoveryRequests.Release();
+        }
     }
 
     public async ValueTask DisposeAsync()

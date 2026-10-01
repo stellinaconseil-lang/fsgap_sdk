@@ -18,6 +18,10 @@
 // side by side in an AircraftProviderRegistry on the one SimConnectSimulator; each detected aircraft is resolved by the
 // registry and the previous session disposed. Prints identity, registration source, capabilities, the Synaptic overlay,
 // the installed A220 catalog (live enumeration) and read/EFB counters (ProviderQualification.cs); logs to <directory>.
+//
+// --brake-failure-probe <directory> (BLOCK 10C.1, RESEARCH ONLY): interactive probe of the documented brake-failure key
+// events on the Synaptic A220 (BrakeFailureProbe.cs). Samples brake/wheel telemetry and read-only Wear & Tear; transmits
+// one TOGGLE_*_BRAKE_FAILURE only on a confirmed command, on the ground, stationary. Logs CSV + JSONL to <directory>.
 using System.Diagnostics;
 using System.Globalization;
 using FSGAP.Abstractions;
@@ -62,6 +66,7 @@ if (qualifyDirectory is not null)
 // stops; --livery-cleanup <id,id,...> only removes experimental AI objects left by a crashed run.
 var liveryDiscoveryDirectory = Arg(args, "--livery-discovery");
 var liveryProbes = int.TryParse(Arg(args, "--livery-probes"), out var requestedProbes) ? requestedProbes : 3;
+var brakeFailureProbeDirectory = Arg(args, "--brake-failure-probe");
 var liveryCleanupIds = Arg(args, "--livery-cleanup")?.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(uint.Parse).ToArray();
 
 using var stop = new CancellationTokenSource();
@@ -165,6 +170,9 @@ var watchers = new[]
         : liveryCleanupIds is not null
             ? LiveryDiscoveryRun.CleanupIdsAsync(simulator, liveryCleanupIds, Print, stop.Token).ContinueWith(_ => stop.Cancel(), TaskScheduler.Default)
             : Task.CompletedTask,
+    brakeFailureProbeDirectory is not null
+        ? BrakeFailureProbe.RunAsync(simulator, brakeFailureProbeDirectory, Print, stop.Token).ContinueWith(_ => stop.Cancel(), TaskScheduler.Default)
+        : Task.CompletedTask,
 };
 
 await Task.WhenAll(watchers);
