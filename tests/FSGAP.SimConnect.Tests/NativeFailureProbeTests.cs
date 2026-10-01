@@ -8,10 +8,13 @@ namespace FSGAP.SimConnect.Tests;
 public class NativeFailureProbeTests
 {
     [Fact]
-    public void Only_the_three_documented_brake_failure_toggles_are_allowed()
+    public void Only_the_nine_documented_failure_toggles_of_the_matrix_are_allowed()
     {
         Assert.Equal(
-            ["TOGGLE_LEFT_BRAKE_FAILURE", "TOGGLE_RIGHT_BRAKE_FAILURE", "TOGGLE_TOTAL_BRAKE_FAILURE"],
+            [
+                "TOGGLE_ELECTRICAL_FAILURE", "TOGGLE_ENGINE1_FAILURE", "TOGGLE_ENGINE2_FAILURE", "TOGGLE_HYDRAULIC_FAILURE", "TOGGLE_LEFT_BRAKE_FAILURE",
+                "TOGGLE_PITOT_BLOCKAGE", "TOGGLE_RIGHT_BRAKE_FAILURE", "TOGGLE_STATIC_PORT_BLOCKAGE", "TOGGLE_TOTAL_BRAKE_FAILURE",
+            ],
             NativeFailureProbeEvents.ClientEventIds.Keys.Order(StringComparer.Ordinal));
     }
 
@@ -28,8 +31,10 @@ public class NativeFailureProbeTests
     [Theory]
     [InlineData("TIRE_FAILURE")]
     [InlineData("TIRE_PRESSURE_FAILURE")]
-    [InlineData("TOGGLE_ENGINE1_FAILURE")]
-    [InlineData("TOGGLE_HYDRAULIC_FAILURE")]
+    [InlineData("TOGGLE_ENGINE3_FAILURE")]
+    [InlineData("TOGGLE_ENGINE4_FAILURE")]
+    [InlineData("TOGGLE_VACUUM_FAILURE")]
+    [InlineData("TOGGLE_ALTERNATE_STATIC")]
     [InlineData("REPAIR_AND_REFUEL")]
     [InlineData("toggle_left_brake_failure")]
     [InlineData("")]

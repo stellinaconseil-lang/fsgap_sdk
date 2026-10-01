@@ -3,9 +3,9 @@ using SimConnect.NET;
 
 namespace FSGAP.SimConnect.Native;
 
-// BLOCK 10C.1 — RESEARCH ONLY, diagnostic. Transmits one of the three documented MSFS 2024 brake-failure key events
-// (Key Events > Aircraft Misc Events > Aircraft Failures) to the user aircraft, on the transport's own connection, so the
-// live sample can observe whether the Synaptic A220 reacts. Internal; no production path uses it, nothing here is public,
+// BLOCK 10C.1/10C.2 — RESEARCH ONLY, diagnostic. Transmits one of nine documented MSFS 2024 failure key events (Key
+// Events > Aircraft Misc Events > Aircraft Failures) to the user aircraft, on the transport's own connection, so the live
+// sample can observe whether the Synaptic A220 reacts. Internal; no production path uses it, nothing here is public,
 // and it is not a FailureProvider: no FailureKey, no Trigger/Clear contract, FailureCapabilities stay None.
 
 /// <summary>The only events the diagnostic transport accepts, each with a fixed client event id.</summary>
@@ -20,6 +20,24 @@ internal static class NativeFailureProbeEvents
     /// <summary>Documented: "Toggles brake failure (both)".</summary>
     internal const string ToggleTotalBrakeFailure = "TOGGLE_TOTAL_BRAKE_FAILURE";
 
+    /// <summary>Documented: "Toggle engine 1/2/3/4 failure" (engine 1).</summary>
+    internal const string ToggleEngine1Failure = "TOGGLE_ENGINE1_FAILURE";
+
+    /// <summary>Documented: "Toggle engine 1/2/3/4 failure" (engine 2).</summary>
+    internal const string ToggleEngine2Failure = "TOGGLE_ENGINE2_FAILURE";
+
+    /// <summary>Documented: "Toggles hydraulic system failure".</summary>
+    internal const string ToggleHydraulicFailure = "TOGGLE_HYDRAULIC_FAILURE";
+
+    /// <summary>Documented: "Toggle electrical system failure".</summary>
+    internal const string ToggleElectricalFailure = "TOGGLE_ELECTRICAL_FAILURE";
+
+    /// <summary>Documented: "Toggles blocked pitot tube".</summary>
+    internal const string TogglePitotBlockage = "TOGGLE_PITOT_BLOCKAGE";
+
+    /// <summary>Documented: "Toggles blocked static port".</summary>
+    internal const string ToggleStaticPortBlockage = "TOGGLE_STATIC_PORT_BLOCKAGE";
+
     /// <summary>
     /// Client event ids, well away from the system-event subscription ids of the session (1 and 2), which share the
     /// connection's event id space.
@@ -29,10 +47,16 @@ internal static class NativeFailureProbeEvents
         [ToggleLeftBrakeFailure] = 0x10C1_0001,
         [ToggleRightBrakeFailure] = 0x10C1_0002,
         [ToggleTotalBrakeFailure] = 0x10C1_0003,
+        [ToggleEngine1Failure] = 0x10C1_0004,
+        [ToggleEngine2Failure] = 0x10C1_0005,
+        [ToggleHydraulicFailure] = 0x10C1_0006,
+        [ToggleElectricalFailure] = 0x10C1_0007,
+        [TogglePitotBlockage] = 0x10C1_0008,
+        [ToggleStaticPortBlockage] = 0x10C1_0009,
     };
 
     /// <summary>Returns the client event id of an allowed event.</summary>
-    /// <exception cref="ArgumentException">The event is not one of the three documented brake-failure toggles.</exception>
+    /// <exception cref="ArgumentException">The event is not one of the nine allowed documented failure toggles.</exception>
     internal static uint IdOf(string eventName) =>
         ClientEventIds.TryGetValue(eventName, out var id)
             ? id
