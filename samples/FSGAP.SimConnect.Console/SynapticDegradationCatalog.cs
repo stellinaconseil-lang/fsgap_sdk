@@ -70,9 +70,11 @@ internal sealed class SynapticDegradationSession
         new("ELEC_L_GEN_OFF", DegradationFamily.Electrical, "Left engine generator switch OFF", "L:A22X L Gen Off", 0, 1,
             ["L:A22X L Gen Off Lamp", "L:A22X L Gen Fail Lamp", "L:A22X APU Gen Off Lamp", "L:A22X Caution PBA"],
             "left IDG off line: L GEN OFF lamp, EICAS caution, AC bus 1 transferred to another source; engine 1 keeps running"),
-        new("HYD_SOV_1_CLOSED", DegradationFamily.Hydraulic, "Hydraulic system 1 shutoff valve switch not ON", "L:A22X Hyd 1 SOV", 1, 0,
-            ["L:A22X Hyd 1 SOV Lamp", "L:A22X Caution PBA"],
-            "system 1 engine-driven pump supply shut off: SOV CLOSED lamp, HYD 1 indication/EICAS; other systems unaffected"),
+        // Hyd 1 SOV was withdrawn live (2026-10-01): documented "selected on", but the normal configuration reads 0, so the
+        // meaning of 1 is unresolved. ACMP 3A has a documented enum (0 Off, 1 Auto, 2 On) and reads Auto in normal flight.
+        new("HYD_ACMP_3A_OFF", DegradationFamily.Hydraulic, "AC motor pump 3A switch OFF (3B stays AUTO)", "L:A22X ACMP 3A", 1, 0,
+            ["L:A22X ACMP 3B", "L:A22X Caution PBA"],
+            "one of the two system 3 pumps off: HYD synoptic pump 3A off, EICAS status/advisory; ACMP 3B (AUTO) keeps system 3 pressurized"),
         new("PNEU_L_PACK_OFF", DegradationFamily.Pneumatic, "Left air-conditioning pack switch OFF", "L:A22X L Pack Off", 0, 1,
             ["L:A22X L Pack Off Lamp", "L:A22X L Pack Fail Lamp", "L:A22X Caution PBA"],
             "left pack off: PACK OFF lamp, ECS synoptic pack L closed, EICAS status/advisory; right pack keeps the cabin supplied"),

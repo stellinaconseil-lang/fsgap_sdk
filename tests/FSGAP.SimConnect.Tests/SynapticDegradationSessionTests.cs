@@ -35,7 +35,7 @@ public class SynapticDegradationSessionTests
     [Fact]
     public void The_whitelist_is_four_reviewed_documented_local_variables_with_explicit_set_values()
     {
-        Assert.Equal(["ELEC_L_GEN_OFF", "HYD_SOV_1_CLOSED", "PNEU_L_PACK_OFF", "FCS_PFCC_1_OFF"], SynapticDegradationSession.Candidates.Select(c => c.Id));
+        Assert.Equal(["ELEC_L_GEN_OFF", "HYD_ACMP_3A_OFF", "PNEU_L_PACK_OFF", "FCS_PFCC_1_OFF"], SynapticDegradationSession.Candidates.Select(c => c.Id));
         Assert.All(SynapticDegradationSession.Candidates, c =>
         {
             Assert.StartsWith("L:A22X ", c.Variable);
@@ -51,6 +51,7 @@ public class SynapticDegradationSessionTests
     [InlineData("L:A22X L Eng Fire")]
     [InlineData("L:A22X Probe Heat")]
     [InlineData("L:A22X Circuit Breaker L A1")]
+    [InlineData("HYD_SOV_1_CLOSED")]
     [InlineData("ELEC_R_GEN_OFF")]
     [InlineData("TOGGLE_ENGINE1_FAILURE")]
     [InlineData("")]
@@ -128,9 +129,10 @@ public class SynapticDegradationSessionTests
     public void The_live_value_must_be_the_documented_normal_before_baseline_apply_and_verify()
     {
         var s = new SynapticDegradationSession();
-        var hyd = SynapticDegradationSession.Find("HYD_SOV_1_CLOSED")!;
+        var hyd = SynapticDegradationSession.Find("HYD_ACMP_3A_OFF")!;
 
         Assert.Contains("not the live state", s.BeginBaseline(hyd.Id, 0));
+        Assert.Contains("not the live state", s.BeginBaseline(hyd.Id, 2));
         Assert.Null(s.BeginBaseline(hyd.Id, 1));
         Assert.Contains("not the live state", s.PlanApply(hyd.Id, 0, Parked).Refusal);
         var (apply, _) = s.PlanApply(hyd.Id, 1, Parked);
