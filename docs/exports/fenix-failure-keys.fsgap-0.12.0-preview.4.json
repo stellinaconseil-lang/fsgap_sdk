@@ -1,0 +1,1933 @@
+{
+  "_comment": "FSGAP export for consumers that still persist raw Fenix ids (FSHANGAR C1 rebase): raw Fenix EFB failure id -> normalized FSGAP FailureKey, all 384. Reference artifact only: applications command failures by FailureKey through FsgapRuntime and never need a raw id. Generated from the canonical mapping resource; do not edit.",
+  "fsgap_version": "0.12.0-preview.4",
+  "source_file": "src/FSGAP.Fenix/Failures/Resources/fenix-failure-mapping.json",
+  "source_git_blob": "809035f7dc7b223e8fd0afc834eda58cc98210dc",
+  "source_sha256": "9fe39bc1f6bda5fc8811321370afb4b38c786cba06083bf3f38fe932dc5dcb8f",
+  "raw_catalog_count": 384,
+  "mapping_count": 384,
+  "failure_key_count": 384,
+  "original_keys_count": 40,
+  "entries": [
+    {
+      "fenix_failure_id": "F_PNEUMATIC_CPC_1",
+      "failure_key": "air-conditioning.cpc.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_CPC_2",
+      "failure_key": "air-conditioning.cpc.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_PACK_1_OVERHEAT",
+      "failure_key": "air-conditioning.pack.1.overheat",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_PACK_2_OVERHEAT",
+      "failure_key": "air-conditioning.pack.2.overheat",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_PACK_1_REG_FAULT",
+      "failure_key": "air-conditioning.pack.1.regulator-fault",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_PACK_2_REG_FAULT",
+      "failure_key": "air-conditioning.pack.2.regulator-fault",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_ZONECONTROLLER_PRIM",
+      "failure_key": "air-conditioning.zone-controller.primary",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_ZONECONTROLLER_SEC",
+      "failure_key": "air-conditioning.zone-controller.secondary",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_TRIM_AIR",
+      "failure_key": "air-conditioning.trim-air.hot-air-fault",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_CVC",
+      "failure_key": "air-conditioning.cargo-ventilation-controller",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_HOT_AIR_VALVE_AFT_CARGO",
+      "failure_key": "air-conditioning.cargo.aft.hot-air-valve",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_CARGO_ISOL_FWD_UP",
+      "failure_key": "air-conditioning.cargo.forward.isolation-valve.upstream",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_CARGO_ISOL_FWD_DOWN",
+      "failure_key": "air-conditioning.cargo.forward.isolation-valve.downstream",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_CARGO_ISOL_AFT_UP",
+      "failure_key": "air-conditioning.cargo.aft.isolation-valve.upstream",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_CARGO_ISOL_AFT_DOWN",
+      "failure_key": "air-conditioning.cargo.aft.isolation-valve.downstream",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_RECIRC_FANS",
+      "failure_key": "air-conditioning.recirculation-fans",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_DECOMPRESSION_MINOR",
+      "failure_key": "air-conditioning.decompression.slow",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_DECOMPRESSION_MAJOR",
+      "failure_key": "air-conditioning.decompression.rapid",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_OUTFLOWVALVE_STUCK",
+      "failure_key": "air-conditioning.outflow-valve.stuck",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_AEVC",
+      "failure_key": "air-conditioning.ventilation.aevc",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_BLOWER",
+      "failure_key": "air-conditioning.ventilation.blower",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_EXTRACT",
+      "failure_key": "air-conditioning.ventilation.extract",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_VENT_INLET",
+      "failure_key": "air-conditioning.ventilation.inlet-valve",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_VENT_EXTRACT",
+      "failure_key": "air-conditioning.ventilation.extract-valve",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FLT_CTL_FAC_1",
+      "failure_key": "auto-flight.fac.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FLT_CTL_FAC_2",
+      "failure_key": "auto-flight.fac.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FLT_CTL_FAC_RECOVERABLE_1",
+      "failure_key": "auto-flight.fac.1.resettable-fault",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FLT_CTL_FAC_RECOVERABLE_2",
+      "failure_key": "auto-flight.fac.2.resettable-fault",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_YAW_RTL_1",
+      "failure_key": "auto-flight.rudder-travel-limiter.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_YAW_RTL_2",
+      "failure_key": "auto-flight.rudder-travel-limiter.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_RUDDERTRIM_1",
+      "failure_key": "auto-flight.rudder-trim.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_RUDDERTRIM_2",
+      "failure_key": "auto-flight.rudder-trim.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_WINDSHEAR_1",
+      "failure_key": "auto-flight.windshear-detection.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_WINDSHEAR_2",
+      "failure_key": "auto-flight.windshear-detection.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_ALTERNATE_LAW_1",
+      "failure_key": "auto-flight.law.alternate-protected",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_ALTERNATE_LAW_2",
+      "failure_key": "auto-flight.law.alternate-unprotected",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_DIRECT_LAW",
+      "failure_key": "auto-flight.law.direct",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FCU_1",
+      "failure_key": "auto-flight.fcu.channel-1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FCU_2",
+      "failure_key": "auto-flight.fcu.channel-2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_AUTOFLIGHT_ATHR1",
+      "failure_key": "auto-flight.autothrust.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_AUTOFLIGHT_ATHR2",
+      "failure_key": "auto-flight.autothrust.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_AUTOFLIGHT_AP1",
+      "failure_key": "auto-flight.autopilot.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_AUTOFLIGHT_AP2",
+      "failure_key": "auto-flight.autopilot.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_BUS_BAT",
+      "failure_key": "electrical.bus.dc-bat",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_BUS_DC_1",
+      "failure_key": "electrical.bus.dc-1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_BUS_DC_2",
+      "failure_key": "electrical.bus.dc-2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_BUS_HOT_1",
+      "failure_key": "electrical.bus.hot-1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_BUS_HOT_2",
+      "failure_key": "electrical.bus.hot-2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_BUS_DC_ESSENTIAL",
+      "failure_key": "electrical.bus.dc-ess",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_BUS_DC_SHED",
+      "failure_key": "electrical.bus.dc-ess-shed",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_BUS_AC_1",
+      "failure_key": "electrical.bus.ac-1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_BUS_AC_2",
+      "failure_key": "electrical.bus.ac-2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_BUS_AC_ESSENTIAL",
+      "failure_key": "electrical.bus.ac-ess",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_BUS_AC_SHED",
+      "failure_key": "electrical.bus.ac-ess-shed",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_BUS_AC_STATIC_INVERTER",
+      "failure_key": "electrical.bus.ac-static-inverter",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_BUS_AC26_1",
+      "failure_key": "electrical.bus.ac-1-26v",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_BUS_AC26_2",
+      "failure_key": "electrical.bus.ac-2-26v",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_BUS_AC26_ESS",
+      "failure_key": "electrical.bus.ac-ess-26v",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_APU_GEN",
+      "failure_key": "electrical.generator.apu",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_DRIVE_FAILURE_L",
+      "failure_key": "electrical.generator.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_DRIVE_FAILURE_R",
+      "failure_key": "electrical.generator.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_GEN_OVERHEAT_L",
+      "failure_key": "electrical.idg.1.oil-overheat",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_GEN_OVERHEAT_R",
+      "failure_key": "electrical.idg.2.oil-overheat",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_DRIVE_OIL_LOW_L",
+      "failure_key": "electrical.idg.1.oil-low-pressure",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_DRIVE_OIL_LOW_R",
+      "failure_key": "electrical.idg.2.oil-low-pressure",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_STATIC_INVERTER",
+      "failure_key": "electrical.static-inverter",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_TR1",
+      "failure_key": "electrical.transformer-rectifier.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_TR2",
+      "failure_key": "electrical.transformer-rectifier.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_TR_ESS",
+      "failure_key": "electrical.transformer-rectifier.ess",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_AC_ESS_ALTN",
+      "failure_key": "electrical.ac-ess-feed.alternate",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_AC_ESS_FEED_1",
+      "failure_key": "electrical.ac-ess-feed.ac-1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_AC_ESS_FEED_2",
+      "failure_key": "electrical.ac-ess-feed.ac-2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_SDCU",
+      "failure_key": "fire.sdcu",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FIRE_CARGO_FWD_SMOKE",
+      "failure_key": "fire.cargo.forward.smoke",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FIRE_CARGO_AFT_SMOKE",
+      "failure_key": "fire.cargo.aft.smoke",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FIRE_LAVATORY_SMOKE",
+      "failure_key": "fire.lavatory.smoke",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FIRE_ENG_1",
+      "failure_key": "fire.engine.1.unextinguishable",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FIRE_ENG_2",
+      "failure_key": "fire.engine.2.unextinguishable",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FIRE_APU",
+      "failure_key": "fire.apu.unextinguishable",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FIRE_ENG_1_1BOTTLE",
+      "failure_key": "fire.engine.1.extinguished-one-bottle",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FIRE_ENG_2_1BOTTLE",
+      "failure_key": "fire.engine.2.extinguished-one-bottle",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FIRE_APU_1BOTTLE",
+      "failure_key": "fire.apu.extinguished-one-bottle",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FIRE_ENG_1_2BOTTLES",
+      "failure_key": "fire.engine.1.extinguished-two-bottles",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FIRE_ENG_2_2BOTTLES",
+      "failure_key": "fire.engine.2.extinguished-two-bottles",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FIRE_ENG1_LOOP_A",
+      "failure_key": "fire.engine.1.loop-a",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FIRE_ENG1_LOOP_B",
+      "failure_key": "fire.engine.1.loop-b",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FIRE_ENG2_LOOP_A",
+      "failure_key": "fire.engine.2.loop-a",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FIRE_ENG2_LOOP_B",
+      "failure_key": "fire.engine.2.loop-b",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FIRE_AP2_LOOP_A",
+      "failure_key": "fire.apu.loop-a",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FIRE_APU_LOOP_B",
+      "failure_key": "fire.apu.loop-b",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FIRE_FDU1",
+      "failure_key": "fire.fdu.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FIRE_FDU2",
+      "failure_key": "fire.fdu.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FIRE_FDU3",
+      "failure_key": "fire.fdu.3",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FIRE_AVIONICS_SMOKE",
+      "failure_key": "fire.avionics.smoke",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_FQI1",
+      "failure_key": "fuel.fqi.channel-1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_FQI2",
+      "failure_key": "fuel.fqi.channel-2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_PUMP_LEFT_1",
+      "failure_key": "fuel.pump.left-1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_PUMP_LEFT_2",
+      "failure_key": "fuel.pump.left-2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_PUMP_CENTER_1",
+      "failure_key": "fuel.pump.center-1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_PUMP_CENTER_2",
+      "failure_key": "fuel.pump.center-2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_PUMP_RIGHT_1",
+      "failure_key": "fuel.pump.right-1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_PUMP_RIGHT_2",
+      "failure_key": "fuel.pump.right-2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_HIGH_TEMP_INNER",
+      "failure_key": "fuel.inner-tank.high-temperature.ecam",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_HIGH_TEMP_OUTER",
+      "failure_key": "fuel.outer-tank.high-temperature.ecam",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_HIGH_TEMP_INNER_ADV",
+      "failure_key": "fuel.inner-tank.high-temperature.advisory",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_HIGH_TEMP_OUTER_ADV",
+      "failure_key": "fuel.outer-tank.high-temperature.advisory",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_LOW_TEMP_INNER",
+      "failure_key": "fuel.inner-tank.low-temperature.ecam",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_LOW_TEMP_OUTER",
+      "failure_key": "fuel.outer-tank.low-temperature.ecam",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_LOW_TEMP_INNER_ADV",
+      "failure_key": "fuel.inner-tank.low-temperature.advisory",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_LOW_TEMP_OUTER_ADV",
+      "failure_key": "fuel.outer-tank.low-temperature.advisory",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_XFER_VALVE_1_L",
+      "failure_key": "fuel.transfer-valve.left-1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_XFER_VALVE_2_L",
+      "failure_key": "fuel.transfer-valve.left-2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_XFER_VALVE_1_R",
+      "failure_key": "fuel.transfer-valve.right-1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_XFER_VALVE_2_R",
+      "failure_key": "fuel.transfer-valve.right-2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_ENGINE_1_VALVE",
+      "failure_key": "fuel.engine-valve.1.stuck",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_ENGINE_2_VALVE",
+      "failure_key": "fuel.engine-valve.2.stuck",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_VALVE_CROSSFEED",
+      "failure_key": "fuel.crossfeed-valve",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DEFUEL_TRANSFER_VALVE",
+      "failure_key": "fuel.defuel-transfer-valve",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_LEAK_LEFT_OUTER",
+      "failure_key": "fuel.leak.left-outer",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_LEAK_LEFT_INNER",
+      "failure_key": "fuel.leak.left-inner",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_LEAK_CENTER",
+      "failure_key": "fuel.leak.center",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_LEAK_RIGHT_INNER",
+      "failure_key": "fuel.leak.right-inner",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_LEAK_RIGHT_OUTER",
+      "failure_key": "fuel.leak.right-outer",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENG1_HP_VALVE",
+      "failure_key": "fuel.hp-valve.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENG2_HP_VALVE",
+      "failure_key": "fuel.hp-valve.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_LEAK_GREEN",
+      "failure_key": "hydraulic.green.leak",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_LEAK_BLUE",
+      "failure_key": "hydraulic.blue.leak",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_LEAK_YELLOW",
+      "failure_key": "hydraulic.yellow.leak",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_RSVR_OVERHEAT_GREEN",
+      "failure_key": "hydraulic.green.reservoir-overheat",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_RSVR_OVERHEAT_BLUE",
+      "failure_key": "hydraulic.blue.reservoir-overheat",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_RSVR_OVERHEAT_YELLOW",
+      "failure_key": "hydraulic.yellow.reservoir-overheat",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_RSVR_AIR_PRESSURE_GREEN",
+      "failure_key": "hydraulic.green.reservoir-low-air-pressure",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_RSVR_AIR_PRESSURE_BLUE",
+      "failure_key": "hydraulic.blue.reservoir-low-air-pressure",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_RSVR_AIR_PRESSURE_YELLOW",
+      "failure_key": "hydraulic.yellow.reservoir-low-air-pressure",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_LOW_GREEN",
+      "failure_key": "hydraulic.green.low-level",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_LOW_BLUE",
+      "failure_key": "hydraulic.blue.low-level",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_LOW_YELLOW",
+      "failure_key": "hydraulic.yellow.low-level",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_PUMP_ENG_1",
+      "failure_key": "hydraulic.engine-pump.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_PUMP_ENG_2",
+      "failure_key": "hydraulic.engine-pump.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_FIRE_VALVE_1",
+      "failure_key": "hydraulic.fire-valve.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_FIRE_VALVE_2",
+      "failure_key": "hydraulic.fire-valve.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_PTU",
+      "failure_key": "hydraulic.ptu",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_PUMP_BLUE",
+      "failure_key": "hydraulic.blue.electric-pump",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_PUMP_YELLOW",
+      "failure_key": "hydraulic.yellow.electric-pump",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_PUMP_OVERHEAT_BLUE",
+      "failure_key": "hydraulic.blue.electric-pump.overheat",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_PUMP_OVERHEAT_YELLOW",
+      "failure_key": "hydraulic.yellow.electric-pump.overheat",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_BSCU_1",
+      "failure_key": "landing-gear.bscu.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_BSCU_2",
+      "failure_key": "landing-gear.bscu.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_BRAKE_ABCU",
+      "failure_key": "landing-gear.abcu",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_BSCU_1",
+      "failure_key": "landing-gear.bscu.1.brake-fault",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_BSCU_2",
+      "failure_key": "landing-gear.bscu.2.brake-fault",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_BRAKE_AUTOBRAKE",
+      "failure_key": "landing-gear.autobrake",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_BRAKE_WHEEL_1",
+      "failure_key": "landing-gear.brake.wheel-1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_BRAKE_WHEEL_2",
+      "failure_key": "landing-gear.brake.wheel-2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_BRAKE_WHEEL_3",
+      "failure_key": "landing-gear.brake.wheel-3",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_BRAKE_WHEEL_4",
+      "failure_key": "landing-gear.brake.wheel-4",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_GEAR_TYRE_PSI_MAIN_1",
+      "failure_key": "landing-gear.tyre-pressure.main-1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_GEAR_TYRE_PSI_MAIN_2",
+      "failure_key": "landing-gear.tyre-pressure.main-2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_GEAR_TYRE_PSI_LEFT_1",
+      "failure_key": "landing-gear.tyre-pressure.left-1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_GEAR_TYRE_PSI_LEFT_2",
+      "failure_key": "landing-gear.tyre-pressure.left-2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_GEAR_TYRE_PSI_RIGHT_1",
+      "failure_key": "landing-gear.tyre-pressure.right-1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_GEAR_TYRE_PSI_RIGHT_2",
+      "failure_key": "landing-gear.tyre-pressure.right-2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_BRAKE_NWS",
+      "failure_key": "landing-gear.nose-wheel-steering",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_MISC_LGCIU1",
+      "failure_key": "landing-gear.lgciu.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_MISC_LGCIU2",
+      "failure_key": "landing-gear.lgciu.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_GEAR_SAFETY_VALVE",
+      "failure_key": "landing-gear.safety-valve",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_GEAR_LOCK_LEFT",
+      "failure_key": "landing-gear.lock.left-main",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_GEAR_LOCK_NOSE",
+      "failure_key": "landing-gear.lock.nose",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_GEAR_LOCK_RIGHT",
+      "failure_key": "landing-gear.lock.right-main",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_GEAR_LOCKED_UP",
+      "failure_key": "landing-gear.gear.locked-up",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_GEAR_LOCKED_DOWN",
+      "failure_key": "landing-gear.gear.locked-down",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_NAV_IR_TOTAL_1",
+      "failure_key": "navigation.ir.1.failure",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_NAV_IR_TOTAL_2",
+      "failure_key": "navigation.ir.2.failure",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_NAV_IR_TOTAL_3",
+      "failure_key": "navigation.ir.3.failure",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_NAV_IR_POSITION_1",
+      "failure_key": "navigation.ir.1.position-failure",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_NAV_IR_POSITION_2",
+      "failure_key": "navigation.ir.2.position-failure",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_NAV_IR_POSITION_3",
+      "failure_key": "navigation.ir.3.position-failure",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_NAV_ADR_ADR1",
+      "failure_key": "navigation.adr.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_NAV_ADR_ADR2",
+      "failure_key": "navigation.adr.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_NAV_ADR_ADR3",
+      "failure_key": "navigation.adr.3",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_NAV_IR_ALIGNMENT_1",
+      "failure_key": "navigation.ir.1.alignment",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_NAV_IR_ALIGNMENT_2",
+      "failure_key": "navigation.ir.2.alignment",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_NAV_IR_ALIGNMENT_3",
+      "failure_key": "navigation.ir.3.alignment",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_NAV_PITOT_BLOCKED_1",
+      "failure_key": "navigation.pitot.captain.blocked",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_NAV_PITOT_BLOCKED_2",
+      "failure_key": "navigation.pitot.fo.blocked",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_NAV_PITOT_BLOCKED_3",
+      "failure_key": "navigation.pitot.standby.blocked",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_IR1_PITCH_DISCREPANCY",
+      "failure_key": "navigation.ir.1.pitch-discrepancy",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_IR2_PITCH_DISCREPANCY",
+      "failure_key": "navigation.ir.2.pitch-discrepancy",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_IR3_PITCH_DISCREPANCY",
+      "failure_key": "navigation.ir.3.pitch-discrepancy",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_IR1_BANK_DISCREPANCY",
+      "failure_key": "navigation.ir.1.bank-discrepancy",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_IR2_BANK_DISCREPANCY",
+      "failure_key": "navigation.ir.2.bank-discrepancy",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_IR3_BANK_DISCREPANCY",
+      "failure_key": "navigation.ir.3.bank-discrepancy",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_IR1_HDG_DISCREPANCY",
+      "failure_key": "navigation.ir.1.heading-discrepancy",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_IR2_HDG_DISCREPANCY",
+      "failure_key": "navigation.ir.2.heading-discrepancy",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_IR3_HDG_DISCREPANCY",
+      "failure_key": "navigation.ir.3.heading-discrepancy",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_IR_DISAGREE1",
+      "failure_key": "navigation.ir.1.disagree",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_IR_DISAGREE2",
+      "failure_key": "navigation.ir.2.disagree",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_MCDU_1",
+      "failure_key": "navigation.mcdu.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_MCDU_2",
+      "failure_key": "navigation.mcdu.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_MCDU_1_RECOVERABLE",
+      "failure_key": "navigation.mcdu.1.recoverable-fault",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_MCDU_2_RECOVERABLE",
+      "failure_key": "navigation.mcdu.2.recoverable-fault",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FMGC_1",
+      "failure_key": "navigation.fmgc.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FMGC_2",
+      "failure_key": "navigation.fmgc.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_GPWS",
+      "failure_key": "navigation.gpwc",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_VOR1",
+      "failure_key": "navigation.vor.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_VOR2",
+      "failure_key": "navigation.vor.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_ADF1",
+      "failure_key": "navigation.adf.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_ADF2",
+      "failure_key": "navigation.adf.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_ILS1_LOC",
+      "failure_key": "navigation.ils.1.localizer",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_ILS1_GS",
+      "failure_key": "navigation.ils.1.glideslope",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_ILS2_LOC",
+      "failure_key": "navigation.ils.2.localizer",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_ILS2_GS",
+      "failure_key": "navigation.ils.2.glideslope",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_LOC",
+      "failure_key": "navigation.ils-transmitter.localizer",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_GS",
+      "failure_key": "navigation.ils-transmitter.glideslope",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_GPS1",
+      "failure_key": "navigation.gps.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_GPS2",
+      "failure_key": "navigation.gps.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_RALT1",
+      "failure_key": "navigation.radio-altimeter.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_RALT2",
+      "failure_key": "navigation.radio-altimeter.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_ACCURACY_DOWNGRADE",
+      "failure_key": "navigation.accuracy-downgrade",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_TCAS",
+      "failure_key": "navigation.tcas",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_ATC1",
+      "failure_key": "navigation.atc.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_NAV_ATC2",
+      "failure_key": "navigation.atc.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_LAV_GAL_FAN",
+      "failure_key": "pneumatic.lavatory-galley-fan",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_HP_VALVE_1",
+      "failure_key": "pneumatic.hp-valve.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_HP_VALVE_2",
+      "failure_key": "pneumatic.hp-valve.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_RAM_AIR_VALVE",
+      "failure_key": "pneumatic.ram-air-valve",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_BLEED_VALVE_1",
+      "failure_key": "pneumatic.bleed-valve.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_BLEED_VALVE_2",
+      "failure_key": "pneumatic.bleed-valve.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_HOT_AIR_VALVE",
+      "failure_key": "pneumatic.hot-air-valve",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENG1_BLEED_LOW_TEMP",
+      "failure_key": "pneumatic.bleed.1.low-temperature",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENG2_BLEED_LOW_TEMP",
+      "failure_key": "pneumatic.bleed.2.low-temperature",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_BMC_1",
+      "failure_key": "pneumatic.bmc.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_BMC_2",
+      "failure_key": "pneumatic.bmc.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_CROSS_BLEED_VALVE",
+      "failure_key": "pneumatic.crossbleed-valve",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_APU_VALVE",
+      "failure_key": "pneumatic.apu-bleed-valve",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_PACK_VALVE_1",
+      "failure_key": "pneumatic.pack-valve.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_PACK_VALVE_2",
+      "failure_key": "pneumatic.pack-valve.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_LEAK_WING_ENG1",
+      "failure_key": "pneumatic.leak.wing.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_LEAK_WING_ENG2",
+      "failure_key": "pneumatic.leak.wing.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_LEAK_PYLON_ENG1",
+      "failure_key": "pneumatic.leak.pylon.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_LEAK_PYLON_ENG2",
+      "failure_key": "pneumatic.leak.pylon.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_LEAK_APU",
+      "failure_key": "pneumatic.leak.apu",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ELEC_APU_ECB",
+      "failure_key": "apu.ecb",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_APU_LOW_OIL",
+      "failure_key": "apu.oil.low-level",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FUEL_VALVE_APU",
+      "failure_key": "apu.fuel-valve",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_COMM_STUCK_PTT_CAPT",
+      "failure_key": "communications.stuck-mic.captain",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_COMM_STUCK_PTT_FO",
+      "failure_key": "communications.stuck-mic.fo",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_WAI_1",
+      "failure_key": "ice-rain.wing-anti-ice-valve.left",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_WAI_2",
+      "failure_key": "ice-rain.wing-anti-ice-valve.right",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_EAI_1",
+      "failure_key": "ice-rain.engine-anti-ice-valve.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_EAI_2",
+      "failure_key": "ice-rain.engine-anti-ice-valve.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_WHC_1",
+      "failure_key": "ice-rain.whc.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_WHC_2",
+      "failure_key": "ice-rain.whc.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_AOA_HEAT_CPT",
+      "failure_key": "ice-rain.aoa-heat.captain",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_AOA_FO",
+      "failure_key": "ice-rain.aoa-heat.fo",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_AOA_STBY",
+      "failure_key": "ice-rain.aoa-heat.standby",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_TAT_HEAT_CPT",
+      "failure_key": "ice-rain.tat-heat.captain",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_TAT_FO",
+      "failure_key": "ice-rain.tat-heat.fo",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_TAT_STBY",
+      "failure_key": "ice-rain.tat-heat.standby",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_PITOT_HEAT_CPT",
+      "failure_key": "ice-rain.pitot-heat.captain",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_PITOT_FO",
+      "failure_key": "ice-rain.pitot-heat.fo",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_PITOT_STBY",
+      "failure_key": "ice-rain.pitot-heat.standby",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_STAT_HEAT_CPT_L",
+      "failure_key": "ice-rain.static-heat.captain.left",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_STAT_HEAT_CPT_R",
+      "failure_key": "ice-rain.static-heat.captain.right",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_STAT_FO_L",
+      "failure_key": "ice-rain.static-heat.fo.left",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_STAT_FO_R",
+      "failure_key": "ice-rain.static-heat.fo.right",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_STAT_STBY_L",
+      "failure_key": "ice-rain.static-heat.standby.left",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_STAT_STBY_R",
+      "failure_key": "ice-rain.static-heat.standby.right",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_PHC1",
+      "failure_key": "ice-rain.phc.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_PHC2",
+      "failure_key": "ice-rain.phc.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICE_PHC3",
+      "failure_key": "ice-rain.phc.3",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICING_ENG1",
+      "failure_key": "ice-rain.engine-icing.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ICING_ENG2",
+      "failure_key": "ice-rain.engine-icing.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_IPPU1",
+      "failure_key": "flight-controls.ippu.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_IPPU2",
+      "failure_key": "flight-controls.ippu.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_WTB_FLAP",
+      "failure_key": "flight-controls.flap.locked",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_WTB_SLAT",
+      "failure_key": "flight-controls.slat.locked",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_FSCC_ALIGNMENT",
+      "failure_key": "flight-controls.flaps.alignment-fault",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FLT_CLT_SFCC_1",
+      "failure_key": "flight-controls.sfcc.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FLT_CLT_SFCC_2",
+      "failure_key": "flight-controls.sfcc.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_SFCC_1_FLAP",
+      "failure_key": "flight-controls.sfcc.1.flap-channel",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_SFCC_2_FLAP",
+      "failure_key": "flight-controls.sfcc.2.flap-channel",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_SFCC_1_SLAT",
+      "failure_key": "flight-controls.sfcc.1.slat-channel",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_SFCC_2_SLAT",
+      "failure_key": "flight-controls.sfcc.2.slat-channel",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FLT_CTL_ELAC_1",
+      "failure_key": "flight-controls.elac.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FLT_CTL_ELAC_2",
+      "failure_key": "flight-controls.elac.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FLT_CTL_SEC_1",
+      "failure_key": "flight-controls.sec.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FLT_CTL_SEC_2",
+      "failure_key": "flight-controls.sec.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FLT_CTL_SEC_3",
+      "failure_key": "flight-controls.sec.3",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FLT_CTL_ELAC_RECOVERABLE_1",
+      "failure_key": "flight-controls.elac.1.resettable-fault",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FLT_CTL_ELAC_RECOVERABLE_2",
+      "failure_key": "flight-controls.elac.2.resettable-fault",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FLT_CTL_SEC_RECOVERABLE_1",
+      "failure_key": "flight-controls.sec.1.resettable-fault",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FLT_CTL_SEC_RECOVERABLE_2",
+      "failure_key": "flight-controls.sec.2.resettable-fault",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OH_FLT_CTL_SEC_RECOVERABLE_3",
+      "failure_key": "flight-controls.sec.3.resettable-fault",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_YAW_DAMPER_1",
+      "failure_key": "flight-controls.yaw-damper.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_YAW_DAMPER_2",
+      "failure_key": "flight-controls.yaw-damper.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_SIDESTICK_REV_PITCH_CAPT",
+      "failure_key": "flight-controls.sidestick.captain.pitch-reversal",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_SIDESTICK_REV_ROLL_CAPT",
+      "failure_key": "flight-controls.sidestick.captain.roll-reversal",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_SIDESTICK_REV_PITCH_FO",
+      "failure_key": "flight-controls.sidestick.fo.pitch-reversal",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_SIDESTICK_REV_ROLL_FO",
+      "failure_key": "flight-controls.sidestick.fo.roll-reversal",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_SIDESTICK_FAULT_CAPT",
+      "failure_key": "flight-controls.sidestick.captain.fault",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FC_SIDESTICK_FAULT_FO",
+      "failure_key": "flight-controls.sidestick.fo.fault",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "B_INT_SFCDC1F",
+      "failure_key": "flight-controls.fcdc.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "B_INT_SFCDC2F",
+      "failure_key": "flight-controls.fcdc.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FCTL_STAB_JAM",
+      "failure_key": "flight-controls.stabilizer.jam",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FCTL_ELEV_LR",
+      "failure_key": "flight-controls.elevator.both",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FCTL_ELEV_L",
+      "failure_key": "flight-controls.elevator.left",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FCTL_ELEV_R",
+      "failure_key": "flight-controls.elevator.right",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_START_VALVE_1",
+      "failure_key": "engine.1.start-valve",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_PNEUMATIC_START_VALVE_2",
+      "failure_key": "engine.2.start-valve",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_START_FAULT_1_HOT_START",
+      "failure_key": "engine.1.start.hot",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_START_FAULT_2_HOT_START",
+      "failure_key": "engine.2.start.hot",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_START_FAULT_1_HUNG_START",
+      "failure_key": "engine.1.start.hung",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_START_FAULT_2_HUNG_START",
+      "failure_key": "engine.2.start.hung",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_START_FAULT_1_NO_IGNITION",
+      "failure_key": "engine.1.start.no-ignition",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_START_FAULT_2_NO_IGNITION",
+      "failure_key": "engine.2.start.no-ignition",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_CFDIU",
+      "failure_key": "indicating.cfdiu",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ECP",
+      "failure_key": "indicating.ecp",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_SDAC_1",
+      "failure_key": "indicating.sdac.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_SDAC_2",
+      "failure_key": "indicating.sdac.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FWC1",
+      "failure_key": "indicating.fwc.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_FWC2",
+      "failure_key": "indicating.fwc.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_CVR",
+      "failure_key": "indicating.cvr",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DISPLAY_DMC_1",
+      "failure_key": "indicating.dmc.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DISPLAY_DMC_2",
+      "failure_key": "indicating.dmc.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DISPLAY_DMC_3",
+      "failure_key": "indicating.dmc.3",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DISPLAY_DCDU_CAPT",
+      "failure_key": "indicating.dcdu.captain",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DISPLAY_DCDU_FO",
+      "failure_key": "indicating.dcdu.fo",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DISPLAY_DU_CAPTAIN_OUT",
+      "failure_key": "indicating.display.captain-pfd",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DISPLAY_DU_CAPTAIN_IN",
+      "failure_key": "indicating.display.captain-nd",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DISPLAY_DU_FO_IN",
+      "failure_key": "indicating.display.fo-nd",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DISPLAY_DU_FO_OUT",
+      "failure_key": "indicating.display.fo-pfd",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DISPLAY_DU_ECAM_UPPER",
+      "failure_key": "indicating.display.ecam-upper",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DISPLAY_DU_ECAM_LOWER",
+      "failure_key": "indicating.display.ecam-lower",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OXYGEN_CREW_LOW",
+      "failure_key": "oxygen.crew.1.pressure-below-400",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OXYGEN_CREW_MED",
+      "failure_key": "oxygen.crew.1.pressure-below-800",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OXYGEN_CREW2_LOW",
+      "failure_key": "oxygen.crew.2.pressure-below-400",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OXYGEN_CREW2_MED",
+      "failure_key": "oxygen.crew.2.pressure-below-800",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OXYGEN_CREW_SUPPLY_VALVE",
+      "failure_key": "oxygen.crew.supply-valve.1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_OXYGEN_CREW_SUPPLY_VALVE2",
+      "failure_key": "oxygen.crew.supply-valve.2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_INFO_ATSU",
+      "failure_key": "information.atsu",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DOOR_AVIONICS_1",
+      "failure_key": "doors.avionics.forward",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DOOR_AVIONICS_2",
+      "failure_key": "doors.avionics.left",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DOOR_AVIONICS_3",
+      "failure_key": "doors.avionics.right",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DOOR_FWD_ENTRY_LEFT",
+      "failure_key": "doors.entry.forward-left",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DOOR_LEFT_WING_1",
+      "failure_key": "doors.wing.left-1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DOOR_LEFT_WING_2",
+      "failure_key": "doors.wing.left-2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DOOR_AFT_ENTRY_LEFT",
+      "failure_key": "doors.entry.aft-left",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DOOR_FWD_ENTRY_RIGHT",
+      "failure_key": "doors.entry.forward-right",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DOOR_AVIONICS_4",
+      "failure_key": "doors.avionics.aft",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DOOR_FWD_CARGO",
+      "failure_key": "doors.cargo.forward",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DOOR_RIGHT_WING_1",
+      "failure_key": "doors.wing.right-1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DOOR_RIGHT_WING_2",
+      "failure_key": "doors.wing.right-2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DOOR_AFT_CARGO",
+      "failure_key": "doors.cargo.aft",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DOOR_BULK",
+      "failure_key": "doors.cargo.bulk",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_DOOR_AFT_ENTRY_RIGHT",
+      "failure_key": "doors.entry.aft-right",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENGINE_FADEC_LEFT_A",
+      "failure_key": "engine.1.fadec.channel-a",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENGINE_FADEC_LEFT_B",
+      "failure_key": "engine.1.fadec.channel-b",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENGINE_FADEC_RIGHT_A",
+      "failure_key": "engine.2.fadec.channel-a",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENGINE_FADEC_RIGHT_B",
+      "failure_key": "engine.2.fadec.channel-b",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENG1_EIU",
+      "failure_key": "engine.1.eiu",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENG2_EIU",
+      "failure_key": "engine.2.eiu",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENGINE_1_SURGE",
+      "failure_key": "engine.1.surge",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENGINE_2_SURGE",
+      "failure_key": "engine.2.surge",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENGINE_1",
+      "failure_key": "engine.1.failure",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENGINE_2",
+      "failure_key": "engine.2.failure",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENGINE_1_DAMAGE",
+      "failure_key": "engine.1.failure-with-damage",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENGINE_2_DAMAGE",
+      "failure_key": "engine.2.failure-with-damage",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENGINE_1_BIRDSTRIKE",
+      "failure_key": "engine.1.bird-strike",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENGINE_2_BIRDSTRIKE",
+      "failure_key": "engine.2.bird-strike",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_REV_PRESS_ENG_1",
+      "failure_key": "engine.1.reverser.pressurized",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_REV_PRESS_ENG_2",
+      "failure_key": "engine.2.reverser.pressurized",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_REV_UNLOCK_ENG_1",
+      "failure_key": "engine.1.reverser.unlocked",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_REV_UNLOCK_ENG_2",
+      "failure_key": "engine.2.reverser.unlocked",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_REV_INHIBIT_ENG_1",
+      "failure_key": "engine.1.reverser.inhibited",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_REV_INHIBIT_ENG_2",
+      "failure_key": "engine.2.reverser.inhibited",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_VIB_N1_ENG_1",
+      "failure_key": "engine.1.vibration.n1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_VIB_N1_ENG_2",
+      "failure_key": "engine.2.vibration.n1",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_VIB_N2_ENG_1",
+      "failure_key": "engine.1.vibration.n2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_VIB_N2_ENG_2",
+      "failure_key": "engine.2.vibration.n2",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENG1_OIL_LEAK",
+      "failure_key": "engine.1.oil-leak",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_ENG2_OIL_LEAK",
+      "failure_key": "engine.2.oil-leak",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_REVERSER_SHUTOFF_VALVE_1",
+      "failure_key": "engine.1.reverser.shutoff-valve",
+      "fsgap_version": "0.12.0-preview.4"
+    },
+    {
+      "fenix_failure_id": "F_HYD_REVERSER_SHUTOFF_VALVE_2",
+      "failure_key": "engine.2.reverser.shutoff-valve",
+      "fsgap_version": "0.12.0-preview.4"
+    }
+  ]
+}

@@ -1,9 +1,10 @@
-# FSGAP.Synaptic failures (0.12.0-preview.1)
+# FSGAP.Synaptic failures (0.12.0-preview.1, catalog 384 keys since 0.12.0-preview.4)
 
 ## Purpose and status
 
-A Synaptic A220 session given a variable writer exposes a real `IFailureProvider` with **exactly the 40 normalized
-failure keys of the Fenix provider** (same keys, display names, categories and targets). A consumer such as FSHANGAR
+A Synaptic A220 session given a variable writer exposes a real `IFailureProvider` with **exactly the normalized
+failure keys of the Fenix provider: all 384 since 0.12.0-preview.4** (same keys, display names, categories and
+targets). A consumer such as FSHANGAR
 uses the same `FailureKey` whichever aircraft is loaded, and checks `FailureCapabilities` per key.
 
 The A220 documents no failure interface. Each executable key is realized by forcing documented A22X cockpit controls into
@@ -20,7 +21,12 @@ FSHANGAR. **Catalog parity does not imply that every effect has been live-qualif
 | Validated | 2 | live-validated control, recipe matches the key |
 | Assumed | 5 | documented control matching the key, not yet exercised live |
 | Approximation | 10 | closest coherent documented degradation; the effect approximates the failure |
-| Unmapped | 23 | no documented Synaptic control: listed for parity, `Operations = None`, `TriggerAsync` answers `NotSupported` |
+| Unmapped | 367 | no documented Synaptic control: listed for parity, `Operations = None`, `TriggerAsync` answers `NotSupported` (23 of the original 40 keys, and all 344 keys added in 0.12.0-preview.4) |
+
+**Catalogue parity is not execution parity.** A consumer sees the same 384 keys on the Fenix and on the Synaptic
+session, and reads per key whether it can act (`FailureCapabilities.CanTrigger(key)`, `Operations`): 384 executable
+on the Fenix, 17 on the Synaptic. The 344 keys added in 0.12.0-preview.4 have no Synaptic recipe: none is inferred
+from a name, no A22X control is guessed, no native simulator failure is used.
 
 ## Semantics
 
@@ -40,6 +46,9 @@ FSHANGAR. **Catalog parity does not imply that every effect has been live-qualif
 - Without a variable writer, a Synaptic session keeps `FailureCapabilities.None`.
 
 ## Matrix
+
+The 40 keys that predate 0.12.0-preview.4 (the 17 executable recipes are all among them). The 344 later keys are all
+Unmapped; they are listed in [fenix-failure-mapping.md](fenix-failure-mapping.md).
 
 | FailureKey | Synaptic effect | Mechanism | Controls touched | Trigger value | Clear value | Read active | Status |
 |---|---|---|---|---|---|---|---|
@@ -88,10 +97,10 @@ Controls: `L:A22X L Gen Off` (live-validated), `L:A22X ACMP 3A` (live-validated)
 
 ## Limits to qualify from FSHANGAR
 
-- The Fenix catalog has no left/right/total brake key and no engine-failure key: the brake key is
-  `landing-gear.brake.wheel-1` (alternate brake mode, an approximation: no side-specific brake isolation is documented)
-  and the engine keys are `engine.1.surge`, `engine.1.vibration.n1` (unmapped) and `engine.1.eiu` (engine 1 services cut).
+- The executable brake key is `landing-gear.brake.wheel-1` (alternate brake mode, an approximation: no side-specific
+  brake isolation is documented); the executable engine key is `engine.1.eiu` (engine 1 services cut). The other wheel
+  brake keys and the engine failure keys added in 0.12.0-preview.4 (`engine.1.failure`...) are unmapped on the A220.
 - Hydraulic colours map A320 to A220 systems by analogy (blue ~ system 3 electric pumps, yellow ~ system 2, green ~
   system 1). `Hyd 1 SOV` reads 0 in the normal configuration although documented as "selected on"; its degraded value 1
   is assumed.
-- The 23 unmapped keys need a mechanism before they can act (for example a documented circuit-breaker map).
+- The 367 unmapped keys need a mechanism before they can act (for example a documented circuit-breaker map).

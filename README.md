@@ -23,8 +23,8 @@ Version 0.10.0, the first multi-provider release: Fenix A319/A320/A321 (`FSGAP.F
 - **Fenix telemetry**: a Fenix session exposes the generic telemetry with the values known to be wrong on Fenix
   masked, plus the proven Fenix systems: ADIRS modes, fuel pump switches, fire panel (handles, fire warning lights)
   green/blue hydraulic pressure and reservoir, and the BAT1 voltage;
-- **Fenix failures** through the local Fenix EFB: a normalized catalog of 40 failure keys (the failures the
-  applications use today), trigger, clear and read of the active failures, never exposing a Fenix id;
+- **Fenix failures** through the local Fenix EFB: a normalized catalog of 384 failure keys (every Fenix EFB failure
+  since 0.12.0-preview.4), trigger, clear and read of the active failures, never exposing a Fenix id;
 - **a simulator airport service** (`IAirportService`): the nearest airports to any coordinate, from the simulator's own
   facility list, on the same single connection;
 - **installed aircraft liveries** (`IInstalledLiveryService`, 0.10.0): every (aircraft title, livery name) pair
@@ -151,7 +151,7 @@ works with the loaded aircraft's normalized session. It never composes aircraft 
 aircraft vendor: what an aircraft supports is read from `session.Capabilities`.
 
 ```xml
-<PackageReference Include="FSGAP" Version="[0.12.0-preview.2]" />
+<PackageReference Include="FSGAP" Version="[0.12.0-preview.4]" />
 ```
 
 ```csharp

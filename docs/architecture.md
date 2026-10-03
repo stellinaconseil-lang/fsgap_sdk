@@ -199,7 +199,7 @@ A failure is a component the aircraft itself represents as failed; a controlled 
 control FSGAP deliberately forces into a degraded configuration (a generator switch set OFF is not a generator failure).
 They have separate keys (`FailureKey` / `DegradationKey`), providers (`IFailureProvider` / `IDegradationProvider`)
 and capabilities (`FailureCapabilities` / `DegradationCapabilities`); a provider never maps one onto the other. Fenix
-offers failures and no degradation; the Synaptic A220 offers four degradations and, since 0.12, the same 40 failure keys
+offers failures and no degradation; the Synaptic A220 offers four degradations and, since 0.12, the same failure keys (384 since 0.12.0-preview.4, 17 executable on the A220)
 as Fenix, 17 of them executable through documented A22X controls ([synaptic-failures.md](synaptic-failures.md)); a
 Synaptic failure provider never maps onto the degradation API nor the reverse, they only share one control board per
 session so that no control is held twice. Degradation writes go
@@ -412,7 +412,8 @@ A trigger or clear outside the catalog returns `NotSupported` without contacting
   Fenix EFB (HTTP, default `http://127.0.0.1:8083/`, 3 s per request).
   - There is one shared `HttpClient` per provider.
   - The EFB is a transport of its own, with no SimConnect dependency.
-- **Catalog.** 40 normalized keys (the failures used today) over the embedded 384-entry EFB catalog.
+- **Catalog.** 384 normalized keys over the embedded 384-entry EFB catalog (40 before 0.12.0-preview.4). FailureKey
+  is the SDK's normalization vocabulary; the raw Fenix ids stay inside FSGAP.Fenix.
   - The Fenix ids and titles stay in `FSGAP.Fenix` resources.
   - Unkeyed active failures are reported with `Key = null`.
 - **Commands.** Commands are serialized per session and confirmed by the echo or by reading the list back. They are

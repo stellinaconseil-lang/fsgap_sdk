@@ -65,29 +65,42 @@ The protocol was reverse-engineered by FSHANGAR from the EFB's own JavaScript an
   FSHANGAR, which captured it from the EFB.
   - It is embedded in FSGAP.Fenix and versioned with it.
   - It was checked **identical to the live EFB** on 2026-09-24.
-  - It provides the title each command needs and the ATA chapter used to classify an unkeyed active failure.
-- **Normalized keys.** `fenix-failure-mapping.json` holds **40 keys: exactly the failures a consumer uses today**.
-  They come from the 24 FLIPPP scenario ids, FSHANGAR's live verification, tests and fire-probe trials, and the
-  real ids referenced by fenixhangarweb.
-  - The full table is in [fenix-failure-mapping.md](fenix-failure-mapping.md).
-  - The other 344 failures get **no key yet**. A key generated from a Fenix title would be a fragile taxonomy that
-    servers and applications would then store.
-  - Those failures are still reported when active (`Key = null`), but cannot be commanded. Adding one is a line in
-    the mapping file plus its test.
+  - It provides the title each command needs and the ATA chapter used to classify an active failure.
+- **Normalized keys: 384 of 384 (since 0.12.0-preview.4).** `fenix-failure-mapping.json` gives every EFB failure one
+  normalized `FailureKey`.
+  - Before 0.12.0-preview.4: 40 of 384, the failures consumers used first (24 FLIPPP scenario ids, FSHANGAR's live
+    verification, tests and fire-probe trials, the real ids referenced by fenixhangarweb). Those 40 keep their keys,
+    display names, categories and targets unchanged (a test compares them with the preview.3 mapping, verbatim).
+  - BLOCK 12.2 normalized the other 344 by the same policy, because FSHANGAR plays all 384: an application must never
+    need a raw Fenix id.
+  - The full table is in [fenix-failure-mapping.md](fenix-failure-mapping.md); a versioned export for consumers that
+    still store raw ids is in `docs/exports/`.
+  - An active failure absent from the embedded catalog (for example after a Fenix update) is still reported, with
+    `Key = null`.
+- **The keys are a contract.** `tests/FSGAP.Fenix.Tests/Contract/failure-keys.txt` lists the 384 keys; renaming or
+  removing one fails the tests, adding one is a deliberate edit of that file. A new aircraft provider reuses these
+  keys where the meaning applies and never renames them.
 - **Key rules.**
-  - The first segment is the system domain of the ATA chapter: `air-conditioning`, `electrical`, `fire`, `fuel`,
-    `hydraulic`, `ice-rain`, `indicating`, `landing-gear`, `navigation`, `pneumatic`, `doors`, `engine`.
-  - Then the component and the instance, for example `hydraulic.blue.leak`, `engine.1.vibration.n1`,
-    `navigation.ils.1.localizer`.
-  - No vendor id, no `fenix`, no Fenix spelling. A test checks this for every key.
-- **Targets.** Each key has exactly one target.
-  - The typed kinds are used only where they fit exactly: `Engine(n)` for engine-level failures (surge, vibration,
-    EIU, fire loop), `FuelPump`, `HydraulicSystem`, `ElectricalBus`.
+  - The first segment is the system domain of the ATA chapter: `air-conditioning` (21), `auto-flight` (22),
+    `communications` (23), `electrical` (24), `fire` (26), `flight-controls` (27), `fuel` (28), `hydraulic` (29),
+    `ice-rain` (30), `indicating` (31), `landing-gear` (32), `navigation` (34), `oxygen` (35), `pneumatic` (36),
+    `information` (46), `apu` (49), `doors` (52), `engine` (70 and the start faults of 80).
+  - Then, in this order and only when the catalog distinguishes them: the component, the instance (number, side,
+    hydraulic colour, position `captain` / `fo` / `standby`), and the failure type. For example
+    `hydraulic.blue.leak`, `engine.2.reverser.unlocked`, `ice-rain.static-heat.fo.left`,
+    `fuel.inner-tank.high-temperature.advisory`, `flight-controls.sec.3.resettable-fault`.
+  - Fenix engine 1 is the left engine, engine 2 the right one ("Left surge" is `engine.1.surge`).
+  - No vendor id, no `fenix`, no Fenix spelling, no counter: every key is semantic. A test checks this for every key.
+- **Targets.** Each key has exactly one target, and the instance is already in the key.
+  - The typed kinds are used only where they fit exactly: `Engine(n)` for `engine.n.*` and `fire.engine.n.*`;
+    `Apu` for `apu.*`, `fire.apu.*` and the APU generator; `InertialReference(n)` for `navigation.ir.n.*`;
+    `FuelPump` for `fuel.pump.*`; `HydraulicSystem` for `hydraulic.<colour>.*`; `ElectricalBus` for
+    `electrical.bus.*`. A test checks this policy for all 384.
   - Target ids are the telemetry ids (`left-1`, `blue`...).
   - Anything else targets `Aircraft` rather than a false precision. For example, generator 1 is electrical, not the
     engine; the bleed valve belongs to the pneumatic system.
-- **Display names.** They are written by hand for the 40 keys, for example "Cabin pressure controller 1" rather
-  than "CPC 1".
+- **Display names.** Written by hand: for example "Cabin pressure controller 1" rather than "CPC 1", "Engine 2
+  reverser inhibited by maintenance" rather than "Right reverser inhibited by maint".
 - **Categories.** They come from the ATA chapter.
 - **Operations.** Every key supports trigger and clear.
 
@@ -134,7 +147,7 @@ The protocol was reverse-engineered by FSHANGAR from the EFB's own JavaScript an
 
 ## Capabilities and availability
 
-- **Structural.** `FailureCapabilities.Catalog` holds the 40 definitions and `CanReadActiveFailures` is true.
+- **Structural.** `FailureCapabilities.Catalog` holds the 384 definitions and `CanReadActiveFailures` is true.
   - They are declared whenever `fenixOptions` is set, even while the EFB is offline: the catalog does not change
     with availability.
   - Declaring them contacts nothing.
