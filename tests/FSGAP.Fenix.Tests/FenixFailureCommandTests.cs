@@ -294,18 +294,18 @@ public class FenixFailureCommandTests
     }
 
     [Fact]
-    public async Task A_catalog_failure_without_a_key_is_reported_unclassified_without_its_id()
+    public async Task A_failure_normalized_in_preview_4_is_reported_with_its_key_and_without_its_id()
     {
         var rig = new Rig();
         rig.Efb.SetFailed("F_PNEUMATIC_CPC_2", true);
 
         var failure = Assert.Single(await rig.Provider.GetActiveFailuresAsync());
 
-        Assert.Null(failure.Key);
-        Assert.False(failure.IsClassified);
+        Assert.Equal(FailureKey.Parse("air-conditioning.cpc.2"), failure.Key);
+        Assert.True(failure.IsClassified);
         Assert.Equal(FailureCategory.AirConditioning, failure.Category);
-        Assert.Equal("CPC 2", failure.Description);
         Assert.Equal(FailureTarget.Aircraft, failure.Target);
+        Assert.DoesNotContain("F_PNEUMATIC_CPC_2", failure.Description ?? string.Empty, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

@@ -2,6 +2,7 @@ using FSGAP.Abstractions;
 using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Capabilities;
 using FSGAP.Abstractions.Configuration;
+using FSGAP.Abstractions.Failures;
 using FSGAP.Composition;
 using FSGAP.Core.Resolution;
 using FSGAP.Fenix;
@@ -109,8 +110,11 @@ public class CompositionTests
         Assert.Equal(4, synaptic.Capabilities.Degradations.Catalog.Count);
         Assert.Equal(1, synaptic.Capabilities.Degradations.MaxActive);
 
-        Assert.Equal(40, fenixKeys.Length);
+        Assert.Equal(384, fenixKeys.Length);
         Assert.Equal(fenixKeys, synaptic.Capabilities.Failures.Catalog.Select(d => d.Key.Value).Order());
+        Assert.Equal(384, fenix.Capabilities.Failures.Catalog.Count(d => fenix.Capabilities.Failures.CanTrigger(d.Key)));
+        Assert.Equal(17, synaptic.Capabilities.Failures.Catalog.Count(d => synaptic.Capabilities.Failures.CanTrigger(d.Key)));
+        Assert.Equal(367, synaptic.Capabilities.Failures.Catalog.Count(d => d.Operations == FailureOperations.None));
     }
 
     [Fact]

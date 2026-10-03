@@ -91,7 +91,7 @@ public class FailureProviderTests
         var reference = fenixSession.Capabilities.Failures.Catalog;
         var synaptic = SynapticFailureProvider.Capabilities.Catalog;
 
-        Assert.Equal(40, reference.Count);
+        Assert.Equal(384, reference.Count);
         Assert.Equal(reference.Count, synaptic.Count);
         Assert.Equal(reference.Select(d => d.Key.Value).Order(), synaptic.Select(d => d.Key.Value).Order());
         foreach (var expected in reference)
@@ -103,15 +103,58 @@ public class FailureProviderTests
         }
     }
 
+    /// <summary>The 40 keys normalized before 0.12.0-preview.4 (frozen in tests/FSGAP.Fenix.Tests/Contract).</summary>
+    private static readonly HashSet<string> OriginalKeys =
+    [
+        "air-conditioning.cpc.1", "air-conditioning.pack.1.overheat", "air-conditioning.pack.1.regulator-fault", "electrical.static-inverter",
+        "electrical.generator.1", "electrical.generator.2", "electrical.bus.ac-1", "electrical.bus.ac-ess", "electrical.bus.dc-1",
+        "electrical.bus.dc-2", "electrical.bus.dc-bat", "fire.lavatory.smoke", "fire.engine.1.loop-a", "fire.fdu.1", "fuel.fqi.channel-2",
+        "fuel.pump.left-1", "fuel.pump.right-1", "hydraulic.blue.electric-pump", "hydraulic.yellow.electric-pump", "hydraulic.blue.low-level",
+        "hydraulic.green.low-level", "hydraulic.blue.leak", "hydraulic.green.leak", "ice-rain.aoa-heat.standby", "ice-rain.pitot-heat.fo",
+        "indicating.display.ecam-lower", "landing-gear.brake.wheel-1", "landing-gear.tyre-pressure.main-1", "landing-gear.tyre-pressure.right-1",
+        "navigation.fmgc.1", "navigation.mcdu.1.recoverable-fault", "navigation.adf.1", "navigation.gps.1", "navigation.ils.1.localizer",
+        "pneumatic.bleed-valve.1", "doors.entry.forward-left", "doors.entry.aft-left", "engine.1.surge", "engine.1.vibration.n1", "engine.1.eiu",
+    ];
+
+    [Fact]
+    public void The_executable_recipes_are_unchanged_and_all_on_original_keys()
+    {
+        var recipes = SynapticFailureCatalog.Recipes;
+        var executable = recipes.Where(r => r.Executable).ToArray();
+
+        Assert.Equal(40, OriginalKeys.Count);
+        Assert.Equal(17, executable.Length);
+        Assert.All(executable, r => Assert.Contains(r.Key.Value, OriginalKeys));
+        Assert.Equal(2, executable.Count(r => r.Qualification == SynapticFailureQualification.Validated));
+        Assert.Equal(5, executable.Count(r => r.Qualification == SynapticFailureQualification.Assumed));
+        Assert.Equal(10, executable.Count(r => r.Qualification == SynapticFailureQualification.Approximation));
+    }
+
+    [Fact]
+    public void Every_key_added_in_preview_4_is_listed_but_not_executable()
+    {
+        var added = SynapticFailureCatalog.Recipes.Where(r => !OriginalKeys.Contains(r.Key.Value)).ToArray();
+
+        Assert.Equal(344, added.Length);
+        Assert.All(added, r =>
+        {
+            Assert.False(r.Executable);
+            Assert.Empty(r.Controls);
+            Assert.Equal(FailureOperations.None, r.Definition.Operations);
+            Assert.Equal(SynapticFailureQualification.Unmapped, r.Qualification);
+            Assert.False(SynapticFailureProvider.Capabilities.CanTrigger(r.Key));
+        });
+    }
+
     [Fact]
     public void Every_key_has_exactly_one_recipe_and_the_executable_ones_support_trigger_and_clear()
     {
         var recipes = SynapticFailureCatalog.Recipes;
 
-        Assert.Equal(40, recipes.Count);
+        Assert.Equal(384, recipes.Count);
         Assert.Equal(recipes.Count, recipes.Select(r => r.Key).Distinct().Count());
         Assert.Equal(17, recipes.Count(r => r.Executable));
-        Assert.Equal(23, recipes.Count(r => !r.Executable));
+        Assert.Equal(367, recipes.Count(r => !r.Executable));
         Assert.All(recipes.Where(r => r.Executable), r => Assert.Equal(FailureOperations.Trigger | FailureOperations.Clear, r.Definition.Operations));
         Assert.All(recipes.Where(r => !r.Executable), r =>
         {

@@ -393,7 +393,7 @@ public class DegradationTests
         await using var session = await provider.AttachAsync(Descriptors.AirFrance);
 
         // BLOCK 11.2: failures are no longer None on a Synaptic session with a writer.
-        Assert.Equal(40, session.Capabilities.Failures.Catalog.Count);
+        Assert.Equal(384, session.Capabilities.Failures.Catalog.Count);
         Assert.True(session.Capabilities.Failures.CanReadActiveFailures);
         Assert.IsNotType<UnsupportedFailureProvider>(session.Failures);
         Assert.Equal(4, session.Capabilities.Degradations.Catalog.Count);

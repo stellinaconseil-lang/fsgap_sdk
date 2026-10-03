@@ -47,7 +47,7 @@ public class FenixDegradationNonRegressionTests
 
         // True failures, unchanged.
         Assert.True(session.Capabilities.Failures.CanReadActiveFailures);
-        Assert.Equal(40, session.Capabilities.Failures.Catalog.Count);
+        Assert.Equal(384, session.Capabilities.Failures.Catalog.Count);
         Assert.True(session.Capabilities.Failures.CanTriggerAny);
         Assert.True(session.Capabilities.Failures.CanClearAny);
 

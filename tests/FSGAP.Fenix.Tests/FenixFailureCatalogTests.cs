@@ -1,11 +1,12 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using FSGAP.Abstractions.Failures;
 using FSGAP.Fenix.Failures;
 
 namespace FSGAP.Fenix.Tests;
 
-/// <summary>The embedded Fenix failure catalog and its normalized subset.</summary>
+/// <summary>The embedded Fenix failure catalog: since 0.12.0-preview.4 every raw entry has a normalized key.</summary>
 public class FenixFailureCatalogTests
 {
     private static readonly FenixFailureCatalogData Data = FenixFailureCatalogData.Default;
@@ -42,11 +43,55 @@ public class FenixFailureCatalogTests
     }
 
     [Fact]
-    public void The_normalized_subset_is_exactly_the_failures_in_use()
+    public void Every_raw_failure_is_normalized()
     {
-        Assert.Equal(40, Data.Mapped.Count);
-        Assert.Equal(40, Data.Catalog.Count);
-        Assert.Equal(UsedIdList.Order(), Data.Mapped.Select(m => m.Raw.Id).Order());
+        Assert.Equal(384, Data.Mapped.Count);
+        Assert.Equal(384, Data.Catalog.Count);
+        Assert.Equal(Data.Raw.Select(r => r.Id).Order(StringComparer.Ordinal), Data.Mapped.Select(m => m.Raw.Id).Order(StringComparer.Ordinal));
+        Assert.Equal(384, Data.Mapped.Select(m => m.Definition.Key).Distinct().Count());
+        Assert.Subset(Data.Mapped.Select(m => m.Raw.Id).ToHashSet(), UsedIdList.ToHashSet());
+    }
+
+    [Fact]
+    public void The_original_40_mappings_are_unchanged()
+    {
+        // 0.12.0-preview.3 mapping, verbatim: raw id -> key, display name and target are a compatibility gate.
+        using var original = JsonDocument.Parse(File.ReadAllText(Contract("fenix-failure-mapping.original-40.json")));
+        var entries = original.RootElement.GetProperty("failures").EnumerateArray().ToArray();
+
+        Assert.Equal(40, entries.Length);
+        Assert.Equal(UsedIdList.Order(StringComparer.Ordinal), entries.Select(e => e.GetProperty("fenixId").GetString()!).Order(StringComparer.Ordinal));
+        foreach (var entry in entries)
+        {
+            Assert.True(Data.TryGetMapped(entry.GetProperty("fenixId").GetString()!, out var mapped));
+            var definition = mapped.Definition;
+            Assert.Equal(entry.GetProperty("key").GetString(), definition.Key.Value);
+            Assert.Equal(entry.GetProperty("displayName").GetString(), definition.DisplayName);
+            Assert.Equal(FenixFailureCatalogData.CategoryOf(mapped.Raw.Ata), definition.Category);
+            Assert.Equal(FailureOperations.Trigger | FailureOperations.Clear, definition.Operations);
+            var target = entry.GetProperty("target");
+            var kind = target.GetProperty("kind").GetString();
+            var expected = kind switch
+            {
+                "aircraft" => FailureTarget.Aircraft,
+                "engine" => FailureTarget.Engine(target.GetProperty("index").GetInt32()),
+                "fuelPump" => FailureTarget.FuelPump(target.GetProperty("id").GetString()!),
+                "hydraulicSystem" => FailureTarget.HydraulicSystem(target.GetProperty("id").GetString()!),
+                "electricalBus" => FailureTarget.ElectricalBus(target.GetProperty("id").GetString()!),
+                _ => throw new InvalidOperationException(kind),
+            };
+            Assert.Equal([expected], definition.SupportedTargets);
+        }
+    }
+
+    [Fact]
+    public void The_failure_key_contract_snapshot_is_exactly_the_catalog()
+    {
+        // Renaming or removing a key fails here; adding one is a deliberate edit of the snapshot.
+        var snapshot = File.ReadAllLines(Contract("failure-keys.txt")).Where(l => l.Length > 0 && !l.StartsWith('#')).ToArray();
+
+        Assert.Equal(384, snapshot.Length);
+        Assert.Equal(snapshot.Order(StringComparer.Ordinal), Data.Catalog.Select(d => d.Key.Value).Order(StringComparer.Ordinal));
     }
 
     [Theory]
@@ -86,13 +131,36 @@ public class FenixFailureCatalogTests
     [Fact]
     public void Every_definition_has_a_display_name_a_category_one_target_and_both_operations()
     {
-        Assert.All(Data.Catalog, d =>
+        Assert.All(Data.Mapped, m =>
         {
+            var d = m.Definition;
             Assert.False(string.IsNullOrWhiteSpace(d.DisplayName));
-            Assert.NotEqual(FailureCategory.Other, d.Category);
+            Assert.Equal(FenixFailureCatalogData.CategoryOf(m.Raw.Ata), d.Category);
+            Assert.True(d.Category != FailureCategory.Other || m.Raw.Ata == 46, d.Key.Value); // ATA 46 (information systems) has no category
             Assert.Single(d.SupportedTargets);
             Assert.Equal(FailureOperations.Trigger | FailureOperations.Clear, d.Operations);
         });
+    }
+
+    [Fact]
+    public void Typed_targets_follow_the_key_policy()
+    {
+        Assert.All(Data.Mapped, m =>
+        {
+            var key = m.Definition.Key.Value;
+            var expected =
+                key.StartsWith("electrical.bus.", StringComparison.Ordinal) ? FailureTargetKind.ElectricalBus
+                : key.StartsWith("fuel.pump.", StringComparison.Ordinal) ? FailureTargetKind.FuelPump
+                : Regex.IsMatch(key, @"^hydraulic\.(green|blue|yellow)\.") ? FailureTargetKind.HydraulicSystem
+                : Regex.IsMatch(key, @"^navigation\.ir\.\d\.") ? FailureTargetKind.InertialReference
+                : Regex.IsMatch(key, @"^(engine|fire\.engine)\.\d\.") ? FailureTargetKind.Engine
+                : key.StartsWith("apu.", StringComparison.Ordinal) || key.StartsWith("fire.apu.", StringComparison.Ordinal) || key == "electrical.generator.apu" ? FailureTargetKind.Apu
+                : FailureTargetKind.Aircraft;
+            Assert.True(expected == m.Target.Kind, $"{key}: {m.Target}");
+        });
+        Assert.Equal(FailureTarget.Engine(2), Target("engine.2.reverser.unlocked"));
+        Assert.Equal(FailureTarget.InertialReference(3), Target("navigation.ir.3.alignment"));
+        Assert.Equal(FailureTarget.Apu, Target("fire.apu.loop-a"));
     }
 
     [Fact]
@@ -147,6 +215,17 @@ public class FenixFailureCatalogTests
     }
 
     private static FailureTarget Target(string key) => Definition(key).SupportedTargets[0];
+
+    private static string Contract(string file)
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "FSGAP.sln")))
+        {
+            directory = directory.Parent;
+        }
+
+        return Path.Combine(directory?.FullName ?? throw new DirectoryNotFoundException("FSGAP.sln"), "tests", "FSGAP.Fenix.Tests", "Contract", file);
+    }
 
     private static FailureDefinition Definition(string key)
     {

@@ -51,7 +51,7 @@ public class FenixFailureSessionTests
         var failures = session.Capabilities.Failures;
 
         Assert.True(failures.CanReadActiveFailures);
-        Assert.Equal(40, failures.Catalog.Count);
+        Assert.Equal(384, failures.Catalog.Count);
         Assert.True(failures.CanTrigger(Cpc1.Key) && failures.CanClear(Cpc1.Key));
         Assert.True(failures.CanTrigger(Cpc1));
         Assert.True(failures.CanTrigger(new FailureCommand(FailureKey.Parse("engine.1.surge"), FailureTarget.Engine(1))));
@@ -68,7 +68,7 @@ public class FenixFailureSessionTests
 
         await using var session = await rig.Provider.AttachAsync(A319);
 
-        Assert.Equal(40, session.Capabilities.Failures.Catalog.Count);
+        Assert.Equal(384, session.Capabilities.Failures.Catalog.Count);
         Assert.Equal(FailureCommandStatus.Unavailable, (await session.Failures.TriggerAsync(Cpc1)).Status);
     }
 
