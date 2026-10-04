@@ -1,13 +1,16 @@
 using FSGAP.Abstractions;
 using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Capabilities;
+using FSGAP.Abstractions.Cockpit;
 using FSGAP.Abstractions.Configuration;
 using FSGAP.Abstractions.Failures;
 using FSGAP.Abstractions.Simulator;
 using FSGAP.Abstractions.Telemetry;
+using FSGAP.Core.Cockpit;
 using FSGAP.Core.Failures;
 using FSGAP.Core.Sessions;
 using FSGAP.Core.Telemetry;
+using FSGAP.Fenix.Cockpit;
 using FSGAP.Fenix.Detection;
 using FSGAP.Fenix.Failures;
 using FSGAP.Fenix.Identity;
@@ -194,12 +197,24 @@ public sealed class FenixAircraftProvider : IAircraftProvider
                 systems?.AircraftReplaced ?? AircraftReplaced(),
                 staleAfter),
             systems);
+        // Cockpit observation: only when a simulator variable reader exists (the same single connection the system
+        // telemetry reads). Read-only, pull-based, no connection of its own.
+        var cockpit = _simulatorVariables is null
+            ? (ICockpitObservationProvider)UnsupportedCockpitObservationProvider.Instance
+            : new FenixCockpitObservationProvider(_simulatorVariables, AircraftReplaced, _timeProvider);
+        var cockpitCapabilities = _simulatorVariables is null
+            ? CockpitObservationCapabilities.None
+            : FenixCockpitObservations.Capabilities;
+
         return new AircraftSession(
             ProviderId,
             identity.Get,
-            new AircraftCapabilities { Telemetry = sections, Failures = failureCapabilities },
+            new AircraftCapabilities { Telemetry = sections, Failures = failureCapabilities, CockpitObservations = cockpitCapabilities },
             telemetry,
-            failures);
+            failures)
+        {
+            CockpitObservations = cockpit,
+        };
     }
 
     /// <summary>

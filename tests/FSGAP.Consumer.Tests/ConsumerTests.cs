@@ -2,10 +2,12 @@ using System.Reflection;
 using FSGAP.Abstractions;
 using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Capabilities;
+using FSGAP.Abstractions.Cockpit;
 using FSGAP.Abstractions.Configuration;
 using FSGAP.Abstractions.Degradations;
 using FSGAP.Abstractions.Failures;
 using FSGAP.Abstractions.Telemetry;
+using FSGAP.Core.Cockpit;
 using FSGAP.Core.Degradations;
 using FSGAP.Core.Failures;
 using FSGAP.Core.Telemetry;
@@ -177,6 +179,8 @@ public class ConsumerTests
         public IFailureProvider Failures => UnsupportedFailureProvider.Instance;
 
         public IDegradationProvider Degradations => UnsupportedDegradationProvider.Instance;
+
+        public ICockpitObservationProvider CockpitObservations => UnsupportedCockpitObservationProvider.Instance;
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }

@@ -1,9 +1,11 @@
 using FSGAP.Abstractions;
 using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Capabilities;
+using FSGAP.Abstractions.Cockpit;
 using FSGAP.Abstractions.Degradations;
 using FSGAP.Abstractions.Failures;
 using FSGAP.Abstractions.Telemetry;
+using FSGAP.Core.Cockpit;
 using FSGAP.Core.Degradations;
 
 namespace FSGAP.Core.Sessions;
@@ -93,6 +95,14 @@ public sealed class AircraftSession : IAircraftSession
     public IDegradationProvider Degradations { get; }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// Read-only cockpit observations, set with an object initializer; a provider that reads nothing leaves the
+    /// default <see cref="UnsupportedCockpitObservationProvider.Instance"/>. Set on a session's own line so a provider
+    /// that applies no degradation never has to name a degradation type.
+    /// </remarks>
+    public ICockpitObservationProvider CockpitObservations { get; init; } = UnsupportedCockpitObservationProvider.Instance;
+
+    /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
@@ -109,6 +119,13 @@ public sealed class AircraftSession : IAircraftSession
         if (!ReferenceEquals(Failures, Telemetry) && !ReferenceEquals(Failures, Degradations))
         {
             await DisposeComponentAsync(Failures).ConfigureAwait(false);
+        }
+
+        if (!ReferenceEquals(CockpitObservations, Degradations)
+            && !ReferenceEquals(CockpitObservations, Telemetry)
+            && !ReferenceEquals(CockpitObservations, Failures))
+        {
+            await DisposeComponentAsync(CockpitObservations).ConfigureAwait(false);
         }
     }
 

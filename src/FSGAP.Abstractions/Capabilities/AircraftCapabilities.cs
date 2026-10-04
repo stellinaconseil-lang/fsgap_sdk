@@ -20,4 +20,7 @@ public sealed record AircraftCapabilities
 
     /// <summary>Controlled-degradation operations the provider supports; independent from <see cref="Failures"/>.</summary>
     public DegradationCapabilities Degradations { get; init; } = DegradationCapabilities.None;
+
+    /// <summary>Normalized cockpit observations the provider can read; independent from the other capabilities.</summary>
+    public CockpitObservationCapabilities CockpitObservations { get; init; } = CockpitObservationCapabilities.None;
 }

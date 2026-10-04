@@ -1,5 +1,6 @@
 using FSGAP.Abstractions.Failures;
 using FSGAP.Abstractions.Telemetry;
+using FSGAP.Core.Cockpit;
 using FSGAP.Core.Failures;
 using FSGAP.Core.Telemetry;
 using Microsoft.Extensions.Time.Testing;
@@ -36,5 +37,13 @@ public class NullObjectProvidersTests
 
         Assert.Equal(FailureCommandStatus.NotSupported, trigger.Status);
         Assert.Equal(FailureCommandStatus.NotSupported, clear.Status);
+    }
+
+    [Fact]
+    public async Task Unsupported_cockpit_observation_snapshot_is_empty_and_never_throws()
+    {
+        var snapshot = await UnsupportedCockpitObservationProvider.Instance.GetSnapshotAsync();
+
+        Assert.Empty(snapshot.Values);
     }
 }

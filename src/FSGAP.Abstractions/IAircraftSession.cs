@@ -1,5 +1,6 @@
 using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Capabilities;
+using FSGAP.Abstractions.Cockpit;
 using FSGAP.Abstractions.Degradations;
 using FSGAP.Abstractions.Failures;
 using FSGAP.Abstractions.Telemetry;
@@ -35,4 +36,11 @@ public interface IAircraftSession : IAsyncDisposable
     /// <see cref="Failures"/>; check <see cref="AircraftCapabilities.Degradations"/> before use.
     /// </summary>
     IDegradationProvider Degradations { get; }
+
+    /// <summary>
+    /// Read-only normalized cockpit observations (fire tests, ADIRS modes, fuel pumps, …). Distinct from
+    /// <see cref="Failures"/> and <see cref="Degradations"/>; check <see cref="AircraftCapabilities.CockpitObservations"/>
+    /// before use.
+    /// </summary>
+    ICockpitObservationProvider CockpitObservations { get; }
 }
