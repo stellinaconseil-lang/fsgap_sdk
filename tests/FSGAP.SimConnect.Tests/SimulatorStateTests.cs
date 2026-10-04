@@ -1,3 +1,5 @@
+using System.Reflection;
+
 using FSGAP.Abstractions.Simulator;
 using FSGAP.Abstractions.Telemetry;
 using FSGAP.SimConnect.Native;
@@ -7,6 +9,30 @@ namespace FSGAP.SimConnect.Tests;
 
 public class SimulatorStateTests
 {
+    [Theory]
+    [InlineData(0u, false)] // unpaused
+    [InlineData(1u, true)]  // simple/full pause bit
+    [InlineData(4u, true)]  // active/free-camera pause bit — the value seen live on MSFS 2024
+    [InlineData(6u, true)]  // combined flags
+    public void Pause_event_data_is_paused_when_any_bit_is_set(uint data, bool paused) =>
+        Assert.Equal(paused, SimConnectNetSession.IsPaused(data));
+
+    [Fact]
+    public void Pause_is_handled_on_the_ordinary_system_event_channel_not_ex1()
+    {
+        // Regression guard for the inherited bug (also present in the v1.4.4 Windows client): Pause_EX1 is an ordinary
+        // SIMCONNECT_RECV_EVENT system event, delivered on SystemEventReceived. It must never be wired to
+        // SystemEventEx1Received (SIMCONNECT_RECV_EVENT_EX1 — raised only by EX1 client-event transmits), where the
+        // handler never fires and pause goes unobserved.
+        var methods = typeof(SimConnectNetSession)
+            .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+            .Select(m => m.Name)
+            .ToArray();
+
+        Assert.Contains("OnSystemEvent", methods);
+        Assert.DoesNotContain("OnSystemEventEx1", methods);
+    }
+
     [Fact]
     public async Task Pause_is_unavailable_until_connected_then_unknown_until_first_notification()
     {

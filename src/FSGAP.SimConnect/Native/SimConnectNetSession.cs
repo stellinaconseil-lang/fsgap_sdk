@@ -67,7 +67,6 @@ internal sealed class SimConnectNetSession : ISimConnectSession
         _client = client;
         _client.ConnectionStatusChanged += OnConnectionStatusChanged;
         _client.SystemEventReceived += OnSystemEvent;
-        _client.SystemEventEx1Received += OnSystemEventEx1;
     }
 
     public event Action? Disconnected;
@@ -455,7 +454,6 @@ internal sealed class SimConnectNetSession : ISimConnectSession
 
         _client.ConnectionStatusChanged -= OnConnectionStatusChanged;
         _client.SystemEventReceived -= OnSystemEvent;
-        _client.SystemEventEx1Received -= OnSystemEventEx1;
         await _client.DisposeAsync().ConfigureAwait(false);
     }
 
@@ -472,18 +470,27 @@ internal sealed class SimConnectNetSession : ISimConnectSession
         if (e.EventId == CrashedEventId)
         {
             Crashed?.Invoke();
+            return;
+        }
+
+        // Both "Crashed" and "Pause_EX1" are subscribed with SubscribeToEvent and are delivered as ordinary
+        // SIMCONNECT_RECV_EVENT messages — i.e. here, on SystemEventReceived, NOT on SystemEventEx1Received (that is
+        // SIMCONNECT_RECV_EVENT_EX1, raised only by EX1 *client-event transmits*). Handling pause on the EX1 channel
+        // was a latent bug (inherited from the audited Windows client): the handler never fired, so pause was never
+        // observed. Live A/B against MSFS 2024 confirmed Pause_EX1 arrives here, with a bitmask in e.Data (4/1 while
+        // paused, 0 while unpaused). The exact bit layout is not needed: any non-zero value counts as paused.
+        if (e.EventId == PauseEventId)
+        {
+            PauseChanged?.Invoke(IsPaused(e.Data));
         }
     }
 
-    private void OnSystemEventEx1(object? sender, SimSystemEventEx1ReceivedEventArgs e)
-    {
-        // Pause_EX1 carries a bitmask of pause kinds (full, sim-only, active...). The exact bit layout is not
-        // confirmed, so any non-zero value counts as paused, as in the audited applications.
-        if (e.EventId == PauseEventId)
-        {
-            PauseChanged?.Invoke(e.Data0 != 0);
-        }
-    }
+    /// <summary>
+    /// Decodes a <c>Pause_EX1</c> event's data word. It is a bitmask of pause kinds (full, menu, sim-only,
+    /// active/free-camera); the exact layout is not needed — any non-zero value means the simulation is paused,
+    /// zero means it is running. Live A/B on MSFS 2024 saw 4 and 1 while paused and 0 while unpaused.
+    /// </summary>
+    internal static bool IsPaused(uint eventData) => eventData != 0;
 }
 
 #pragma warning disable CS0649 // Fields are written by SimConnect.NET when it unmarshals the response.
