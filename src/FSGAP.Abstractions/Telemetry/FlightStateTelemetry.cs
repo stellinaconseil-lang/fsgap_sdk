@@ -39,6 +39,16 @@ public sealed record FlightStateTelemetry
     /// </summary>
     public TelemetryValue<double> TouchdownVerticalSpeedFeetPerMinute { get; init; }
 
+    /// <summary>
+    /// Body-normal velocity at the most recent touchdown, in feet per second, exactly as the simulator reports its
+    /// <c>PLANE TOUCHDOWN NORMAL VELOCITY</c> (native sign and magnitude; zero before the first touchdown). This is
+    /// the quantity a landing-firmness analysis keys on, perpendicular to the aircraft's body, not the world-vertical
+    /// axis. It is a <b>distinct</b> reading from <see cref="TouchdownVerticalSpeedFeetPerMinute"/> — a different axis
+    /// and a different unit — and the two are never derived from each other: this one is the raw sensor value in
+    /// feet per second.
+    /// </summary>
+    public TelemetryValue<double> TouchdownNormalVelocityFeetPerSecond { get; init; }
+
     /// <summary>Magnetic heading, in degrees [0, 360).</summary>
     public TelemetryValue<double> HeadingMagneticDegrees { get; init; }
 

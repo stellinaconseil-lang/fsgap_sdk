@@ -45,6 +45,11 @@ internal static class GenericTelemetryMapper
                 TelemetryConversions.TouchdownToFeetPerMinute(vars.TouchdownNormalVelocityFeetPerSecond) is { } touchdown
                     ? Number(touchdown)
                     : TelemetryValue<double>.Unknown,
+
+            // The body-normal touchdown velocity in its native feet per second, straight from the SimVar: no unit
+            // change and no sign normalization, so it is independent of the per-minute field above (never one derived
+            // from the other). Known on every read, including the zero the simulator reports before the first touchdown.
+            TouchdownNormalVelocityFeetPerSecond = Number(vars.TouchdownNormalVelocityFeetPerSecond),
             HeadingMagneticDegrees = Number(vars.HeadingMagneticDegrees),
             PitchDegrees = Number(TelemetryConversions.SimPitchToNoseUpDegrees(vars.PitchDegrees)),
             BankDegrees = Number(TelemetryConversions.SimBankToRightWingDownDegrees(vars.BankDegrees)),

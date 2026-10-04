@@ -109,11 +109,50 @@ public class TelemetryMappingTests
         Assert.Equal(139.5, flight.GroundSpeedKnots.Value);
         Assert.Equal(-720.0, flight.VerticalSpeedFeetPerMinute.Value);
         Assert.Equal(-150.0, flight.TouchdownVerticalSpeedFeetPerMinute.Value);
+        Assert.Equal(2.5, flight.TouchdownNormalVelocityFeetPerSecond.Value); // raw ft/s, not the -150 fpm field
         Assert.Equal(65.0, flight.HeadingMagneticDegrees.Value);
         Assert.Equal(1.18, flight.GLoad.Value);
         Assert.True(flight.OnGround.Value);
         Assert.Equal(At, flight.AltitudeFeet.ObservedAt);
         Assert.Equal(At, flight.OnGround.ObservedAt);
+    }
+
+    [Fact]
+    public void Touchdown_normal_velocity_is_the_raw_body_normal_feet_per_second_from_the_simvar()
+    {
+        // PLANE TOUCHDOWN NORMAL VELOCITY is read in feet per second; the field carries it unchanged — no unit
+        // change and no sign normalization, so a known ft/s value survives exactly.
+        var flight = GenericTelemetryMapper.ToFlightState(new FastGroupVars { TouchdownNormalVelocityFeetPerSecond = 2.5 }, At);
+
+        Assert.Equal(ValueState.Known, flight.TouchdownNormalVelocityFeetPerSecond.State);
+        Assert.Equal(2.5, flight.TouchdownNormalVelocityFeetPerSecond.Value);
+        Assert.Equal(At, flight.TouchdownNormalVelocityFeetPerSecond.ObservedAt);
+    }
+
+    [Fact]
+    public void Touchdown_normal_velocity_and_vertical_touchdown_speed_are_distinct_fields()
+    {
+        // Regression guard: the body-normal ft/s field must NOT be implemented as the per-minute field / 60
+        // (an fpm<->fps shortcut). For the same raw reading the two diverge in both unit and sign.
+        var flight = GenericTelemetryMapper.ToFlightState(new FastGroupVars { TouchdownNormalVelocityFeetPerSecond = 2.5 }, At);
+
+        var normalFps = flight.TouchdownNormalVelocityFeetPerSecond.Value;
+        var verticalFpm = flight.TouchdownVerticalSpeedFeetPerMinute.Value;
+
+        Assert.Equal(2.5, normalFps);
+        Assert.Equal(-150.0, verticalFpm);
+        Assert.NotEqual(verticalFpm / 60.0, normalFps); // -2.5 != 2.5
+        Assert.NotEqual(verticalFpm, normalFps);
+    }
+
+    [Fact]
+    public void Touchdown_normal_velocity_without_a_reading_stays_unavailable_never_zero()
+    {
+        // When the fast group was never read the whole section defaults to Unavailable — the field is not forced to a
+        // zero ft/s "reading".
+        var flight = new FlightStateTelemetry();
+
+        Assert.Equal(ValueState.Unavailable, flight.TouchdownNormalVelocityFeetPerSecond.State);
     }
 
     [Fact]

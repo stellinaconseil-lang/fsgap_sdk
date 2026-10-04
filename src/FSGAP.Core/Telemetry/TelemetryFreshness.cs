@@ -44,6 +44,7 @@ public static class TelemetryFreshness
                 GroundSpeedKnots = E(f.GroundSpeedKnots),
                 VerticalSpeedFeetPerMinute = E(f.VerticalSpeedFeetPerMinute),
                 TouchdownVerticalSpeedFeetPerMinute = E(f.TouchdownVerticalSpeedFeetPerMinute),
+                TouchdownNormalVelocityFeetPerSecond = E(f.TouchdownNormalVelocityFeetPerSecond),
                 HeadingMagneticDegrees = E(f.HeadingMagneticDegrees),
                 PitchDegrees = E(f.PitchDegrees),
                 BankDegrees = E(f.BankDegrees),

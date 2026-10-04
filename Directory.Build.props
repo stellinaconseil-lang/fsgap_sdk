@@ -15,7 +15,7 @@
       Directory.Build.targets refuses to pack 0.9.0, to overwrite any existing package, or to shadow one of the stable
       feed. Output folders are below.
     -->
-    <Version>0.12.0-preview.5</Version>
+    <Version>0.12.0-preview.6</Version>
     <Product>FSGAP_SDK</Product>
     <Authors>FSGAP_SDK contributors</Authors>
     <RepositoryUrl>https://github.com/stellinaconseil-lang/fsgap_sdk</RepositoryUrl>
