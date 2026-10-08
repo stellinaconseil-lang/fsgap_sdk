@@ -1,4 +1,7 @@
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using FSGAP.Abstractions.Failures;
 using FSGAP.Abstractions.Simulator;
 
@@ -110,10 +113,31 @@ public class SynapticArchitectureTests
         Assert.All(FSGAP.Synaptic.Degradations.SynapticDegradationControls.Controls, d => Assert.Contains(d.Control, FSGAP.Synaptic.Systems.SynapticControls.All));
     }
 
+    /// <summary>
+    /// True when <paramref name="text"/> is stored in the assembly as TEXT: in a metadata heap (#Strings names, #US
+    /// literals, #Blob constants and attribute arguments) or in an embedded resource, as UTF-16 or UTF-8. The metadata
+    /// tables and the IL are not scanned: they are numbers, and a short token ("K:", "RAT") can occur in them by chance —
+    /// the 0.13.0-preview.1 version bump alone moved bytes 4B 3A into the Release table stream.
+    /// </summary>
     private static bool BinaryContains(Assembly assembly, string text)
     {
-        var bytes = File.ReadAllBytes(assembly.Location);
-        return bytes.AsSpan().IndexOf(System.Text.Encoding.Unicode.GetBytes(text)) >= 0
-            || bytes.AsSpan().IndexOf(System.Text.Encoding.UTF8.GetBytes(text)) >= 0;
+        using var pe = new PEReader(File.OpenRead(assembly.Location));
+        var reader = pe.GetMetadataReader();
+        var metadata = pe.GetMetadata().GetContent();
+        var regions = new List<byte[]>();
+        foreach (var heap in new[] { HeapIndex.String, HeapIndex.UserString, HeapIndex.Blob })
+        {
+            regions.Add(metadata.Skip(reader.GetHeapMetadataOffset(heap)).Take(reader.GetHeapSize(heap)).ToArray());
+        }
+
+        var resources = pe.PEHeaders.CorHeader!.ResourcesDirectory;
+        if (resources.Size > 0)
+        {
+            regions.Add(pe.GetSectionData(resources.RelativeVirtualAddress).GetContent(0, resources.Size).ToArray());
+        }
+
+        var utf16 = System.Text.Encoding.Unicode.GetBytes(text);
+        var utf8 = System.Text.Encoding.UTF8.GetBytes(text);
+        return regions.Any(r => r.AsSpan().IndexOf(utf16) >= 0 || r.AsSpan().IndexOf(utf8) >= 0);
     }
 }
