@@ -39,18 +39,20 @@ internal sealed record FsgapComposition(AircraftProviderRegistry Registry, IRead
     /// <param name="time">Clock.</param>
     /// <param name="fenixPackageRoots">Fenix package folders; <see langword="null"/> locates the MSFS installation (tests pass their own).</param>
     /// <param name="fenixEfbHttpClient">EFB HTTP client; <see langword="null"/> lets the Fenix provider create its own (tests pass a stub).</param>
+    /// <param name="synapticPackageRoots">Synaptic livery package folders; <see langword="null"/> locates the MSFS installation (tests pass their own).</param>
     internal static FsgapComposition CreateDefault(
         FsgapRuntimeOptions options,
         FsgapSimulatorServices services,
         ILoggerFactory? loggers,
         TimeProvider time,
         IReadOnlyList<string>? fenixPackageRoots = null,
-        HttpClient? fenixEfbHttpClient = null)
+        HttpClient? fenixEfbHttpClient = null,
+        IReadOnlyList<string>? synapticPackageRoots = null)
     {
         var sdk = options.Sdk;
         var commands = options.EnableAircraftCommands;
         var fenixCatalog = new FenixInstalledAircraftCatalog(sdk, fenixPackageRoots, loggers?.CreateLogger<FenixInstalledAircraftCatalog>(), time);
-        var synapticCatalog = new SynapticInstalledAircraftCatalog(sdk, services.Liveries, loggers?.CreateLogger<SynapticInstalledAircraftCatalog>(), time);
+        var synapticCatalog = new SynapticInstalledAircraftCatalog(sdk, services.Liveries, loggers?.CreateLogger<SynapticInstalledAircraftCatalog>(), time, synapticPackageRoots);
 
         // Deterministic built-in registration; the registry resolves each loaded aircraft to the provider that supports it.
         var registry = new AircraftProviderRegistry();

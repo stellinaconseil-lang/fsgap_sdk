@@ -1,9 +1,9 @@
 using System.Text.RegularExpressions;
 
-namespace FSGAP.Fenix.Msfs;
+namespace FSGAP.Core.Msfs;
 
 /// <summary>Where MSFS 2024 keeps its packages on this machine.</summary>
-internal sealed record MsfsInstallation(string UserCfgPath, string InstalledPackagesPath, IReadOnlyList<string> PackageRoots);
+public sealed record MsfsInstallation(string UserCfgPath, string InstalledPackagesPath, IReadOnlyList<string> PackageRoots);
 
 /// <summary>
 /// Finds the MSFS 2024 package roots from <c>UserCfg.opt</c>, never from a hard-coded Community path. Ported from the
@@ -11,8 +11,9 @@ internal sealed record MsfsInstallation(string UserCfgPath, string InstalledPack
 /// </summary>
 /// <remarks>
 /// <para>
-/// This logic is generic to MSFS, not to Fenix. It is internal here because FSGAP.Fenix is its only consumer. It
-/// should move to a shared place when a second provider needs it. Strictly read-only.
+/// This logic is generic to MSFS, not to any vendor: a building block for providers that read installed packages. Each
+/// provider chooses which roots it scans; <see cref="MsfsInstallation.PackageRoots"/> keeps the historical four. Strictly
+/// read-only.
 /// </para>
 /// <para>Search order for <c>UserCfg.opt</c>:</para>
 /// <list type="number">
@@ -27,9 +28,12 @@ internal sealed record MsfsInstallation(string UserCfgPath, string InstalledPack
 /// <c>Official2020</c> that exist under <c>InstalledPackagesPath</c>.
 /// </para>
 /// </remarks>
-internal static partial class MsfsInstallationLocator
+public static partial class MsfsInstallationLocator
 {
     private static readonly string[] KnownPackageRootNames = ["Community", "Community2024", "Official2024", "Official2020"];
+
+    /// <summary>The root holding streamed (Marketplace) packages, e.g. the Synaptic A220 and its liveries. Opt-in per provider.</summary>
+    public const string StreamedPackagesRootName = "StreamedPackages";
 
     /// <summary>Locates MSFS 2024 for the current user.</summary>
     public static MsfsInstallation? Locate() => Locate(
@@ -53,7 +57,11 @@ internal static partial class MsfsInstallationLocator
 
     /// <summary>The known package roots that exist under <paramref name="installedPackagesPath"/>.</summary>
     public static IReadOnlyList<string> FindPackageRoots(string installedPackagesPath) =>
-        KnownPackageRootNames.Select(name => Path.Combine(installedPackagesPath, name)).Where(Directory.Exists).ToArray();
+        FindPackageRoots(installedPackagesPath, KnownPackageRootNames);
+
+    /// <summary>The named package roots that exist under <paramref name="installedPackagesPath"/>, in the given order.</summary>
+    public static IReadOnlyList<string> FindPackageRoots(string installedPackagesPath, IEnumerable<string> rootNames) =>
+        rootNames.Select(name => Path.Combine(installedPackagesPath, name)).Where(Directory.Exists).ToArray();
 
     private static string? FindUserCfg(string localAppData, string roamingAppData)
     {

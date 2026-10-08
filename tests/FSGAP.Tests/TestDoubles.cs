@@ -183,7 +183,7 @@ internal sealed class RuntimeRig : IAsyncDisposable
             Sdk = new FsgapOptions { ApplicationName = "FsgapRuntimeTests", DataDirectory = _data },
             EnableAircraftCommands = commands,
         };
-        Runtime = new FsgapRuntime(Options, Simulator.Services, null, TimeProvider.System, ownsSimulator: false, fenixPackageRoots: [], fenixEfbHttpClient: new HttpClient(new NoEfb()));
+        Runtime = new FsgapRuntime(Options, Simulator.Services, null, TimeProvider.System, ownsSimulator: false, fenixPackageRoots: [], fenixEfbHttpClient: new HttpClient(new NoEfb()), synapticPackageRoots: []);
     }
 
     public FakeSimulator Simulator { get; } = new();

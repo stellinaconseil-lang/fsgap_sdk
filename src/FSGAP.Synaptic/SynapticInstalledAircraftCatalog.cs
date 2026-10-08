@@ -3,6 +3,7 @@ using System.Text;
 using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Configuration;
 using FSGAP.Abstractions.Simulator;
+using FSGAP.Core.Msfs;
 using FSGAP.Synaptic.Catalog;
 using FSGAP.Synaptic.Detection;
 using FSGAP.Synaptic.Identity;
@@ -12,14 +13,17 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace FSGAP.Synaptic;
 
 /// <summary>
-/// The Synaptic A220-300 liveries the simulator can load, one entry per logical livery, built passively from the
-/// simulator's own livery enumeration (<see cref="IInstalledLiveryService"/>) and from what was learned while liveries
-/// were flown.
+/// The Synaptic A220-300 liveries installed on this machine, one entry per logical livery, built from the MSFS package
+/// folders (<see cref="SynapticLiveryDiskScanner"/>), the simulator's own livery enumeration
+/// (<see cref="IInstalledLiveryService"/>) when it is connected, and what was learned while liveries were flown.
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Why the enumeration.</b> The A220 and its liveries are marketplace content, unreadable on disk; the simulator
-/// enumerates them all (BLOCK 10A.5). No AI aircraft is ever created to probe a livery.
+/// <b>Two sources, merged.</b> The disk scan (W3-RC3C-B1) reads every installed A220-300 <c>livery.cfg</c> — plain files and
+/// the uncompressed entries of the streamed packages' unencrypted archives — with no simulator and no livery ever loaded:
+/// it gives the name, the folder and the registration the livery DECLARES. The simulator enumeration (BLOCK 10A.5) lists
+/// every livery the simulator can load, Marketplace content included, but with no folder or registration. Either source
+/// alone is enough; neither is required. No AI aircraft is ever created to probe a livery.
 /// </para>
 /// <para>
 /// <b>One entry per logical livery.</b> Rows are kept only for the two Synaptic preset titles, and merged by livery name:
@@ -28,16 +32,24 @@ namespace FSGAP.Synaptic;
 /// <c>Registration = null</c>.
 /// </para>
 /// <para>
-/// <b>Registration.</b> Never read from the enumeration (it has none). When the user loads a livery, the provider hands the
-/// descriptor to <see cref="Learn"/>, which records its livery folder and resolves the registration conservatively
-/// (<c>RegistrationResolver</c>: authoritative, observed only when corroborated, derived from the folder, cached,
-/// or none). What was learned is cached under <c>FsgapOptions.DataDirectory/synaptic/</c> and keeps its original source.
+/// <b>Registration.</b> Never read from the enumeration (it has none). The disk scan records the registration a livery
+/// declares (<see cref="RegistrationSource.Authoritative"/>). When the user loads a livery, the provider hands the descriptor
+/// to <see cref="Learn"/>, which records its livery folder and resolves the registration conservatively
+/// (<c>RegistrationResolver</c>: authoritative — the declared one —, observed only when corroborated, derived from the folder,
+/// cached, or none). What was learned is cached under <c>FsgapOptions.DataDirectory/synaptic/</c> and keeps its original source.
 /// </para>
 /// <para>Thread-safe. Lookups serve the last snapshot and never trigger a refresh.</para>
 /// </remarks>
 public sealed class SynapticInstalledAircraftCatalog : IInstalledAircraftCatalog
 {
+    /// <summary>The package roots the disk scan reads: the four standard ones plus StreamedPackages (where the A220 lives).</summary>
+    internal static readonly IReadOnlyList<string> PackageRootNames =
+        ["Community", "Community2024", "Official2024", "Official2020", MsfsInstallationLocator.StreamedPackagesRootName];
+
+    internal const string MsfsNotFound = "MSFS 2024 installation not found (no UserCfg.opt with a valid InstalledPackagesPath).";
+
     private readonly IInstalledLiveryService _liveries;
+    private readonly Func<IReadOnlyList<string>?> _packageRoots;
     private readonly LearnedLiveryCache _cache;
     private readonly ILogger _logger;
     private readonly TimeProvider _time;
@@ -50,13 +62,18 @@ public sealed class SynapticInstalledAircraftCatalog : IInstalledAircraftCatalog
     /// <param name="liveries">The simulator's livery enumeration, typically the <c>SimConnectSimulator</c>.</param>
     /// <param name="logger">Optional logger.</param>
     /// <param name="timeProvider">Clock for timestamps; <see cref="TimeProvider.System"/> by default.</param>
+    /// <param name="packageRoots">MSFS package folders to scan; <see langword="null"/> locates the MSFS installation (tests pass their own, an empty list disables the disk scan).</param>
     /// <exception cref="ArgumentException"><paramref name="options"/> is invalid.</exception>
     public SynapticInstalledAircraftCatalog(
         FsgapOptions options,
         IInstalledLiveryService liveries,
         ILogger<SynapticInstalledAircraftCatalog>? logger = null,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        IReadOnlyList<string>? packageRoots = null)
     {
+        _packageRoots = packageRoots is null
+            ? () => MsfsInstallationLocator.Locate() is { } msfs ? MsfsInstallationLocator.FindPackageRoots(msfs.InstalledPackagesPath, PackageRootNames) : null
+            : () => packageRoots;
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(liveries);
         options.Validate();
@@ -99,9 +116,18 @@ public sealed class SynapticInstalledAircraftCatalog : IInstalledAircraftCatalog
 
     /// <inheritdoc />
     /// <remarks>
-    /// One livery enumeration. When the simulator cannot answer, the previous content is kept and the error is reported
-    /// in <see cref="CatalogScanResult.Errors"/>. Learned folders and registrations survive a refresh; a livery no longer
-    /// enumerated disappears.
+    /// <para>
+    /// One disk scan of the MSFS package folders (no simulator needed) and, when the simulator is connected, one livery
+    /// enumeration. The result is their union, merged by livery name: the disk adds the folder and the declared
+    /// registration (a declared registration supersedes a derived or observed one; a learned folder is kept), the
+    /// enumeration adds the presets. Learned folders and registrations survive a refresh.
+    /// </para>
+    /// <para>
+    /// A livery disappears only when the enumeration answered and neither source lists it any more. With the simulator
+    /// unavailable, the disk result is merged INTO the previous content (nothing is lost offline). When neither source
+    /// answers (simulator unavailable and no installation found, or nothing found on disk), the previous content is kept
+    /// and the reasons are reported in <see cref="CatalogScanResult.Errors"/>. A cancellation changes nothing.
+    /// </para>
     /// </remarks>
     public async Task<CatalogScanResult> RefreshAsync(IProgress<CatalogScanProgress>? progress = null, CancellationToken cancellationToken = default)
     {
@@ -109,19 +135,49 @@ public sealed class SynapticInstalledAircraftCatalog : IInstalledAircraftCatalog
         try
         {
             progress?.Report(new CatalogScanProgress(CatalogScanPhase.Discovering, 0, null));
-            IReadOnlyList<InstalledLivery> rows;
+
+            DiskLiveryScan? disk = null;
+            string? diskError = null;
+            var roots = _packageRoots();
+            if (roots is null)
+            {
+                diskError = MsfsNotFound;
+            }
+            else if (roots.Count > 0)
+            {
+                disk = await Task.Run(() => SynapticLiveryDiskScanner.Scan(roots, cancellationToken), cancellationToken).ConfigureAwait(false);
+                foreach (var reason in disk.Skipped)
+                {
+                    _logger.LogInformation("Synaptic livery not listed: {Reason}", reason);
+                }
+            }
+
+            IReadOnlyList<InstalledLivery>? rows = null;
+            string? simulatorError = null;
             try
             {
                 rows = await _liveries.GetInstalledAircraftLiveriesAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (SimulatorServiceException ex)
             {
-                _logger.LogWarning(ex, "The Synaptic livery catalog could not be refreshed; keeping the previous content");
-                return new CatalogScanResult { AircraftCount = Snapshot().Count, CompletedAt = _time.GetUtcNow(), Errors = [ex.Message] };
+                simulatorError = ex.Message;
+                _logger.LogInformation(ex, "The simulator livery enumeration is unavailable; using the disk scan only");
             }
 
-            var groups = Group(rows);
-            progress?.Report(new CatalogScanProgress(CatalogScanPhase.Scanning, groups.Count, groups.Count));
+            var diskLiveries = disk?.Liveries ?? [];
+            if (rows is null && diskLiveries.Count == 0)
+            {
+                _logger.LogWarning("The Synaptic livery catalog could not be refreshed (no simulator, nothing on disk); keeping the previous content");
+                return new CatalogScanResult
+                {
+                    AircraftCount = Snapshot().Count,
+                    CompletedAt = _time.GetUtcNow(),
+                    Errors = new[] { simulatorError, diskError }.OfType<string>().ToArray(),
+                };
+            }
+
+            var groups = rows is null ? [] : Group(rows);
+            progress?.Report(new CatalogScanProgress(CatalogScanPhase.Scanning, groups.Count + diskLiveries.Count, groups.Count + diskLiveries.Count));
             IReadOnlyList<LearnedLivery> merged;
             lock (_gate)
             {
@@ -132,6 +188,30 @@ public sealed class SynapticInstalledAircraftCatalog : IInstalledAircraftCatalog
                     next[name] = previous.TryGetValue(name, out var known)
                         ? known with { Presets = presets }
                         : new LearnedLivery(name, presets, null, null, null, null);
+                }
+
+                foreach (var found in diskLiveries)
+                {
+                    var current = next.GetValueOrDefault(found.LiveryName)
+                        ?? previous.GetValueOrDefault(found.LiveryName)
+                        ?? new LearnedLivery(found.LiveryName, [], null, null, null, null);
+                    next[found.LiveryName] = found.Registration is null
+                        ? current with { LiveryFolder = current.LiveryFolder ?? found.LiveryFolder }
+                        : current with
+                        {
+                            LiveryFolder = current.LiveryFolder ?? found.LiveryFolder,
+                            Registration = found.Registration,
+                            RegistrationSource = RegistrationSource.Authoritative,
+                        };
+                }
+
+                if (rows is null)
+                {
+                    // Offline: the disk can only ADD to what is known (a streamed livery it cannot read must not vanish).
+                    foreach (var (name, known) in previous)
+                    {
+                        next.TryAdd(name, known);
+                    }
                 }
 
                 _entries = next;
@@ -162,7 +242,9 @@ public sealed class SynapticInstalledAircraftCatalog : IInstalledAircraftCatalog
             var entries = LoadedEntries();
             var known = name is null ? null : entries.GetValueOrDefault(name);
             var cached = known is { Registration: { } r, RegistrationSource: { } s } ? new ResolvedRegistration(r, s) : null;
-            resolved = RegistrationResolver.Resolve(null, aircraft.LiveryFolder, aircraft.Registration, cached);
+            // A registration the livery DECLARES (disk scan) stays authoritative: never downgraded to the folder-derived one.
+            var declared = known is { RegistrationSource: RegistrationSource.Authoritative } ? known.Registration : null;
+            resolved = RegistrationResolver.Resolve(declared, aircraft.LiveryFolder, aircraft.Registration, cached);
             if (name is null)
             {
                 return resolved;

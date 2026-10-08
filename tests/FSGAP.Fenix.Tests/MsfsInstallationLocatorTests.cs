@@ -1,4 +1,4 @@
-using FSGAP.Fenix.Msfs;
+using FSGAP.Core.Msfs;
 using FSGAP.Fenix.Tests.Fixtures;
 
 namespace FSGAP.Fenix.Tests;

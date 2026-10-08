@@ -92,6 +92,10 @@ internal static partial class RegistrationResolver
     public static string Key(string registration) =>
         new(registration.Where(char.IsLetterOrDigit).Select(char.ToUpperInvariant).ToArray());
 
+    /// <summary>True when <paramref name="value"/>, normalized, has a known registration shape (the same rule as
+    /// <see cref="ParseFolder"/>). Used to accept a registration DECLARED by livery metadata, never to invent one.</summary>
+    public static bool IsRegistrationShape(string? value) => Normalize(value) is { } n && IsRegistration(n);
+
     private static bool IsRegistration(string token) =>
         UsNNumber().IsMatch(token)
         || UnhyphenatedAsia().IsMatch(token)

@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using FSGAP.Abstractions.Aircraft;
+using FSGAP.Core.Msfs;
 using FSGAP.Fenix.Detection;
 using FSGAP.Fenix.Identity;
 

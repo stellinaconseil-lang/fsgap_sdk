@@ -55,13 +55,14 @@ public sealed class FsgapRuntime : IAsyncDisposable
         TimeProvider timeProvider,
         bool ownsSimulator,
         IReadOnlyList<string>? fenixPackageRoots = null,
-        HttpClient? fenixEfbHttpClient = null)
+        HttpClient? fenixEfbHttpClient = null,
+        IReadOnlyList<string>? synapticPackageRoots = null)
     {
         ArgumentNullException.ThrowIfNull(options);
         options.Validate();
         _services = services;
         _ownedSimulator = ownsSimulator ? services.Connection : null;
-        _composition = FsgapComposition.CreateDefault(options, services, loggerFactory, timeProvider, fenixPackageRoots, fenixEfbHttpClient);
+        _composition = FsgapComposition.CreateDefault(options, services, loggerFactory, timeProvider, fenixPackageRoots, fenixEfbHttpClient, synapticPackageRoots);
         _sessions = new AircraftSessionManager(
             _composition.Registry,
             services.Detector,

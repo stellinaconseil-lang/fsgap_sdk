@@ -28,7 +28,8 @@ public sealed class CatalogTests : IDisposable
         return [.. a220, .. others];
     }
 
-    private SynapticInstalledAircraftCatalog NewCatalog() => new(new FsgapOptions { ApplicationName = "FSGAP.Synaptic.Tests", DataDirectory = _data.Path }, _liveries);
+    // packageRoots: [] — the disk scan is off here (these tests pin the simulator-enumeration behaviour); see DiskScanTests.
+    private SynapticInstalledAircraftCatalog NewCatalog() => new(new FsgapOptions { ApplicationName = "FSGAP.Synaptic.Tests", DataDirectory = _data.Path }, _liveries, packageRoots: []);
 
     [Fact]
     public async Task The_live_enumeration_gives_eleven_logical_liveries_each_under_both_presets()

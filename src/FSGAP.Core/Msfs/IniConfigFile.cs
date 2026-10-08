@@ -1,11 +1,11 @@
-namespace FSGAP.Fenix.Catalog;
+namespace FSGAP.Core.Msfs;
 
 /// <summary>
 /// Minimal, tolerant reader for MSFS <c>.cfg</c> files (<c>livery.cfg</c>, <c>aircraft.cfg</c>). It handles
 /// <c>[SECTION]</c> headers, <c>key = "value"</c> pairs and <c>//</c> comments, and is case-insensitive for
 /// sections and keys. Malformed lines are skipped, never fatal. Ported from the audited applications.
 /// </summary>
-internal sealed class IniConfigFile
+public sealed class IniConfigFile
 {
     private readonly Dictionary<string, Dictionary<string, string>> _sections = new(StringComparer.OrdinalIgnoreCase);
 
@@ -21,6 +21,8 @@ internal sealed class IniConfigFile
     public IEnumerable<string> SectionsStartingWith(string prefix) =>
         _sections.Keys.Where(s => s.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
 
+    /// <summary>Parses the lines of a <c>.cfg</c> file; never throws on malformed content.</summary>
+    /// <param name="lines">The file content, one line per item.</param>
     public static IniConfigFile Parse(IEnumerable<string> lines)
     {
         var file = new IniConfigFile();

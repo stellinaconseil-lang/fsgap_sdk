@@ -19,6 +19,9 @@ internal static class SynapticIdentity
     internal const string IcaoType = "BCS3";
     internal const string EngineVariant = "PW1500G";
 
+    /// <summary>The <c>required_tags</c> value an A220-300 livery declares in its <c>livery.cfg</c> (<c>[Selection]</c>).</summary>
+    internal const string FuselageTag = "ext_a223_fuselage";
+
     public static AircraftIdentity Create(string? registration, RegistrationSource? source, string? livery) => new()
     {
         Developer = Developer,

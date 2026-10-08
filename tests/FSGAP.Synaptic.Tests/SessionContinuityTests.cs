@@ -28,7 +28,7 @@ public sealed class SessionContinuityTests : IDisposable
         var reader = new FakeVariableReader();
         reader.Values["L:A22X L Boost Pump"] = 2;
         var detector = new FakeDetector(Descriptors.AirFrance);
-        var catalog = new SynapticInstalledAircraftCatalog(new FsgapOptions { ApplicationName = "tests", DataDirectory = _data.Path }, new FakeLiveryService());
+        var catalog = new SynapticInstalledAircraftCatalog(new FsgapOptions { ApplicationName = "tests", DataDirectory = _data.Path }, new FakeLiveryService(), packageRoots: []);
         var provider = new SynapticAircraftProvider(catalog, clock, null, new StampedGenericTelemetry(clock), reader, detector);
 
         await using var session = await provider.AttachAsync(Descriptors.AirFrance);

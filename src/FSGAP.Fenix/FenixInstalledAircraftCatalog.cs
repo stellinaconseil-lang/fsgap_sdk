@@ -1,7 +1,7 @@
 using FSGAP.Abstractions.Aircraft;
 using FSGAP.Abstractions.Configuration;
 using FSGAP.Fenix.Catalog;
-using FSGAP.Fenix.Msfs;
+using FSGAP.Core.Msfs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
