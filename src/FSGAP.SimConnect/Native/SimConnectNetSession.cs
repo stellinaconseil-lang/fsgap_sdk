@@ -33,7 +33,7 @@ internal sealed class SimConnectNetSessionFactory : ISimConnectSessionFactory
 }
 
 /// <summary>An open SimConnect.NET client, adapted to <see cref="ISimConnectSession"/>.</summary>
-internal sealed class SimConnectNetSession : ISimConnectSession
+internal sealed partial class SimConnectNetSession : ISimConnectSession
 {
     private const uint CrashedEventId = 1;
     private const uint PauseEventId = 2;
@@ -60,13 +60,16 @@ internal sealed class SimConnectNetSession : ISimConnectSession
     private readonly SemaphoreSlim _airportRequests = new(1, 1);
     private readonly SemaphoreSlim _liveryRequests = new(1, 1);
     private readonly SemaphoreSlim _discoveryRequests = new(1, 1);
+    private readonly SessionLiveness _liveness = new();
     private int _disposed;
 
     public SimConnectNetSession(SimConnectClient client)
     {
         _client = client;
+        _liveness.Lost += OnLost;
         _client.ConnectionStatusChanged += OnConnectionStatusChanged;
         _client.SystemEventReceived += OnSystemEvent;
+        _client.RawMessageReceived += OnRawMessage;
     }
 
     public event Action? Disconnected;
@@ -75,7 +78,11 @@ internal sealed class SimConnectNetSession : ISimConnectSession
 
     public event Action<bool>? PauseChanged;
 
-    public bool IsConnected => _client.IsConnected;
+    /// <summary>The library's own flag never turns false when the simulator closes; see <see cref="SessionLiveness"/>.</summary>
+    public bool IsConnected => _client.IsConnected && !_liveness.IsLost;
+
+    /// <summary>Live-qualification evidence of how this connection ended; changes no behaviour.</summary>
+    internal SessionLiveness Liveness => _liveness;
 
     public Task SubscribeAsync(SimulatorSystemEvent systemEvent, CancellationToken cancellationToken) => systemEvent switch
     {
@@ -454,16 +461,17 @@ internal sealed class SimConnectNetSession : ISimConnectSession
 
         _client.ConnectionStatusChanged -= OnConnectionStatusChanged;
         _client.SystemEventReceived -= OnSystemEvent;
+        _client.RawMessageReceived -= OnRawMessage;
+        _liveness.Lost -= OnLost;
         await _client.DisposeAsync().ConfigureAwait(false);
     }
 
-    private void OnConnectionStatusChanged(object? sender, ConnectionStatusChangedEventArgs e)
-    {
-        if (!e.IsConnected)
-        {
-            Disconnected?.Invoke();
-        }
-    }
+    private void OnConnectionStatusChanged(object? sender, ConnectionStatusChangedEventArgs e) =>
+        _liveness.OnLibraryStatus(e.IsConnected);
+
+    private void OnRawMessage(object? sender, RawSimConnectMessageEventArgs e) => _liveness.OnMessage(e.MessageId);
+
+    private void OnLost() => Disconnected?.Invoke();
 
     private void OnSystemEvent(object? sender, SimSystemEventReceivedEventArgs e)
     {

@@ -60,6 +60,11 @@ internal sealed class FakeSession : ISimConnectSession
 
     public bool IsConnected => _connected;
 
+    public Func<string, int, Action<byte[]>, CancellationToken, Task>? ClientDataObservation { get; set; }
+
+    public Task ObserveClientDataAsync(string name, int length, Action<byte[]> observed, CancellationToken cancellationToken) =>
+        ClientDataObservation?.Invoke(name, length, observed, cancellationToken) ?? Task.FromException(new NotSupportedException());
+
     public int IdentityReads => Volatile.Read(ref _identityReads);
 
     public int DisposeCount => Volatile.Read(ref _disposeCount);

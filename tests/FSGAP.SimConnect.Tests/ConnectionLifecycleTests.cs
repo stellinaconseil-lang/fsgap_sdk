@@ -93,6 +93,49 @@ public class ConnectionLifecycleTests
     }
 
     [Fact]
+    public async Task Read_timeouts_alone_are_not_a_loss_but_the_session_end_signal_is()
+    {
+        // Live 2026-10-13: after MSFS closed, reads timed out while the library still said connected. A timeout may
+        // also be a loading screen, so it is not inferred as a loss; the session's end signal (QUIT) is what counts.
+        await using var h = new Harness();
+        var session = h.Factory.SimulatorPresent(Identity.Of("Test Airliner"));
+        h.Factory.SimulatorAbsent();
+        await h.Simulator.StartAsync();
+        await h.WaitForAsync(SimulatorConnectionState.Connected);
+        await h.Clock.WaitForTimersAsync(1);
+
+        session.IdentityFailure = new TimeoutException("no answer");
+        var reads = session.IdentityReads;
+        h.Clock.Advance(SimConnectSimulator.IdentityFastInterval);
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        while (session.IdentityReads <= reads)
+        {
+            Assert.True(DateTime.UtcNow < deadline, "The failing identity read did not happen.");
+            await Task.Delay(10);
+        }
+
+        Assert.Equal(SimulatorConnectionState.Connected, h.Simulator.Status.State);
+        Assert.False(session.IsDisposed);
+
+        session.Drop(); // QUIT observed by the native session
+        await h.WaitForAsync(SimulatorConnectionState.Reconnecting);
+        Assert.True(session.IsDisposed);
+
+        var ended = Assert.Single(h.Simulator.SessionHistory);
+        Assert.Equal(1, ended.Number);
+        Assert.Equal(1, ended.DisconnectedEvents);
+        Assert.Equal("Disconnected", ended.EndReason);
+        Assert.NotNull(ended.EndedAt);
+    }
+
+    [Fact]
+    public async Task Session_history_is_empty_before_any_connection()
+    {
+        await using var h = new Harness();
+        Assert.Empty(h.Simulator.SessionHistory);
+    }
+
+    [Fact]
     public async Task Unexpected_connection_errors_are_retried_not_terminal()
     {
         await using var h = new Harness();

@@ -29,6 +29,9 @@ internal readonly record struct RawAircraftIdentity(
 /// </remarks>
 internal interface ISimConnectSession : IAsyncDisposable
 {
+    /// <summary>Optional read-only client data subscription; ends with this native session.</summary>
+    Task ObserveClientDataAsync(string name, int length, Action<byte[]> observed, CancellationToken cancellationToken) =>
+        Task.FromException(new NotSupportedException("ClientData is not supported by this session."));
     /// <summary>The connection was lost (simulator closed or connection dropped).</summary>
     event Action? Disconnected;
 

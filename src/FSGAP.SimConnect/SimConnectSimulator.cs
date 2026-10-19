@@ -36,7 +36,7 @@ namespace FSGAP.SimConnect;
 /// <item><description>After disposal, Start throws <see cref="ObjectDisposedException"/>.</description></item>
 /// </list>
 /// </remarks>
-public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariableReader, ISimulatorVariableWriter, IAirportService, IInstalledLiveryService
+public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariableReader, ISimulatorVariableWriter, ISimulatorClientDataReader, IAirportService, IInstalledLiveryService
 {
     /// <summary>Identity poll interval while connecting or while the aircraft is changing.</summary>
     internal static readonly TimeSpan IdentityFastInterval = TimeSpan.FromSeconds(2);
@@ -88,6 +88,10 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
     private Task? _runTask;
     private bool _disposed;
     private volatile LiveSession? _connectedSession;
+
+    // Live-qualification evidence only (internal diagnostic): one entry per native connection.
+    private readonly object _historyGate = new();
+    private readonly List<SessionEvidence> _sessionHistory = [];
     private AirportListCache? _airportCache;
     private LiveryListRequest? _liveryRequest;
 
@@ -144,6 +148,33 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
     /// for the new one.
     /// </remarks>
     public ITelemetryProvider Telemetry => _telemetry;
+
+    // Bounded read-only diagnostic on this connection; cancelled on reconnect.
+    internal async Task ObserveClientDataDiagnosticAsync(string name, int length, Action<byte[]> observed, CancellationToken cancellationToken)
+    {
+        var live = _connectedSession ?? throw new InvalidOperationException(SimulatorNotConnected);
+        if (live.Session is not SimConnectNetSession native) throw new NotSupportedException("Native session required.");
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, live.Lifetime);
+        await native.ObserveClientDataAsync(name, length, bytes =>
+        {
+            if (ReferenceEquals(live, _connectedSession) && !linked.IsCancellationRequested) observed(bytes);
+        }, linked.Token).ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+    }
+
+    /// <inheritdoc />
+    public async Task ObserveClientDataAsync(string name, int length, Action<ReadOnlyMemory<byte>> observed, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(observed);
+        if (length is < 1 or > 8192) throw new ArgumentOutOfRangeException(nameof(length));
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        var live = _connectedSession ?? throw new InvalidOperationException(SimulatorNotConnected);
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, live.Lifetime);
+        await live.Session.ObserveClientDataAsync(name, length, bytes =>
+        {
+            if (ReferenceEquals(live, _connectedSession) && !linked.IsCancellationRequested) observed(bytes);
+        }, linked.Token).ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+    }
 
     /// <inheritdoc />
     /// <remarks>
@@ -518,6 +549,9 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
             }
         }
 
+        var evidence = RecordSessionStart();
+        void CountDisconnected() => UpdateEvidence(evidence, e => e with { DisconnectedEvents = e.DisconnectedEvents + 1 });
+        session.Disconnected += CountDisconnected;
         session.Disconnected += OnDisconnected;
         session.Crashed += OnCrashed;
         session.PauseChanged += OnPauseChanged;
@@ -550,8 +584,18 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
             _connectedSession = null;
             active.Deactivate();
             session.Disconnected -= OnDisconnected;
+            session.Disconnected -= CountDisconnected;
             session.Crashed -= OnCrashed;
             session.PauseChanged -= OnPauseChanged;
+            var end = (session as SimConnectNetSession)?.Liveness;
+            UpdateEvidence(evidence, e => e with
+            {
+                EndedAt = _time.GetUtcNow(),
+                EndReason = end?.End?.Reason.ToString()
+                    ?? (cancellationToken.IsCancellationRequested ? "Stopped" : e.DisconnectedEvents > 0 ? "Disconnected" : "ReadFailureWhileDisconnected"),
+                EndSignalAt = end?.End?.At,
+                QuitMessages = end?.QuitMessages ?? 0,
+            });
             await sessionCts.CancelAsync().ConfigureAwait(false);
             await AwaitQuietlyAsync(identityTask).ConfigureAwait(false);
             foreach (var groupTask in groupTasks)
@@ -906,6 +950,39 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
 
     /// <summary>The connected native session and the token that ends with it.</summary>
     private sealed record LiveSession(ISimConnectSession Session, CancellationToken Lifetime);
+
+    /// <summary>Live-qualification evidence for one native connection; changes no behaviour.</summary>
+    internal sealed record SessionEvidence(
+        int Number,
+        DateTimeOffset ConnectedAt,
+        DateTimeOffset? EndedAt = null,
+        string? EndReason = null,
+        DateTimeOffset? EndSignalAt = null,
+        int QuitMessages = 0,
+        int DisconnectedEvents = 0);
+
+    /// <summary>Snapshot of every native connection of this transport, oldest first (diagnostic evidence).</summary>
+    internal IReadOnlyList<SessionEvidence> SessionHistory
+    {
+        get { lock (_historyGate) { return _sessionHistory.ToArray(); } }
+    }
+
+    private int RecordSessionStart()
+    {
+        lock (_historyGate)
+        {
+            _sessionHistory.Add(new SessionEvidence(_sessionHistory.Count + 1, _time.GetUtcNow()));
+            return _sessionHistory.Count - 1;
+        }
+    }
+
+    private void UpdateEvidence(int index, Func<SessionEvidence, SessionEvidence> update)
+    {
+        lock (_historyGate)
+        {
+            _sessionHistory[index] = update(_sessionHistory[index]);
+        }
+    }
 
     /// <summary>The livery enumeration in flight on one connection, shared by concurrent callers.</summary>
     private sealed record LiveryListRequest(ISimConnectSession Session, Task<IReadOnlyList<RawLiveryEntry>> Request);
