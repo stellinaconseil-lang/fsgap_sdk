@@ -62,7 +62,7 @@ public class FailureProviderTests
     public static TheoryData<string> ExecutableKeys()
     {
         var data = new TheoryData<string>();
-        foreach (var recipe in SynapticFailureCatalog.Recipes.Where(r => r.Executable))
+        foreach (var recipe in SynapticFailureCatalog.HistoricalRecipes.Where(r => r.Executable))
         {
             data.Add(recipe.Key.Value);
         }
@@ -73,7 +73,7 @@ public class FailureProviderTests
     public static TheoryData<string> UnmappedKeys()
     {
         var data = new TheoryData<string>();
-        foreach (var recipe in SynapticFailureCatalog.Recipes.Where(r => !r.Executable))
+        foreach (var recipe in SynapticFailureCatalog.HistoricalRecipes.Where(r => !r.Executable))
         {
             data.Add(recipe.Key.Value);
         }
@@ -84,16 +84,19 @@ public class FailureProviderTests
     // -- Catalog parity --------------------------------------------------------------------------------------------------
 
     [Fact]
-    public async Task The_synaptic_catalog_has_exactly_the_fenix_keys_display_names_categories_and_targets()
+    public async Task The_synaptic_catalog_has_the_fenix_keys_display_names_categories_and_targets_plus_only_the_55_circuit_breakers()
     {
         var fenix = new FenixAircraftProvider(fenixOptions: new FenixOptions(), efbHttpClient: new HttpClient(new NoEfb()));
         await using var fenixSession = await fenix.AttachAsync(Descriptors.FenixA320);
         var reference = fenixSession.Capabilities.Failures.Catalog;
-        var synaptic = SynapticFailureProvider.Capabilities.Catalog;
+        var synaptic = SynapticFailureProvider.DefaultCapabilities.Catalog;
 
         Assert.Equal(384, reference.Count);
-        Assert.Equal(reference.Count, synaptic.Count);
-        Assert.Equal(reference.Select(d => d.Key.Value).Order(), synaptic.Select(d => d.Key.Value).Order());
+        Assert.Equal(reference.Count + 55, synaptic.Count);
+        var extra = synaptic.Select(d => d.Key.Value).Except(reference.Select(d => d.Key.Value)).Order().ToArray();
+        Assert.Equal(SynapticFailureCatalog.CircuitBreakerRecipes.Select(r => r.Key.Value).Order(), extra);
+        Assert.All(extra, k => Assert.StartsWith("electrical.circuit-breaker.", k, StringComparison.Ordinal));
+        Assert.Equal(reference.Select(d => d.Key.Value).Order(), SynapticFailureCatalog.HistoricalRecipes.Select(r => r.Key.Value).Order());
         foreach (var expected in reference)
         {
             Assert.True(synaptic.TryGet(expected.Key, out var actual), expected.Key.Value);
@@ -119,7 +122,7 @@ public class FailureProviderTests
     [Fact]
     public void The_executable_recipes_are_unchanged_and_all_on_original_keys()
     {
-        var recipes = SynapticFailureCatalog.Recipes;
+        var recipes = SynapticFailureCatalog.HistoricalRecipes;
         var executable = recipes.Where(r => r.Executable).ToArray();
 
         Assert.Equal(40, OriginalKeys.Count);
@@ -133,7 +136,7 @@ public class FailureProviderTests
     [Fact]
     public void Every_key_added_in_preview_4_is_listed_but_not_executable()
     {
-        var added = SynapticFailureCatalog.Recipes.Where(r => !OriginalKeys.Contains(r.Key.Value)).ToArray();
+        var added = SynapticFailureCatalog.HistoricalRecipes.Where(r => !OriginalKeys.Contains(r.Key.Value)).ToArray();
 
         Assert.Equal(344, added.Length);
         Assert.All(added, r =>
@@ -142,16 +145,19 @@ public class FailureProviderTests
             Assert.Empty(r.Controls);
             Assert.Equal(FailureOperations.None, r.Definition.Operations);
             Assert.Equal(SynapticFailureQualification.Unmapped, r.Qualification);
-            Assert.False(SynapticFailureProvider.Capabilities.CanTrigger(r.Key));
+            Assert.False(SynapticFailureProvider.DefaultCapabilities.CanTrigger(r.Key));
         });
     }
 
     [Fact]
     public void Every_key_has_exactly_one_recipe_and_the_executable_ones_support_trigger_and_clear()
     {
-        var recipes = SynapticFailureCatalog.Recipes;
+        var recipes = SynapticFailureCatalog.HistoricalRecipes;
 
         Assert.Equal(384, recipes.Count);
+        Assert.Equal(384 + 55, SynapticFailureCatalog.Recipes.Count);
+        Assert.Equal(SynapticFailureCatalog.Recipes.Count, SynapticFailureCatalog.Recipes.Select(r => r.Key).Distinct().Count());
+        Assert.All(recipes, r => Assert.Null(r.CircuitBreaker));
         Assert.Equal(recipes.Count, recipes.Select(r => r.Key).Distinct().Count());
         Assert.Equal(17, recipes.Count(r => r.Executable));
         Assert.Equal(367, recipes.Count(r => !r.Executable));
@@ -163,9 +169,9 @@ public class FailureProviderTests
             Assert.Equal(SynapticFailureMechanism.None, r.Mechanism);
         });
         Assert.All(recipes.Where(r => r.Executable), r => Assert.NotEqual(SynapticFailureQualification.Unmapped, r.Qualification));
-        Assert.True(SynapticFailureProvider.Capabilities.CanReadActiveFailures);
-        Assert.True(SynapticFailureProvider.Capabilities.CanTriggerAny);
-        Assert.True(SynapticFailureProvider.Capabilities.CanClearAny);
+        Assert.True(SynapticFailureProvider.DefaultCapabilities.CanReadActiveFailures);
+        Assert.True(SynapticFailureProvider.DefaultCapabilities.CanTriggerAny);
+        Assert.True(SynapticFailureProvider.DefaultCapabilities.CanClearAny);
     }
 
     [Fact]
@@ -186,7 +192,7 @@ public class FailureProviderTests
     [Fact]
     public void Public_definitions_carry_no_raw_variable_name()
     {
-        foreach (var d in SynapticFailureProvider.Capabilities.Catalog)
+        foreach (var d in SynapticFailureProvider.DefaultCapabilities.Catalog)
         {
             var text = $"{d.Key} {d.DisplayName}";
             Assert.DoesNotContain("A22X", text, StringComparison.Ordinal);
@@ -232,7 +238,7 @@ public class FailureProviderTests
 
         Assert.Equal(FailureCommandStatus.NotSupported, (await rig.Failures.TriggerAsync(Cmd(key, target))).Status);
         Assert.Equal(FailureCommandStatus.NotSupported, (await rig.Failures.ClearAsync(Cmd(key, target))).Status);
-        Assert.False(SynapticFailureProvider.Capabilities.CanTrigger(FailureKey.Parse(key)));
+        Assert.False(SynapticFailureProvider.DefaultCapabilities.CanTrigger(FailureKey.Parse(key)));
         Assert.Equal(0, rig.Reader.ReadCount);
         Assert.Empty(rig.Writes);
     }

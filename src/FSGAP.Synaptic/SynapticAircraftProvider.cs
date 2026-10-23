@@ -10,6 +10,7 @@ using FSGAP.Core.Degradations;
 using FSGAP.Core.Failures;
 using FSGAP.Core.Sessions;
 using FSGAP.Core.Telemetry;
+using FSGAP.Synaptic.CircuitBreakers;
 using FSGAP.Synaptic.Degradations;
 using FSGAP.Synaptic.Detection;
 using FSGAP.Synaptic.Failures;
@@ -45,6 +46,12 @@ namespace FSGAP.Synaptic;
 /// <see cref="FailureCapabilities.None"/>.
 /// </para>
 /// <para>
+/// <b>Circuit breakers (0.13.0-preview.4).</b> The catalog also lists the aircraft's 55 cockpit circuit breakers
+/// (<c>electrical.circuit-breaker.*</c>): trip writes the breaker's documented cell = 1, clear writes it back to 0, both on
+/// the same writer and read back. They are executable only as <see cref="SynapticCircuitBreakerOptions"/> allows: never
+/// without the supported Synaptic version, and only for breakers whose direct trip is qualified.
+/// </para>
+/// <para>
 /// <b>Controlled degradations.</b> Given a variable writer on the same connection, sessions also offer four controlled
 /// degradations qualified live (generator 1, hydraulic pump 3A, pack 1 and PFCC 1 forced off): documented cockpit controls
 /// FSGAP forces into a degraded configuration, never component failures. See <see cref="DegradationCapabilities"/>; one
@@ -64,6 +71,7 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
     private readonly IAircraftDetector? _aircraftDetector;
     private readonly ISimulatorVariableWriter? _simulatorVariableWriter;
     private readonly TimeSpan _staleAfter;
+    private readonly SynapticCircuitBreakerActivation _circuitBreakers;
 
     /// <summary>Creates the provider.</summary>
     /// <param name="installedAircraft">
@@ -81,6 +89,10 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
     /// <paramref name="simulatorVariables"/>), sessions offer the qualified controlled degradations; without it, they offer
     /// none.
     /// </param>
+    /// <param name="circuitBreakers">
+    /// Which circuit-breaker failures sessions may execute; <see langword="null"/> (the default) lists the 55 breakers with
+    /// no operation.
+    /// </param>
     /// <exception cref="ArgumentException">An option is invalid.</exception>
     public SynapticAircraftProvider(
         SynapticInstalledAircraftCatalog? installedAircraft = null,
@@ -90,10 +102,12 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
         ISimulatorVariableReader? simulatorVariables = null,
         IAircraftDetector? aircraftDetector = null,
         TelemetryOptions? telemetryOptions = null,
-        ISimulatorVariableWriter? simulatorVariableWriter = null)
+        ISimulatorVariableWriter? simulatorVariableWriter = null,
+        SynapticCircuitBreakerOptions? circuitBreakers = null)
     {
         var telemetry = telemetryOptions ?? new TelemetryOptions();
         telemetry.Validate();
+        _circuitBreakers = SynapticCircuitBreakerActivation.From(circuitBreakers, SynapticCircuitBreakerManifest.Embedded);
         _catalog = installedAircraft;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _logger = (ILogger?)logger ?? NullLogger.Instance;
@@ -176,8 +190,9 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
             var board = new SynapticControlBoard(_simulatorVariables, _simulatorVariableWriter, _aircraftDetector, aircraft, _logger);
             degradations = new SynapticDegradationProvider(board, ownsBoard: false);
             degradationCapabilities = SynapticDegradationProvider.Capabilities;
-            failures = new SynapticFailureProvider(board, ownsBoard: true);
-            failureCapabilities = SynapticFailureProvider.Capabilities;
+            var failureProvider = new SynapticFailureProvider(board, ownsBoard: true, _circuitBreakers);
+            failures = failureProvider;
+            failureCapabilities = failureProvider.Capabilities;
         }
 
         return Task.FromResult<IAircraftSession>(new AircraftSession(

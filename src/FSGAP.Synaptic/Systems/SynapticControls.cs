@@ -13,6 +13,12 @@ internal enum SynapticControlEvidence
 
     /// <summary>Documented control only; never written live.</summary>
     Documented,
+
+    /// <summary>
+    /// A circuit-breaker cell: mapped to its breaker and re-armed (written 0, read back) in the lab, on every breaker.
+    /// Whether writing it to 1 (a direct trip) is qualified is decided per breaker by the manifest, not by this level.
+    /// </summary>
+    LabValidated,
 }
 
 /// <summary>
@@ -36,9 +42,17 @@ internal sealed record SynapticControl(string Name, SimulatorVariable Variable, 
 /// name that is written. Enum values are the documented ones (0 Off, 1 Auto, 2 On; booleans 1 = selected/off).
 /// </summary>
 /// <remarks>
-/// Deliberately absent: circuit breakers (no documented mapping or reset), probe heat (a ground-test pulse), engine fire
-/// pushbuttons and generator disconnects (latched / not reversible), RAT, passenger oxygen, emergency depressurization,
-/// alternate gear (not reversible or unsafe), and any native simulator failure event.
+/// <para>
+/// <see cref="All"/> holds the 16 cockpit controls of the controlled degradations and the historical failure recipes.
+/// <see cref="CircuitBreakers"/> holds the 55 circuit-breaker cells, taken from the embedded breaker manifest (generated
+/// from the lab evidence, never typed by hand): the only A22X circuit-breaker names FSGAP may write, and only through the
+/// circuit-breaker recipes.
+/// </para>
+/// <para>
+/// Deliberately absent: probe heat (a ground-test pulse), engine fire pushbuttons and generator disconnects (latched / not
+/// reversible), RAT, passenger oxygen, emergency depressurization, alternate gear (not reversible or unsafe), and any
+/// native simulator failure event.
+/// </para>
 /// </remarks>
 internal static class SynapticControls
 {
@@ -72,6 +86,13 @@ internal static class SynapticControls
         RightGeneratorOff, HydraulicPump3B, HydraulicPump2B, PowerTransferUnit, Hydraulic1ShutoffValve, LeftBoostPump, RightBoostPump,
         LeftBleedOff, AlternateBrake, ManualPressurization, TrimAirOff, LowerDisplayBrightness,
     ];
+
+    /// <summary>The 55 circuit-breaker cells (normal 0 = in, degraded 1 = tripped), from the embedded breaker manifest.</summary>
+    internal static IReadOnlyList<SynapticControl> CircuitBreakers { get; } =
+        FSGAP.Synaptic.CircuitBreakers.SynapticCircuitBreakerManifest.Embedded.Breakers.Select(b => b.Control).ToArray();
+
+    /// <summary>Every control FSGAP may write: <see cref="All"/> and <see cref="CircuitBreakers"/>.</summary>
+    internal static IReadOnlyList<SynapticControl> Writable { get; } = [.. All, .. CircuitBreakers];
 
     private static SimulatorVariable Local(string name) => new(name, LocalUnit);
 }

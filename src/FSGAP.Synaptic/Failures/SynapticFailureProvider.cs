@@ -1,5 +1,6 @@
 using FSGAP.Abstractions.Capabilities;
 using FSGAP.Abstractions.Failures;
+using FSGAP.Synaptic.CircuitBreakers;
 using FSGAP.Synaptic.Systems;
 using Microsoft.Extensions.Logging;
 
@@ -14,7 +15,13 @@ namespace FSGAP.Synaptic.Failures;
 /// <b>Trigger</b> reads the recipe's controls, refuses an unexpected value or a control held by another failure or
 /// degradation (conflict), leaves controls already degraded outside FSGAP alone, writes the degraded values, and succeeds
 /// once they are read back. <b>Clear</b> writes back what this session's trigger changed (the qualified normal value, or
-/// the value found before the trigger) and succeeds once read back. Recipe provenance never gates execution.
+/// the value found before the trigger) and succeeds once read back. Recipe provenance never gates the historical recipes.
+/// </para>
+/// <para>
+/// <b>Circuit breakers</b> (0.13.0-preview.4) are single-cell recipes on the same board: trigger writes the breaker cell
+/// = 1 and succeeds once it reads 1, clear writes it back to 0 and succeeds once it reads 0. All 55 are listed; only those
+/// the session's <see cref="SynapticCircuitBreakerActivation"/> enables declare operations, the others answer
+/// <c>NotSupported</c> without reading or writing anything.
 /// </para>
 /// <para>
 /// <b>Active failures</b> are the recipes this session triggered whose controls still hold their degraded values. A
@@ -32,16 +39,24 @@ internal sealed class SynapticFailureProvider : IFailureProvider, IAsyncDisposab
 
     private readonly SynapticControlBoard _board;
     private readonly bool _ownsBoard;
+    private readonly SynapticCircuitBreakerActivation _circuitBreakers;
     private int _disposed;
 
-    internal SynapticFailureProvider(SynapticControlBoard board, bool ownsBoard)
+    internal SynapticFailureProvider(SynapticControlBoard board, bool ownsBoard, SynapticCircuitBreakerActivation? circuitBreakers = null)
     {
         _board = board;
         _ownsBoard = ownsBoard;
+        _circuitBreakers = circuitBreakers ?? SynapticCircuitBreakerActivation.Disabled;
+        Capabilities = _circuitBreakers.Enabled.Count == 0
+            ? DefaultCapabilities
+            : new() { CanReadActiveFailures = true, Catalog = SynapticFailureCatalog.CatalogFor(_circuitBreakers) };
     }
 
-    /// <summary>What sessions with this provider declare.</summary>
-    internal static FailureCapabilities Capabilities { get; } = new() { CanReadActiveFailures = true, Catalog = SynapticFailureCatalog.Catalog };
+    /// <summary>What a session declares when no circuit breaker is activated.</summary>
+    internal static FailureCapabilities DefaultCapabilities { get; } = new() { CanReadActiveFailures = true, Catalog = SynapticFailureCatalog.Catalog };
+
+    /// <summary>What this session declares: the default catalog, with the activated circuit breakers executable.</summary>
+    internal FailureCapabilities Capabilities { get; }
 
     /// <summary>The failures this session triggered and still owns (diagnostics, tests).</summary>
     internal IReadOnlyList<FailureKey> OwnedKeys =>
@@ -88,7 +103,7 @@ internal sealed class SynapticFailureProvider : IFailureProvider, IAsyncDisposab
         ArgumentNullException.ThrowIfNull(command);
         if (SynapticFailureCatalog.Find(command.Key) is not { } recipe || !Capabilities.CanTrigger(command))
         {
-            return FailureCommandResult.NotSupported($"'{command.Key}' cannot be triggered on this aircraft (no documented Synaptic control, or unsupported target).");
+            return FailureCommandResult.NotSupported(NotExecutable(command, "triggered"));
         }
 
         if (Volatile.Read(ref _disposed) != 0)
@@ -124,7 +139,7 @@ internal sealed class SynapticFailureProvider : IFailureProvider, IAsyncDisposab
         ArgumentNullException.ThrowIfNull(command);
         if (SynapticFailureCatalog.Find(command.Key) is not { } recipe || !Capabilities.CanClear(command))
         {
-            return FailureCommandResult.NotSupported($"'{command.Key}' cannot be cleared on this aircraft (no documented Synaptic control, or unsupported target).");
+            return FailureCommandResult.NotSupported(NotExecutable(command, "cleared"));
         }
 
         if (Volatile.Read(ref _disposed) != 0)
@@ -210,4 +225,9 @@ internal sealed class SynapticFailureProvider : IFailureProvider, IAsyncDisposab
     }
 
     private static string Owner(SynapticFailureRecipe recipe) => OwnerPrefix + recipe.Key.Value;
+
+    private string NotExecutable(FailureCommand command, string operation) =>
+        SynapticFailureCatalog.Find(command.Key) is { CircuitBreaker: { } breaker } && !_circuitBreakers.IsEnabled(breaker)
+            ? $"'{command.Key}' ({breaker.Id}) is listed but cannot be {operation} in this session: {_circuitBreakers.Reason}. Nothing was read or written."
+            : $"'{command.Key}' cannot be {operation} on this aircraft (no documented Synaptic control, or unsupported target).";
 }

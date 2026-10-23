@@ -175,13 +175,14 @@ internal sealed class RuntimeRig : IAsyncDisposable
 {
     private readonly string _data = Path.Combine(Path.GetTempPath(), "fsgap-runtime-tests", Guid.NewGuid().ToString("N"));
 
-    public RuntimeRig(bool commands = true)
+    public RuntimeRig(bool commands = true, string? synapticVersion = null)
     {
         Directory.CreateDirectory(_data);
         Options = new FsgapRuntimeOptions
         {
             Sdk = new FsgapOptions { ApplicationName = "FsgapRuntimeTests", DataDirectory = _data },
             EnableAircraftCommands = commands,
+            SynapticAircraftVersion = synapticVersion,
         };
         Runtime = new FsgapRuntime(Options, Simulator.Services, null, TimeProvider.System, ownsSimulator: false, fenixPackageRoots: [], fenixEfbHttpClient: new HttpClient(new NoEfb()), synapticPackageRoots: []);
     }

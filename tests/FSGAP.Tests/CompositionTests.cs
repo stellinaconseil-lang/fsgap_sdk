@@ -111,10 +111,37 @@ public class CompositionTests
         Assert.Equal(1, synaptic.Capabilities.Degradations.MaxActive);
 
         Assert.Equal(384, fenixKeys.Length);
-        Assert.Equal(fenixKeys, synaptic.Capabilities.Failures.Catalog.Select(d => d.Key.Value).Order());
+        var synapticKeys = synaptic.Capabilities.Failures.Catalog.Select(d => d.Key.Value).Order().ToArray();
+        Assert.Equal(fenixKeys, synapticKeys.Where(k => !k.StartsWith("electrical.circuit-breaker.", StringComparison.Ordinal)));
+        Assert.Equal(55, synapticKeys.Count(k => k.StartsWith("electrical.circuit-breaker.", StringComparison.Ordinal)));
         Assert.Equal(384, fenix.Capabilities.Failures.Catalog.Count(d => fenix.Capabilities.Failures.CanTrigger(d.Key)));
         Assert.Equal(17, synaptic.Capabilities.Failures.Catalog.Count(d => synaptic.Capabilities.Failures.CanTrigger(d.Key)));
-        Assert.Equal(367, synaptic.Capabilities.Failures.Catalog.Count(d => d.Operations == FailureOperations.None));
+        Assert.Equal(367 + 55, synaptic.Capabilities.Failures.Catalog.Count(d => d.Operations == FailureOperations.None));
+    }
+
+    [Fact]
+    public async Task The_reported_synaptic_version_enables_the_qualified_circuit_breakers_and_nothing_else()
+    {
+        await using var rig = new RuntimeRig(synapticVersion: "1.0.11");
+        await rig.Runtime.StartAsync();
+
+        var synaptic = (await rig.LoadAsync(Aircraft.SynapticA220)).Session!.Capabilities.Failures;
+        Assert.True(synaptic.CanTrigger(FailureKey.Parse("electrical.circuit-breaker.lights-dome")));
+        Assert.False(synaptic.CanTrigger(FailureKey.Parse("electrical.circuit-breaker.nav-iru")));
+        Assert.Equal(17 + 1, synaptic.Catalog.Count(d => synaptic.CanTrigger(d.Key)));
+
+        var fenix = (await rig.LoadAsync(Aircraft.FenixA320)).Session!.Capabilities.Failures;
+        Assert.Equal(384, fenix.Catalog.Count);
+        Assert.Equal(384, fenix.Catalog.Count(d => fenix.CanTrigger(d.Key)));
+        Assert.DoesNotContain(fenix.Catalog, d => d.Key.Value.StartsWith("electrical.circuit-breaker.", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task An_unknown_circuit_breaker_id_in_the_runtime_options_is_refused()
+    {
+        await using var rig = new RuntimeRig();
+
+        Assert.Throws<ArgumentException>(() => (rig.Options with { SynapticQualifiedCircuitBreakers = ["CB_DOES_NOT_EXIST"] }).Validate());
     }
 
     [Fact]

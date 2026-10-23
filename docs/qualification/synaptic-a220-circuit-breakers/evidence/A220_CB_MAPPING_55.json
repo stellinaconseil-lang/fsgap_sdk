@@ -1,0 +1,505 @@
+﻿{
+    "schema":  "a220-cb-mapping-55/2",
+    "generated":  "2026-10-23",
+    "status":  "COMPLETE (55/55 confirmed via automap --all)",
+    "method":  "B: open (SetInputEvent 1.0) -\u003e single L: cell 0-\u003e1 = mapping; re-arm L:=0 (SetDataOnSimObject); verified cell=0 + 54 others unchanged",
+    "final_state":  "all 55 L: = 0 (restored)",
+    "count":  55,
+    "mappings":  [
+                     {
+                         "b":  "AIRLINER_CB_AIR_BLEED_SNSR",
+                         "hash":  "16096870236802648507",
+                         "l":  "L:A22X Circuit Breaker R D3",
+                         "system":  "pneumatic",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_AIR_IASC_2B",
+                         "hash":  "8097727598431136993",
+                         "l":  "L:A22X Circuit Breaker R D1",
+                         "system":  "pneumatic",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_AIR_RAM_VLV",
+                         "hash":  "12117178406550998777",
+                         "l":  "L:A22X Circuit Breaker R D4",
+                         "system":  "pneumatic",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_AIR_SNSR",
+                         "hash":  "9499810436860159793",
+                         "l":  "L:A22X Circuit Breaker R D2",
+                         "system":  "pneumatic",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_ANTI_ICE_HEAT_3A",
+                         "hash":  "14921752521817364588",
+                         "l":  "L:A22X Circuit Breaker L G2",
+                         "system":  "ice_protection",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_ANTI_ICE_HEAT_4A",
+                         "hash":  "4980492937493274342",
+                         "l":  "L:A22X Circuit Breaker L H2",
+                         "system":  "ice_protection",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_ANTI_ICE_L_TAT",
+                         "hash":  "4985286889187242876",
+                         "l":  "L:A22X Circuit Breaker L G1",
+                         "system":  "ice_protection",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_ANTI_ICE_L_WINDOW",
+                         "hash":  "13732417533200252909",
+                         "l":  "L:A22X Circuit Breaker L F1",
+                         "system":  "ice_protection",
+                         "functional":  "FUNCTIONAL_EFFECT_CONFIRMED",
+                         "indicator":  "L:A22X Caution PBA",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_ANTI_ICE_R_TAT",
+                         "hash":  "12980627944177518224",
+                         "l":  "L:A22X Circuit Breaker L H1",
+                         "system":  "ice_protection",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_ANTI_ICE_WINDOW_HTR",
+                         "hash":  "14661351350705133043",
+                         "l":  "L:A22X Circuit Breaker L H4",
+                         "system":  "ice_protection",
+                         "functional":  "FUNCTIONAL_EFFECT_CONFIRMED",
+                         "indicator":  "L:A22X Caution PBA",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_AUTO_FPC_A",
+                         "hash":  "7914759110444159217",
+                         "l":  "L:A22X Circuit Breaker L E3",
+                         "system":  "autoflight",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_COMM_ACP_1",
+                         "hash":  "11062184287030450700",
+                         "l":  "L:A22X Circuit Breaker R C2",
+                         "system":  "communications",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_COMM_RIU_1B",
+                         "hash":  "8108816738027462116",
+                         "l":  "L:A22X Circuit Breaker R C3",
+                         "system":  "communications",
+                         "functional":  "FUNCTIONAL_EFFECT_CONFIRMED",
+                         "indicator":  "L:A22X Caution PBA",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_COMM_RIU_2A",
+                         "hash":  "317205491566072281",
+                         "l":  "L:A22X Circuit Breaker R C4",
+                         "system":  "communications",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_COMM_VHF_1",
+                         "hash":  "15941457829937565821",
+                         "l":  "L:A22X Circuit Breaker R C1",
+                         "system":  "communications",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_ENG_L_FADEC_A",
+                         "hash":  "2529927155561876918",
+                         "l":  "L:A22X Circuit Breaker L F4",
+                         "system":  "engine_fadec_ignition",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_ENG_L_IGN_A",
+                         "hash":  "16746857811667184525",
+                         "l":  "L:A22X Circuit Breaker L F5",
+                         "system":  "engine_fadec_ignition",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_ENG_R_FADEC_A",
+                         "hash":  "5751854878535658706",
+                         "l":  "L:A22X Circuit Breaker R F4",
+                         "system":  "engine_fadec_ignition",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_ENG_R_IGN_A",
+                         "hash":  "12108183258878152891",
+                         "l":  "L:A22X Circuit Breaker R F5",
+                         "system":  "engine_fadec_ignition",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_FC_AFT_2_PRI",
+                         "hash":  "7897137372240701150",
+                         "l":  "L:A22X Circuit Breaker L B1",
+                         "system":  "flight_controls",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_FC_AFT_2_SEC",
+                         "hash":  "8355038919239989645",
+                         "l":  "L:A22X Circuit Breaker L B2",
+                         "system":  "flight_controls",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_FC_AFT_3_PRI",
+                         "hash":  "1914641245569583534",
+                         "l":  "L:A22X Circuit Breaker L B3",
+                         "system":  "flight_controls",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_FC_AFT_3_SEC",
+                         "hash":  "358431073920489213",
+                         "l":  "L:A22X Circuit Breaker L B4",
+                         "system":  "flight_controls",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_FC_AIL_PRI",
+                         "hash":  "11299266831354216286",
+                         "l":  "L:A22X Circuit Breaker L A3",
+                         "system":  "flight_controls",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_FC_AIL_SEC",
+                         "hash":  "9413724339380559885",
+                         "l":  "L:A22X Circuit Breaker L A4",
+                         "system":  "flight_controls",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_FC_FLAP_CH_2",
+                         "hash":  "17448589345615611741",
+                         "l":  "L:A22X Circuit Breaker L C2",
+                         "system":  "flight_controls",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_FC_IIM_3",
+                         "hash":  "12072301166658399893",
+                         "l":  "L:A22X Circuit Breaker L A5",
+                         "system":  "flight_controls",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_FC_MFS_PRI",
+                         "hash":  "6333032072069196670",
+                         "l":  "L:A22X Circuit Breaker L A1",
+                         "system":  "flight_controls",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_FC_MFS_SEC",
+                         "hash":  "5298546696015688749",
+                         "l":  "L:A22X Circuit Breaker L A2",
+                         "system":  "flight_controls",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_FC_PFCC_3",
+                         "hash":  "1585326128355751297",
+                         "l":  "L:A22X Circuit Breaker L B5",
+                         "system":  "flight_controls",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_FC_SLAT_CH_1",
+                         "hash":  "8032795931014765955",
+                         "l":  "L:A22X Circuit Breaker L C1",
+                         "system":  "flight_controls",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_FC_STAB_TRIM_1",
+                         "hash":  "18054899321912216304",
+                         "l":  "L:A22X Circuit Breaker L I4",
+                         "system":  "flight_controls",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_FUEL_XFR_SOV",
+                         "hash":  "635401023641502914",
+                         "l":  "L:A22X Circuit Breaker L E5",
+                         "system":  "fuel",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_GEAR_GEAR_CTRL",
+                         "hash":  "10620728583324849745",
+                         "l":  "L:A22X Circuit Breaker R E4",
+                         "system":  "landing_gear",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_GEAR_MLG_L_EXTN",
+                         "hash":  "2447182577575693065",
+                         "l":  "L:A22X Circuit Breaker R E1",
+                         "system":  "landing_gear",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_GEAR_MLG_R_EXTN",
+                         "hash":  "17187698649473190473",
+                         "l":  "L:A22X Circuit Breaker R E3",
+                         "system":  "landing_gear",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_GEAR_NLG_EXTN",
+                         "hash":  "1430907443012343033",
+                         "l":  "L:A22X Circuit Breaker R E2",
+                         "system":  "landing_gear",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_HYD_XDCRS",
+                         "hash":  "10841725969053428359",
+                         "l":  "L:A22X Circuit Breaker L C4",
+                         "system":  "hydraulic_indication",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_IND_CCP_1",
+                         "hash":  "4604409745756030977",
+                         "l":  "L:A22X Circuit Breaker L D2",
+                         "system":  "indicating_displays",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_IND_CTP_1",
+                         "hash":  "406069384780722113",
+                         "l":  "L:A22X Circuit Breaker L D3",
+                         "system":  "indicating_displays",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_IND_DMC_1A",
+                         "hash":  "3015482002562571698",
+                         "l":  "L:A22X Circuit Breaker L D4",
+                         "system":  "indicating_displays",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_IND_DSPL",
+                         "hash":  "18363035578766335626",
+                         "l":  "L:A22X Circuit Breaker L D1",
+                         "system":  "indicating_displays",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_IND_ICCP_3",
+                         "hash":  "15261670535143851865",
+                         "l":  "L:A22X Circuit Breaker R F3",
+                         "system":  "indicating_displays",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_IND_IPC_1",
+                         "hash":  "1921244579036405522",
+                         "l":  "L:A22X Circuit Breaker L D5",
+                         "system":  "indicating_displays",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_IND_OVHD_3",
+                         "hash":  "9469555188284833368",
+                         "l":  "L:A22X Circuit Breaker R F2",
+                         "system":  "indicating_displays",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_IND_RDC_3",
+                         "hash":  "15096283998344055573",
+                         "l":  "L:A22X Circuit Breaker R F1",
+                         "system":  "indicating_displays",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_IND_RSP",
+                         "hash":  "10465823960801323254",
+                         "l":  "L:A22X Circuit Breaker L E1",
+                         "system":  "indicating_displays",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_LIGHTS_DOME",
+                         "hash":  "16488432375645494847",
+                         "l":  "L:A22X Circuit Breaker R B4",
+                         "system":  "lighting",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_NAV_ADS",
+                         "hash":  "4711767189385675766",
+                         "l":  "L:A22X Circuit Breaker R B1",
+                         "system":  "navigation_adc_irs",
+                         "functional":  "FUNCTIONAL_EFFECT_CONFIRMED",
+                         "indicator":  "L:A22X Caution PBA",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_NAV_ATC_1",
+                         "hash":  "13536822563622812104",
+                         "l":  "L:A22X Circuit Breaker R A4",
+                         "system":  "navigation_adc_irs",
+                         "functional":  "FUNCTIONAL_EFFECT_CONFIRMED",
+                         "indicator":  "L:A22X Caution PBA",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_NAV_GPS_1",
+                         "hash":  "2413732876006935348",
+                         "l":  "L:A22X Circuit Breaker R A2",
+                         "system":  "navigation_adc_irs",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_NAV_IRU",
+                         "hash":  "1363466317097348911",
+                         "l":  "L:A22X Circuit Breaker R B2",
+                         "system":  "navigation_adc_irs",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_NAV_ISI_1",
+                         "hash":  "16424774117481484783",
+                         "l":  "L:A22X Circuit Breaker R A5",
+                         "system":  "navigation_adc_irs",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_NAV_NAV_1",
+                         "hash":  "7462042519752951350",
+                         "l":  "L:A22X Circuit Breaker R A1",
+                         "system":  "navigation_adc_irs",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     },
+                     {
+                         "b":  "AIRLINER_CB_NAV_RAD_1",
+                         "hash":  "9530246272421559778",
+                         "l":  "L:A22X Circuit Breaker R A3",
+                         "system":  "navigation_adc_irs",
+                         "functional":  "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+                         "indicator":  "",
+                         "confirmed":  true
+                     }
+                 ]
+}

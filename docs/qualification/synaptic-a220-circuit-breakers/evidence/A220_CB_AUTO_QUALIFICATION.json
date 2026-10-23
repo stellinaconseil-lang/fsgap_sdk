@@ -1,0 +1,1140 @@
+﻿{
+  "schema": "a220-cb-automap/1",
+  "started_utc": "2026-10-23T13:31:37.3434259\u002B00:00",
+  "requested": "ALL (55)",
+  "simconnect": {
+    "application": "SunRise",
+    "simconnect_version": "12.2.0.0"
+  },
+  "aircraft_loaded": "SimObjects\\Airplanes\\synaptic_a220\\presets\\inibuilds\\a220-300_nocabin\\config\\aircraft.CFG",
+  "title": "A220-300 - No Cabin",
+  "breakers": [
+    {
+      "index": 1,
+      "name": "AIRLINER_CB_AIR_BLEED_SNSR",
+      "hash": "16096870236802648507",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R D3"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R D3",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 2,
+      "name": "AIRLINER_CB_AIR_IASC_2B",
+      "hash": "8097727598431136993",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R D1"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R D1",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 3,
+      "name": "AIRLINER_CB_AIR_RAM_VLV",
+      "hash": "12117178406550998777",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R D4"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R D4",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 4,
+      "name": "AIRLINER_CB_AIR_SNSR",
+      "hash": "9499810436860159793",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R D2"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R D2",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 5,
+      "name": "AIRLINER_CB_ANTI_ICE_HEAT_3A",
+      "hash": "14921752521817364588",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L G2"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L G2",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 6,
+      "name": "AIRLINER_CB_ANTI_ICE_HEAT_4A",
+      "hash": "4980492937493274342",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L H2"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L H2",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 7,
+      "name": "AIRLINER_CB_ANTI_ICE_L_TAT",
+      "hash": "4985286889187242876",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L G1"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L G1",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 8,
+      "name": "AIRLINER_CB_ANTI_ICE_L_WINDOW",
+      "hash": "13732417533200252909",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L F1"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L F1",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [
+        "L:A22X Caution PBA"
+      ],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_CONFIRMED",
+      "status": "OK"
+    },
+    {
+      "index": 9,
+      "name": "AIRLINER_CB_ANTI_ICE_R_TAT",
+      "hash": "12980627944177518224",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L H1"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L H1",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 10,
+      "name": "AIRLINER_CB_ANTI_ICE_WINDOW_HTR",
+      "hash": "14661351350705133043",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L H4"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L H4",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [
+        "L:A22X Caution PBA"
+      ],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_CONFIRMED",
+      "status": "OK"
+    },
+    {
+      "index": 11,
+      "name": "AIRLINER_CB_AUTO_FPC_A",
+      "hash": "7914759110444159217",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L E3"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L E3",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 12,
+      "name": "AIRLINER_CB_COMM_ACP_1",
+      "hash": "11062184287030450700",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R C2"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R C2",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 13,
+      "name": "AIRLINER_CB_COMM_RIU_1B",
+      "hash": "8108816738027462116",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R C3"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R C3",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [
+        "L:A22X Caution PBA"
+      ],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_CONFIRMED",
+      "status": "OK"
+    },
+    {
+      "index": 14,
+      "name": "AIRLINER_CB_COMM_RIU_2A",
+      "hash": "317205491566072281",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R C4"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R C4",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 15,
+      "name": "AIRLINER_CB_COMM_VHF_1",
+      "hash": "15941457829937565821",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R C1"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R C1",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 16,
+      "name": "AIRLINER_CB_ENG_L_FADEC_A",
+      "hash": "2529927155561876918",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L F4"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L F4",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 17,
+      "name": "AIRLINER_CB_ENG_L_IGN_A",
+      "hash": "16746857811667184525",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L F5"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L F5",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 18,
+      "name": "AIRLINER_CB_ENG_R_FADEC_A",
+      "hash": "5751854878535658706",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R F4"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R F4",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 19,
+      "name": "AIRLINER_CB_ENG_R_IGN_A",
+      "hash": "12108183258878152891",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R F5"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R F5",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 20,
+      "name": "AIRLINER_CB_FC_AFT_2_PRI",
+      "hash": "7897137372240701150",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L B1"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L B1",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 21,
+      "name": "AIRLINER_CB_FC_AFT_2_SEC",
+      "hash": "8355038919239989645",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L B2"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L B2",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 22,
+      "name": "AIRLINER_CB_FC_AFT_3_PRI",
+      "hash": "1914641245569583534",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L B3"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L B3",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 23,
+      "name": "AIRLINER_CB_FC_AFT_3_SEC",
+      "hash": "358431073920489213",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L B4"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L B4",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 24,
+      "name": "AIRLINER_CB_FC_AIL_PRI",
+      "hash": "11299266831354216286",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L A3"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L A3",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 25,
+      "name": "AIRLINER_CB_FC_AIL_SEC",
+      "hash": "9413724339380559885",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L A4"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L A4",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 26,
+      "name": "AIRLINER_CB_FC_FLAP_CH_2",
+      "hash": "17448589345615611741",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L C2"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L C2",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 27,
+      "name": "AIRLINER_CB_FC_IIM_3",
+      "hash": "12072301166658399893",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L A5"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L A5",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 28,
+      "name": "AIRLINER_CB_FC_MFS_PRI",
+      "hash": "6333032072069196670",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L A1"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L A1",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 29,
+      "name": "AIRLINER_CB_FC_MFS_SEC",
+      "hash": "5298546696015688749",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L A2"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L A2",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 30,
+      "name": "AIRLINER_CB_FC_PFCC_3",
+      "hash": "1585326128355751297",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L B5"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L B5",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 31,
+      "name": "AIRLINER_CB_FC_SLAT_CH_1",
+      "hash": "8032795931014765955",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L C1"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L C1",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 32,
+      "name": "AIRLINER_CB_FC_STAB_TRIM_1",
+      "hash": "18054899321912216304",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L I4"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L I4",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 33,
+      "name": "AIRLINER_CB_FUEL_XFR_SOV",
+      "hash": "635401023641502914",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L E5"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L E5",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 34,
+      "name": "AIRLINER_CB_GEAR_GEAR_CTRL",
+      "hash": "10620728583324849745",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R E4"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R E4",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 35,
+      "name": "AIRLINER_CB_GEAR_MLG_L_EXTN",
+      "hash": "2447182577575693065",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R E1"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R E1",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 36,
+      "name": "AIRLINER_CB_GEAR_MLG_R_EXTN",
+      "hash": "17187698649473190473",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R E3"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R E3",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 37,
+      "name": "AIRLINER_CB_GEAR_NLG_EXTN",
+      "hash": "1430907443012343033",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R E2"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R E2",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 38,
+      "name": "AIRLINER_CB_HYD_XDCRS",
+      "hash": "10841725969053428359",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L C4"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L C4",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 39,
+      "name": "AIRLINER_CB_IND_CCP_1",
+      "hash": "4604409745756030977",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L D2"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L D2",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 40,
+      "name": "AIRLINER_CB_IND_CTP_1",
+      "hash": "406069384780722113",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L D3"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L D3",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 41,
+      "name": "AIRLINER_CB_IND_DMC_1A",
+      "hash": "3015482002562571698",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L D4"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L D4",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 42,
+      "name": "AIRLINER_CB_IND_DSPL",
+      "hash": "18363035578766335626",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L D1"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L D1",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 43,
+      "name": "AIRLINER_CB_IND_ICCP_3",
+      "hash": "15261670535143851865",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R F3"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R F3",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 44,
+      "name": "AIRLINER_CB_IND_IPC_1",
+      "hash": "1921244579036405522",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L D5"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L D5",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 45,
+      "name": "AIRLINER_CB_IND_OVHD_3",
+      "hash": "9469555188284833368",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R F2"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R F2",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 46,
+      "name": "AIRLINER_CB_IND_RDC_3",
+      "hash": "15096283998344055573",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R F1"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R F1",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 47,
+      "name": "AIRLINER_CB_IND_RSP",
+      "hash": "10465823960801323254",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker L E1"
+      ],
+      "l_cell": "L:A22X Circuit Breaker L E1",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 48,
+      "name": "AIRLINER_CB_LIGHTS_DOME",
+      "hash": "16488432375645494847",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R B4"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R B4",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 49,
+      "name": "AIRLINER_CB_NAV_ADS",
+      "hash": "4711767189385675766",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R B1"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R B1",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [
+        "L:A22X Caution PBA"
+      ],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_CONFIRMED",
+      "status": "OK"
+    },
+    {
+      "index": 50,
+      "name": "AIRLINER_CB_NAV_ATC_1",
+      "hash": "13536822563622812104",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R A4"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R A4",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [
+        "L:A22X Caution PBA"
+      ],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_CONFIRMED",
+      "status": "OK"
+    },
+    {
+      "index": 51,
+      "name": "AIRLINER_CB_NAV_GPS_1",
+      "hash": "2413732876006935348",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R A2"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R A2",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 52,
+      "name": "AIRLINER_CB_NAV_IRU",
+      "hash": "1363466317097348911",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R B2"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R B2",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 53,
+      "name": "AIRLINER_CB_NAV_ISI_1",
+      "hash": "16424774117481484783",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R A5"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R A5",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 54,
+      "name": "AIRLINER_CB_NAV_NAV_1",
+      "hash": "7462042519752951350",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R A1"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R A1",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    },
+    {
+      "index": 55,
+      "name": "AIRLINER_CB_NAV_RAD_1",
+      "hash": "9530246272421559778",
+      "actuation_pass": true,
+      "cells_flipped": [
+        "L:A22X Circuit Breaker R A3"
+      ],
+      "l_cell": "L:A22X Circuit Breaker R A3",
+      "mapping_pass": true,
+      "indicators_changed_on_open": [],
+      "l_write_hresult": "00000000",
+      "cell_after_rearm": 0,
+      "others_unchanged": true,
+      "rearm_pass": true,
+      "indicators_persisting": [],
+      "system_recovery_pass": true,
+      "functional_effect": "FUNCTIONAL_EFFECT_UNVERIFIED (EICAS NOT_OBSERVABLE in telemetry)",
+      "status": "OK"
+    }
+  ],
+  "preconditions": {
+    "on_ground": true,
+    "stationary": true,
+    "parking_brake_synaptic": true,
+    "engine1_stopped": true,
+    "engine2_stopped": true
+  },
+  "summary": {
+    "requested": 55,
+    "mapped": 55,
+    "rearmed": 55,
+    "functional_confirmed": 5,
+    "ambiguous": 0,
+    "final_l_all_zero": true,
+    "final_l_tripped": 0
+  },
+  "finished_utc": "2026-10-23T13:35:25.6368776\u002B00:00"
+}

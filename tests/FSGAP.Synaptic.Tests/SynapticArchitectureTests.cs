@@ -16,7 +16,7 @@ public class SynapticArchitectureTests
     public void Public_api_is_the_provider_and_the_catalog_only()
     {
         Assert.Equal(
-            [nameof(SynapticAircraftProvider), nameof(SynapticInstalledAircraftCatalog)],
+            [nameof(SynapticAircraftProvider), nameof(SynapticCircuitBreakerOptions), nameof(SynapticInstalledAircraftCatalog)],
             Synaptic.GetExportedTypes().Select(t => t.Name).Order());
     }
 
@@ -77,14 +77,24 @@ public class SynapticArchitectureTests
     [Fact]
     public void Excluded_controls_are_never_written()
     {
-        // Circuit breakers unmapped, probe heat a test pulse, fire and generator disconnect latched, RAT / oxygen /
-        // emergency depressurization / alternate gear not reversible or unsafe: none is in the written registry.
-        Assert.False(BinaryContains(Synaptic, "Circuit Breaker"));
+        // Probe heat a test pulse, fire and generator disconnect latched, RAT / oxygen / emergency depressurization /
+        // alternate gear not reversible or unsafe: none is in the written registries. Circuit breakers (0.13.0-preview.4)
+        // are written only as the 55 manifest cells, through their own registry, never as a historical control.
         Assert.False(BinaryContains(Synaptic, "L:A22X Probe Heat"));
-        var written = FSGAP.Synaptic.Systems.SynapticControls.All.Select(c => c.Variable.Name).ToArray();
+        var historical = FSGAP.Synaptic.Systems.SynapticControls.All.Select(c => c.Variable.Name).ToArray();
         string[] never = ["Fire", "Gen Disc", "RAT", "Oxygen", "Emergency Depress", "Alternate Gear", "Circuit Breaker", "Probe Heat", "Evac", "Ditching"];
-        Assert.All(never, n => Assert.DoesNotContain(written, w => w.Contains(n, StringComparison.Ordinal)));
+        Assert.All(never, n => Assert.DoesNotContain(historical, w => w.Contains(n, StringComparison.Ordinal)));
+
+        var breakers = FSGAP.Synaptic.Systems.SynapticControls.CircuitBreakers.Select(c => c.Variable.Name).ToArray();
+        Assert.Equal(55, breakers.Length);
+        Assert.All(breakers, b => Assert.Matches(@"^L:A22X Circuit Breaker [LR] [A-I][1-5]$", b));
+        Assert.All(never.Where(n => n != "Circuit Breaker"), n => Assert.DoesNotContain(breakers, b => b.Contains(n, StringComparison.Ordinal)));
+
+        var written = FSGAP.Synaptic.Systems.SynapticControls.Writable.Select(c => c.Variable.Name).ToArray();
+        Assert.Equal(historical.Concat(breakers), written);
         Assert.All(written, w => Assert.StartsWith("L:A22X ", w));
+        Assert.All(FSGAP.Synaptic.Failures.SynapticFailureCatalog.HistoricalRecipes.SelectMany(r => r.Controls), c => Assert.DoesNotContain(c, FSGAP.Synaptic.Systems.SynapticControls.CircuitBreakers));
+        Assert.All(FSGAP.Synaptic.Failures.SynapticFailureCatalog.CircuitBreakerRecipes, r => Assert.Same(r.CircuitBreaker!.Control, Assert.Single(r.Controls)));
 
         // The public degradations are still exactly the four live-qualified controls, taken from the same registry.
         Assert.Equal(
@@ -105,11 +115,12 @@ public class SynapticArchitectureTests
     [Fact]
     public void The_raw_a22x_names_that_are_written_live_only_in_the_control_registry()
     {
-        var registry = FSGAP.Synaptic.Systems.SynapticControls.All.Select(c => c.Variable.Name).ToArray();
+        var registry = FSGAP.Synaptic.Systems.SynapticControls.Writable.Select(c => c.Variable.Name).ToArray();
         Assert.Equal(registry.Length, registry.Distinct().Count());
 
         // Failure recipes and degradations reference registry instances, never their own copies.
-        Assert.All(FSGAP.Synaptic.Failures.SynapticFailureCatalog.Recipes.SelectMany(r => r.Controls), c => Assert.Contains(c, FSGAP.Synaptic.Systems.SynapticControls.All));
+        Assert.All(FSGAP.Synaptic.Failures.SynapticFailureCatalog.HistoricalRecipes.SelectMany(r => r.Controls), c => Assert.Contains(c, FSGAP.Synaptic.Systems.SynapticControls.All));
+        Assert.All(FSGAP.Synaptic.Failures.SynapticFailureCatalog.CircuitBreakerRecipes.SelectMany(r => r.Controls), c => Assert.Contains(c, FSGAP.Synaptic.Systems.SynapticControls.CircuitBreakers));
         Assert.All(FSGAP.Synaptic.Degradations.SynapticDegradationControls.Controls, d => Assert.Contains(d.Control, FSGAP.Synaptic.Systems.SynapticControls.All));
     }
 

@@ -1,0 +1,57 @@
+﻿{
+  "schema": "a220-cb-direct-l-trip/1",
+  "started_utc": "2026-10-23T14:43:29.0722600\u002B00:00",
+  "breaker": "AIRLINER_CB_LIGHTS_DOME",
+  "target_cell": "L:A22X Circuit Breaker R B4",
+  "b_writes": 0,
+  "max_l_writes": 2,
+  "simconnect": {
+    "application": "SunRise",
+    "simconnect_version": "12.2.0.0"
+  },
+  "aircraft_loaded": "SimObjects\\Airplanes\\synaptic_a220\\presets\\inibuilds\\a220-300_nocabin\\config\\aircraft.CFG",
+  "title": "A220-300 - No Cabin",
+  "preconditions": {
+    "on_ground": true,
+    "stationary": true,
+    "parking_brake_synaptic": true,
+    "engine1_stopped": true,
+    "engine2_stopped": true,
+    "no_caution": true,
+    "no_warning": true
+  },
+  "b_initial": 1,
+  "l_initial_all_zero": true,
+  "indicators_initial": {
+    "caution_pba": 0,
+    "warning_pba": 0
+  },
+  "open_write_hresult": "00000000",
+  "write_accepted": true,
+  "cells_flipped_up": [
+    "L:A22X Circuit Breaker R B4"
+  ],
+  "other_cells_changed": [],
+  "l_position_changed": true,
+  "target_value_cycle1": 1,
+  "target_value_cycle2": 1,
+  "position_stable": true,
+  "indicators_after_open": {
+    "caution_pba": 0,
+    "warning_pba": 0
+  },
+  "functional_indicator_changed": false,
+  "classification": "POSITION_OPENED",
+  "physical_open_confirmed": true,
+  "restore_write_hresult": "00000000",
+  "target_value_after_restore": 0,
+  "all_l_zero_after_restore": true,
+  "indicators_after_restore": {
+    "caution_pba": 0,
+    "warning_pba": 0
+  },
+  "restored": true,
+  "recovery": "restored (L: back to 0, all in, indicators back to baseline)",
+  "fsgap_compatibility": "YES \u2014 both trip (L:=1) and re-arm (L:=0) are single L: writes the existing FSGAP ISimulatorVariableWriter can do; a CB could be an FSGAP L: recipe (no input-event transport). Still requires FSGAP SOURCE to add the recipe to SynapticFailureCatalog.",
+  "finished_utc": "2026-10-23T14:43:35.5502030\u002B00:00"
+}

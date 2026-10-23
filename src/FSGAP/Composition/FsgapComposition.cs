@@ -74,7 +74,8 @@ internal sealed record FsgapComposition(AircraftProviderRegistry Registry, IRead
             services.Reader,
             services.Detector,
             sdk.Telemetry,
-            simulatorVariableWriter: commands ? services.Writer : null));
+            simulatorVariableWriter: commands ? services.Writer : null,
+            circuitBreakers: options.SynapticCircuitBreakers()));
 
         return new FsgapComposition(registry, [fenixCatalog, synapticCatalog]);
     }

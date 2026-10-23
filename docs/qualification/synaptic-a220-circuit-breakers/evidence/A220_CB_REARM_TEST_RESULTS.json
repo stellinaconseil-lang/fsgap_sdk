@@ -1,0 +1,37 @@
+﻿{
+  "schema": "a220-cb-rearm/1",
+  "event": "AIRLINER_CB_LIGHTS_DOME",
+  "started_utc": "2026-10-23T12:19:28.4545934\u002B00:00",
+  "max_b_writes": 1,
+  "max_l_writes": 1,
+  "simconnect": {
+    "application": "SunRise",
+    "simconnect_version": "12.2.0.0"
+  },
+  "aircraft_loaded": "SimObjects\\Airplanes\\synaptic_a220\\presets\\inibuilds\\a220-300_nocabin\\config\\aircraft.CFG",
+  "title": "A220-300 - No Cabin",
+  "event_hash": "16488432375645494847",
+  "preconditions": {
+    "on_ground": true,
+    "stationary": true,
+    "parking_brake_synaptic": true,
+    "engine1_stopped": true,
+    "engine2_stopped": true,
+    "no_caution": true,
+    "no_warning": true
+  },
+  "b_initial": 0,
+  "l_initial_all_zero": true,
+  "b_after_open": 1,
+  "cells_flipped_on_open": [
+    "L:A22X Circuit Breaker R B4"
+  ],
+  "resolved_cell": "L:A22X Circuit Breaker R B4",
+  "l_write_hresult": "00000000",
+  "cell_value_after_rearm": 0,
+  "b_after_rearm": 1,
+  "all_l_zero_after": true,
+  "l_tripped_after": [],
+  "verdict": "PASS_TELEMETRY \u2014 L: cell returned to 0 (pilot visual \u002B dome function still to confirm)",
+  "finished_utc": "2026-10-23T12:19:33.4853733\u002B00:00"
+}

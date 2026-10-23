@@ -1,4 +1,8 @@
-# FSGAP.Synaptic failures (0.12.0-preview.1, catalog 384 keys since 0.12.0-preview.4)
+# FSGAP.Synaptic failures (0.12.0-preview.1, catalog 384 keys since 0.12.0-preview.4, + 55 circuit breakers since 0.13.0-preview.4)
+
+> **0.13.0-preview.4:** the catalog also lists the A220's **55 cockpit circuit breakers** (`electrical.circuit-breaker.*`),
+> executable only through the breaker activation described in [Circuit breakers](#circuit-breakers-0130-preview4). The
+> 384 historical keys, their recipes, their parity with Fenix and the 17 executable recipes are unchanged.
 
 ## Purpose and status
 
@@ -104,3 +108,29 @@ Controls: `L:A22X L Gen Off` (live-validated), `L:A22X ACMP 3A` (live-validated)
   system 1). `Hyd 1 SOV` reads 0 in the normal configuration although documented as "selected on"; its degraded value 1
   is assumed.
 - The 367 unmapped keys need a mechanism before they can act (for example a documented circuit-breaker map).
+
+## Circuit breakers (0.13.0-preview.4)
+
+The A220's 55 cockpit circuit breakers are listed as `electrical.circuit-breaker.<id>` (category Electrical, target
+Aircraft), one recipe per breaker on its documented cell `L:A22X Circuit Breaker <L|R> <A-I><1-5>` (1 = tripped / out,
+0 = in). They come from the manifest embedded in FSGAP.Synaptic
+(`src/FSGAP.Synaptic/CircuitBreakers/Resources/synaptic-a220-circuit-breakers.json`), generated from the Shadow lab
+evidence (`docs/qualification/synaptic-a220-circuit-breakers/`) by `tools/synaptic-cb-manifest/generate.py`; no breaker,
+cell or qualification is typed by hand, and tests compare the manifest with the evidence.
+
+- **Trip** writes the cell = 1 through the session's variable writer and succeeds once it reads 1. **Read**: the
+  breaker is active while its cell reads 1. **Reset** (`ClearAsync`) writes the cell = 0 and succeeds once it reads 0.
+  Same board as every other recipe (read before write, read back, ownership, conflicts, disposal); no input event, no
+  second connection, no native simulator failure.
+- **Listed is not executable.** Unlike the historical recipes, a breaker's qualification gates execution. All 55 have
+  their mapping and reset validated live; only `CB_LIGHTS_DOME` (`R B4`) has its direct trip (cell = 1) validated live.
+  By default no breaker has operations. An application enables them with `FsgapRuntimeOptions.SynapticAircraftVersion`
+  (the installed Synaptic A220 version it observed): with `1.0.11`, the trip-qualified breakers become executable; with
+  any other or an unknown version, none. A breaker qualified later is enabled with
+  `FsgapRuntimeOptions.SynapticQualifiedCircuitBreakers` (its id), without a new SDK. A breaker that is listed but not
+  enabled answers `NotSupported` with the reason, without reading or writing anything.
+- **Ownership** is the same as for every recipe: FSGAP never resets a breaker it did not trip (a breaker already pulled
+  is `Rejected`), and a breaker the pilot pushed back in is no longer active.
+- **Limits.** The mapping is valid for Synaptic A220 v1.0.11 only. The functional effect of 50 breakers is not observable
+  from telemetry (5 raise the master caution). The direct trip of 54 breakers is still to be qualified live: see
+  `docs/qualification/synaptic-a220-circuit-breakers/LIVE_QUALIFICATION_PROCEDURE.md`.

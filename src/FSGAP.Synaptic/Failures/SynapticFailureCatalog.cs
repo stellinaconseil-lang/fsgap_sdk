@@ -1,13 +1,17 @@
+using System.Collections.Frozen;
 using FSGAP.Abstractions.Failures;
+using FSGAP.Synaptic.CircuitBreakers;
 using FSGAP.Synaptic.Degradations;
 using FSGAP.Synaptic.Systems;
 
 namespace FSGAP.Synaptic.Failures;
 
 /// <summary>
-/// Engineering provenance of a recipe, kept for traceability and for the later qualification report. It never gates
-/// execution: <see cref="Validated"/>, <see cref="Assumed"/> and <see cref="Approximation"/> recipes all execute;
-/// <see cref="Unmapped"/> means no documented Synaptic control exists, so the key is listed but not executable.
+/// Engineering provenance of a recipe, kept for traceability and for the later qualification report. For the historical
+/// recipes it never gates execution: <see cref="Validated"/>, <see cref="Assumed"/> and <see cref="Approximation"/> recipes
+/// all execute; <see cref="Unmapped"/> means no documented Synaptic control exists, so the key is listed but not
+/// executable. The circuit-breaker recipes are the exception: listed always, executable only when the session's breaker
+/// activation enables them (see <see cref="SynapticCircuitBreakerActivation"/>).
 /// </summary>
 internal enum SynapticFailureQualification
 {
@@ -22,6 +26,12 @@ internal enum SynapticFailureQualification
 
     /// <summary>No documented Synaptic control: listed for catalog parity, <c>Operations = None</c>.</summary>
     Unmapped,
+
+    /// <summary>A circuit breaker whose direct trip (cell = 1) was proven live; executable once activated.</summary>
+    CircuitBreakerTripQualified,
+
+    /// <summary>A circuit breaker mapped and re-armed live whose direct trip is not proven yet; executable only if the application qualifies it.</summary>
+    CircuitBreakerTripUnqualified,
 }
 
 /// <summary>How a recipe acts on the aircraft.</summary>
@@ -38,29 +48,40 @@ internal enum SynapticFailureMechanism
 
     /// <summary>No mechanism (unmapped key).</summary>
     None,
+
+    /// <summary>One circuit-breaker cell: trip writes 1, clear writes 0, both read back.</summary>
+    CircuitBreakerTrip,
 }
 
 /// <summary>
 /// One normalized failure on the Synaptic A220: the same definition as the Fenix key (key, display name, category,
 /// target), the registry controls it forces, and its provenance. Raw A22X names stay in <see cref="SynapticControls"/>.
+/// A circuit-breaker recipe also carries its <see cref="CircuitBreaker"/>.
 /// </summary>
-internal sealed record SynapticFailureRecipe(FailureDefinition Definition, SynapticFailureQualification Qualification, string Effect, IReadOnlyList<SynapticControl> Controls)
+internal sealed record SynapticFailureRecipe(FailureDefinition Definition, SynapticFailureQualification Qualification, string Effect, IReadOnlyList<SynapticControl> Controls, SynapticCircuitBreaker? CircuitBreaker = null)
 {
     public FailureKey Key => Definition.Key;
 
-    public bool Executable => Controls.Count > 0;
+    /// <summary>Executable in every session: a historical recipe with at least one control (never a circuit breaker).</summary>
+    public bool Executable => Controls.Count > 0 && CircuitBreaker is null;
+
+    /// <summary>A circuit-breaker recipe: listed always, executable only when the session's breaker activation enables it.</summary>
+    public bool RequiresActivation => CircuitBreaker is not null;
 
     public SynapticFailureMechanism Mechanism =>
-        Controls.Count == 0 ? SynapticFailureMechanism.None
+        CircuitBreaker is not null ? SynapticFailureMechanism.CircuitBreakerTrip
+        : Controls.Count == 0 ? SynapticFailureMechanism.None
         : Controls.Count > 1 ? SynapticFailureMechanism.CompositeSystemState
         : SynapticDegradationControls.Controls.Any(d => ReferenceEquals(d.Control, Controls[0])) ? SynapticFailureMechanism.ControlledDegradation
         : SynapticFailureMechanism.LocalVariableState;
 }
 
 /// <summary>
-/// The Synaptic A220 failure catalog: exactly the normalized keys of the Fenix catalog, 384 since 0.12.0-preview.4 (same
-/// display names, categories and targets), each with one recipe. Generated from the Fenix mapping resource; the parity is
-/// enforced by tests. Catalog parity is not execution parity: 17 recipes act, the others are listed with Operations = None.
+/// The Synaptic A220 failure catalog: the 384 normalized keys of the Fenix catalog (same display names, categories and
+/// targets, since 0.12.0-preview.4), each with one recipe, plus the 55 Synaptic circuit breakers (0.13.0-preview.4,
+/// <c>electrical.circuit-breaker.*</c>, from the embedded breaker manifest). Parity with Fenix is enforced by tests on the
+/// 384 historical keys. Catalog parity is not execution parity: 17 historical recipes act, the other historical keys are
+/// listed with Operations = None, and a circuit breaker acts only when the session's breaker activation enables it.
 /// </summary>
 /// <remarks>
 /// Executable recipes force documented cockpit controls (see <see cref="SynapticControls"/>): the failure is the aircraft
@@ -72,7 +93,8 @@ internal static class SynapticFailureCatalog
 {
     private const FailureOperations Both = FailureOperations.Trigger | FailureOperations.Clear;
 
-    internal static readonly IReadOnlyList<SynapticFailureRecipe> Recipes =
+    /// <summary>The 384 recipes of the normalized Fenix keys (unchanged since 0.12.0-preview.4).</summary>
+    internal static readonly IReadOnlyList<SynapticFailureRecipe> HistoricalRecipes =
     [
         F("air-conditioning.cpc.1", "Cabin pressure controller 1", FailureCategory.AirConditioning, FailureTarget.Aircraft, SynapticFailureQualification.Approximation, "automatic pressurization replaced by manual mode (cabin pressure controller out of the loop)", SynapticControls.ManualPressurization),
         F("air-conditioning.pack.1.overheat", "Pack 1 overheat", FailureCategory.AirConditioning, FailureTarget.Aircraft, SynapticFailureQualification.Approximation, "left pack shut down, as after an overheat (live-validated control)", SynapticControls.LeftPackOff),
@@ -463,9 +485,40 @@ internal static class SynapticFailureCatalog
         U("engine.2.reverser.shutoff-valve", "Engine 2 reverser shutoff valve", FailureCategory.Engine, FailureTarget.Engine(2)),
     ];
 
+    /// <summary>The 55 circuit-breaker recipes, one per manifest breaker: listed with Operations = None until activated.</summary>
+    internal static readonly IReadOnlyList<SynapticFailureRecipe> CircuitBreakerRecipes =
+        SynapticCircuitBreakerManifest.Embedded.Breakers.Select(Breaker).ToArray();
+
+    /// <summary>Every recipe: the historical ones, then the circuit breakers.</summary>
+    internal static readonly IReadOnlyList<SynapticFailureRecipe> Recipes = [.. HistoricalRecipes, .. CircuitBreakerRecipes];
+
+    /// <summary>The catalog with no circuit breaker activated (what a session without breaker options declares).</summary>
     internal static readonly FailureCatalog Catalog = new(Recipes.Select(r => r.Definition));
 
-    internal static SynapticFailureRecipe? Find(FailureKey key) => Recipes.FirstOrDefault(r => r.Key == key);
+    private static readonly FrozenDictionary<FailureKey, SynapticFailureRecipe> ByKey = Recipes.ToFrozenDictionary(r => r.Key);
+
+    internal static SynapticFailureRecipe? Find(FailureKey key) => ByKey.GetValueOrDefault(key);
+
+    /// <summary>The catalog a session declares: the activated circuit breakers support trigger and clear.</summary>
+    internal static FailureCatalog CatalogFor(SynapticCircuitBreakerActivation activation) =>
+        activation.Enabled.Count == 0
+            ? Catalog
+            : new(Recipes.Select(r => r.CircuitBreaker is { } breaker && activation.IsEnabled(breaker) ? r.Definition with { Operations = Both } : r.Definition));
+
+    private static SynapticFailureRecipe Breaker(SynapticCircuitBreaker breaker) =>
+        new(
+            new FailureDefinition
+            {
+                Key = breaker.Key,
+                DisplayName = breaker.DisplayName,
+                Category = FailureCategory.Electrical,
+                SupportedTargets = [FailureTarget.Aircraft],
+                Operations = FailureOperations.None,
+            },
+            breaker.Trip == SynapticBreakerQualification.LabValidated ? SynapticFailureQualification.CircuitBreakerTripQualified : SynapticFailureQualification.CircuitBreakerTripUnqualified,
+            $"circuit breaker {breaker.Id} pulled ({breaker.System}): its cell written to 1, read back; cleared by writing it back to 0",
+            [breaker.Control],
+            breaker);
 
     private static SynapticFailureRecipe U(string key, string displayName, FailureCategory category, FailureTarget target) =>
         F(key, displayName, category, target, SynapticFailureQualification.Unmapped, "no documented Synaptic control");

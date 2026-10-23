@@ -27,6 +27,25 @@
   </Target>
 
   <!--
+    Package provenance (0.13.0-preview.4). The 0.13.0-preview.3 assemblies carry the commit of 0.13.0-preview.1 in their
+    informational version while their nuspec carries the preview.3 commit: they were compiled from a working tree whose
+    changes were committed only afterwards, then packed. So a pack is refused:
+    - from a working tree with uncommitted changes to tracked or untracked (not ignored) files: the commit recorded in the
+      assemblies and in the nuspec would not be the source that was compiled;
+    - with NoBuild (dotnet pack -\-no-build): the assemblies could come from an earlier build of another commit.
+    FsgapAllowDirtyPack=true lifts the first rule for a local experiment only; such a package must never be distributed.
+  -->
+  <Target Name="FsgapRequireCommittedSourceForPack" BeforeTargets="GenerateNuspec" Condition="'$(IsPackable)' == 'true'">
+    <Exec Command="git status --porcelain" WorkingDirectory="$(MSBuildThisFileDirectory)" ConsoleToMSBuild="true" StandardOutputImportance="low" Condition="'$(FsgapAllowDirtyPack)' != 'true'">
+      <Output TaskParameter="ConsoleOutput" ItemName="_FsgapUncommitted" />
+    </Exec>
+    <Error Condition="'@(_FsgapUncommitted)' != ''"
+           Text="Refusing to pack $(PackageId) $(PackageVersion): the working tree has uncommitted changes, so the commit recorded in the package would not be the source compiled. Commit first (see Directory.Build.targets)." />
+    <Error Condition="'$(NoBuild)' == 'true'"
+           Text="Refusing to pack $(PackageId) $(PackageVersion) with NoBuild: the assemblies must be compiled from the commit recorded in the package (see Directory.Build.targets)." />
+  </Target>
+
+  <!--
     Exact internal pins (0.12.0-preview.3): a package's dependency on another FSGAP package (a ProjectReference) is
     written as [version], not the NuGet default minimum (>= version). The SDK's packages are built and tested together,
     so an application referencing FSGAP [x] gets exactly the internal packages of x, never a mix of versions.

@@ -4,3 +4,5 @@
 *.props text eol=crlf
 *.sln   text eol=crlf
 *.md    text
+# Lab evidence is kept byte for byte (its SHA-256 is recorded in the circuit-breaker manifest and the transfer manifest).
+docs/qualification/synaptic-a220-circuit-breakers/evidence/** -text
