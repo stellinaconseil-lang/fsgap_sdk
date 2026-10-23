@@ -190,6 +190,9 @@ internal sealed class FakeVariableWriter(FakeVariableReader reader) : ISimulator
 
     public bool Ignore { get; set; }
 
+    /// <summary>Variables whose writes are accepted but never taken (the value read back does not change).</summary>
+    public HashSet<string> IgnoredVariables { get; } = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>When set, writes succeed this many times, then every write throws <see cref="FailAfterWith"/>.</summary>
     public int? FailAfter { get; set; }
 
@@ -209,7 +212,7 @@ internal sealed class FakeVariableWriter(FakeVariableReader reader) : ISimulator
         }
 
         Writes.Enqueue((variable, value));
-        if (!Ignore)
+        if (!Ignore && !IgnoredVariables.Contains(variable.Name))
         {
             reader.Values[variable.Name] = value;
         }

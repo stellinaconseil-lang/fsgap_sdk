@@ -7,14 +7,17 @@ main PC.** It writes nothing but breaker cells, one breaker at a time, and alway
 ## 1. Bench
 
 - FSGAP **0.13.0-preview.4** built from the commit under test, through its own production path: an `FsgapRuntime` with
-  `EnableAircraftCommands = true`, `SynapticAircraftVersion = "1.0.11"` and `SynapticQualifiedCircuitBreakers` set to
-  the breaker under test only. Trip = `session.Failures.TriggerAsync(electrical.circuit-breaker.<id>)`, reset =
+  `EnableAircraftCommands = true`, `SynapticAircraftVersion` set to the installed version (diagnostic, recorded in the
+  logs) and `SynapticQualifiedCircuitBreakers` set to the breaker under test only. Trip = `session.Failures.TriggerAsync(electrical.circuit-breaker.<id>)`, reset =
   `ClearAsync`, read = `GetActiveFailuresAsync` plus a direct read of all 55 cells. This qualifies the exact
   write/read-back path FSHANGAR will use (one connection, the session's variable writer, the control board timings:
   read-back within 3 s every 100 ms).
 - No input event (`B:`), no `SetInputEvent`, no calculator code, no second SimConnect client.
-- Record the identity of the run: FSGAP commit, MSFS build, Synaptic A220 version (must be **1.0.11**; any other version
-  invalidates the manifest and the run stops), aircraft title.
+- Record the identity of the run: FSGAP commit, MSFS build, Synaptic A220 version, aircraft title. The version is part of
+  the evidence (the manifest records the version each result was obtained on) but is not a condition: a run on a newer
+  Synaptic version qualifies the breakers on that version, and a breaker that fails is reported, not assumed.
+- Before the campaign on a new Synaptic version, check that the 55 documented cells are still in the Synaptic
+  documentation (`L:A22X Circuit Breaker <L|R> <A-I><1-5>`): reading a renamed cell would create an unused variable.
 
 ## 2. Initial state (checked by the bench, the run stops otherwise)
 

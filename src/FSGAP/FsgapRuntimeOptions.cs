@@ -16,10 +16,9 @@ public sealed record FsgapRuntimeOptions
     public bool EnableAircraftCommands { get; init; } = true;
 
     /// <summary>
-    /// The Synaptic A220 version installed, as observed by the application (for example <c>1.0.11</c>).
-    /// <see langword="null"/> by default (unknown): the 55 Synaptic circuit-breaker failures are listed with no operation.
-    /// With the version the breaker manifest was qualified on, the breakers whose direct trip is qualified become
-    /// executable (with <see cref="EnableAircraftCommands"/>); with any other version, none.
+    /// The Synaptic A220 version installed, as observed by the application (for example <c>1.0.11</c>), if known.
+    /// Diagnostic only: logged next to the version the breaker manifest was qualified on, never a condition. A Synaptic
+    /// update keeps every circuit breaker whose interface still works; a breaker whose cell fails is disabled alone.
     /// </summary>
     public string? SynapticAircraftVersion { get; init; }
 
@@ -28,6 +27,12 @@ public sealed record FsgapRuntimeOptions
     /// in addition to those qualified in the embedded manifest; enables a newly qualified breaker without a new SDK.
     /// </summary>
     public IReadOnlyCollection<string> SynapticQualifiedCircuitBreakers { get; init; } = [];
+
+    /// <summary>
+    /// Synaptic circuit-breaker ids the application disables (for example one found faulty after an aircraft update):
+    /// listed, never executed. The other breakers are not affected.
+    /// </summary>
+    public IReadOnlyCollection<string> SynapticDisabledCircuitBreakers { get; init; } = [];
 
     /// <summary>Validates the options.</summary>
     /// <exception cref="ArgumentException">An option is invalid.</exception>
@@ -38,7 +43,12 @@ public sealed record FsgapRuntimeOptions
         SynapticCircuitBreakers().Validate();
     }
 
-    /// <summary>The Synaptic provider's breaker options built from <see cref="SynapticAircraftVersion"/> and <see cref="SynapticQualifiedCircuitBreakers"/>.</summary>
+    /// <summary>The Synaptic provider's breaker options built from the three <c>Synaptic*</c> properties.</summary>
     internal FSGAP.Synaptic.SynapticCircuitBreakerOptions SynapticCircuitBreakers() =>
-        new() { AircraftVersion = SynapticAircraftVersion, QualifiedTrips = SynapticQualifiedCircuitBreakers };
+        new()
+        {
+            AircraftVersion = SynapticAircraftVersion,
+            QualifiedTrips = SynapticQualifiedCircuitBreakers,
+            DisabledCircuitBreakers = SynapticDisabledCircuitBreakers,
+        };
 }

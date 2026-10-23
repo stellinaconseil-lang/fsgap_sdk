@@ -48,8 +48,9 @@ namespace FSGAP.Synaptic;
 /// <para>
 /// <b>Circuit breakers (0.13.0-preview.4).</b> The catalog also lists the aircraft's 55 cockpit circuit breakers
 /// (<c>electrical.circuit-breaker.*</c>): trip writes the breaker's documented cell = 1, clear writes it back to 0, both on
-/// the same writer and read back. They are executable only as <see cref="SynapticCircuitBreakerOptions"/> allows: never
-/// without the supported Synaptic version, and only for breakers whose direct trip is qualified.
+/// the same writer and read back. A breaker is executable when its direct trip is qualified (manifest or
+/// <see cref="SynapticCircuitBreakerOptions"/>) and the application has not disabled it; the Synaptic version is never a
+/// condition. Cells are verified when used, and a breaker whose cell fails is disabled for the session, alone.
 /// </para>
 /// <para>
 /// <b>Controlled degradations.</b> Given a variable writer on the same connection, sessions also offer four controlled
@@ -90,8 +91,8 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
     /// none.
     /// </param>
     /// <param name="circuitBreakers">
-    /// Which circuit-breaker failures sessions may execute; <see langword="null"/> (the default) lists the 55 breakers with
-    /// no operation.
+    /// Which circuit-breaker failures sessions may execute; <see langword="null"/> (the default) makes the
+    /// manifest-qualified breakers executable.
     /// </param>
     /// <exception cref="ArgumentException">An option is invalid.</exception>
     public SynapticAircraftProvider(

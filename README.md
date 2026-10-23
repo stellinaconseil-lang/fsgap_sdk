@@ -36,8 +36,8 @@ Version 0.10.0, the first multi-provider release: Fenix A319/A320/A321 (`FSGAP.F
   the simulator enumeration. It is registered next to the Fenix provider; the registry picks the provider per loaded
   aircraft, and a session survives ATC ID changes (see `docs/synaptic-a220.md`). Known limitations in 0.10.0:
   failures are not supported (`FailureCapabilities.None`; 0.12.0-preview.1 adds the Fenix failure key set through A22X
-  control recipes, and 0.13.0-preview.4 the 55 cockpit circuit breakers, executable only as
-  `FsgapRuntimeOptions.SynapticAircraftVersion` / `SynapticQualifiedCircuitBreakers` allow, see
+  control recipes, and 0.13.0-preview.4 the 55 cockpit circuit breakers, executable once their direct trip is qualified
+  (never gated by the Synaptic version; a failing breaker is disabled alone), see
   `docs/synaptic-failures.md`); `ReverserEngaged` is deliberately Unavailable (the generic
   MSFS value was proven false); antiskid is not qualified; master warning/caution are not exposed; an MSFS
   disconnect/reconnect was not qualified live.

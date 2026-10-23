@@ -23,11 +23,13 @@ public class CircuitBreakerTests
 
     private static readonly SynapticCircuitBreakerManifest Manifest = SynapticCircuitBreakerManifest.Embedded;
 
-    private static SynapticCircuitBreakerOptions Supported(params string[] qualifiedTrips) =>
-        new() { AircraftVersion = "1.0.11", QualifiedTrips = qualifiedTrips };
+    private static SynapticCircuitBreakerOptions Options(params string[] qualifiedTrips) => new() { QualifiedTrips = qualifiedTrips };
 
     /// <summary>Every breaker qualified: the mechanics are proven on all 55, independently of the live qualification.</summary>
-    private static SynapticCircuitBreakerOptions AllEnabled() => Supported(Manifest.Breakers.Select(b => b.Id).ToArray());
+    private static SynapticCircuitBreakerOptions AllEnabled() => Options(Manifest.Breakers.Select(b => b.Id).ToArray());
+
+    private static SynapticCircuitBreakerStatus StatusOf(SynapticFailureProvider failures, string id) =>
+        failures.CircuitBreakerStatuses().Single(b => b.Id == id);
 
     private static FailureCommand Cmd(string key) => new(FailureKey.Parse(key));
 
@@ -116,7 +118,7 @@ public class CircuitBreakerTests
             Assert.Equal(SynapticBreakerQualification.LabValidated, b.Reset);
         });
         Assert.Equal("1.0.11", Manifest.SynapticVersion);
-        Assert.Equal(Manifest.SynapticVersion, SynapticCircuitBreakerOptions.SupportedAircraftVersion);
+        Assert.Equal(Manifest.SynapticVersion, SynapticCircuitBreakerOptions.QualifiedOnAircraftVersion);
     }
 
     [Fact]
@@ -229,59 +231,32 @@ public class CircuitBreakerTests
         Assert.Throws<InvalidOperationException>(() => SynapticCircuitBreakerManifest.Parse(json.ToJsonString()));
     }
 
-    // -- Catalog and activation -------------------------------------------------------------------------------------------
+    // -- Catalog and activation: qualification and application choice, never the Synaptic version ------------------------
 
     [Fact]
-    public void The_55_breakers_are_listed_but_none_is_executable_by_default()
+    public void The_55_breakers_are_listed_and_by_default_only_the_trip_qualified_one_is_executable()
     {
-        var catalog = SynapticFailureProvider.DefaultCapabilities;
+        var capabilities = SynapticFailureProvider.DefaultCapabilities;
 
         Assert.Equal(55, SynapticFailureCatalog.CircuitBreakerRecipes.Count);
         Assert.All(SynapticFailureCatalog.CircuitBreakerRecipes, r =>
         {
-            Assert.True(catalog.Catalog.TryGet(r.Key, out var definition));
-            Assert.Equal(FailureOperations.None, definition.Operations);
+            Assert.True(capabilities.Catalog.TryGet(r.Key, out var definition));
+            Assert.Equal(r.Key.Value == Dome ? FailureOperations.Trigger | FailureOperations.Clear : FailureOperations.None, definition.Operations);
+            Assert.Equal(r.Key.Value == Dome, capabilities.CanTrigger(r.Key));
             Assert.Equal(FailureCategory.Electrical, definition.Category);
             Assert.Equal([FailureTarget.Aircraft], definition.SupportedTargets);
-            Assert.False(catalog.CanTrigger(r.Key));
             Assert.False(r.Executable);
             Assert.True(r.RequiresActivation);
             Assert.Equal(SynapticFailureMechanism.CircuitBreakerTrip, r.Mechanism);
         });
     }
 
-    [Fact]
-    public async Task Without_options_a_breaker_answers_not_supported_without_contacting_the_aircraft()
-    {
-        await using var rig = new Rig(options: null);
-
-        var result = await rig.Failures.TriggerAsync(Cmd(Dome));
-
-        Assert.Equal(FailureCommandStatus.NotSupported, result.Status);
-        Assert.Contains("disabled", result.Message, StringComparison.Ordinal);
-        Assert.Equal(0, rig.Reader.ReadCount);
-        Assert.Empty(rig.Writes);
-    }
-
-    [Fact]
-    public async Task With_the_supported_version_only_the_live_qualified_breaker_is_executable()
-    {
-        await using var rig = new Rig(Supported());
-        var capabilities = rig.Failures.Capabilities;
-
-        var executable = SynapticFailureCatalog.CircuitBreakerRecipes.Where(r => capabilities.CanTrigger(r.Key)).Select(r => r.Key.Value).ToArray();
-
-        Assert.Equal([Dome], executable);
-        Assert.True(capabilities.CanClear(FailureKey.Parse(Dome)));
-        // The historical recipes are unchanged by breaker activation.
-        Assert.Equal(17, SynapticFailureCatalog.HistoricalRecipes.Count(r => capabilities.CanTrigger(r.Key)));
-    }
-
     [Theory]
     [MemberData(nameof(UnqualifiedBreakerKeys))]
-    public async Task An_unqualified_breaker_is_never_executed_even_with_the_supported_version(string key)
+    public async Task An_unqualified_breaker_is_listed_but_never_executed_even_with_a_readable_cell(string key)
     {
-        await using var rig = new Rig(Supported());
+        await using var rig = new Rig(options: null);
 
         var trigger = await rig.Failures.TriggerAsync(Cmd(key));
         var clear = await rig.Failures.ClearAsync(Cmd(key));
@@ -291,12 +266,16 @@ public class CircuitBreakerTests
         Assert.Contains("not qualified live", trigger.Message, StringComparison.Ordinal);
         Assert.Equal(0, rig.Reader.ReadCount);
         Assert.Empty(rig.Writes);
+        var status = rig.Failures.CircuitBreakerStatuses().Single(b => b.Key == FailureKey.Parse(key));
+        Assert.True(status.Listed);
+        Assert.False(status.Executable);
+        Assert.Equal(SynapticBreakerQualification.Unqualified, status.TripQualification);
     }
 
     [Fact]
     public async Task A_breaker_qualified_by_the_application_becomes_executable_without_a_new_sdk()
     {
-        await using var rig = new Rig(Supported("CB_NAV_IRU"));
+        await using var rig = new Rig(Options("CB_NAV_IRU"));
 
         Assert.True(rig.Failures.Capabilities.CanTrigger(FailureKey.Parse(Iru)));
         Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd(Iru))).Status);
@@ -304,45 +283,82 @@ public class CircuitBreakerTests
     }
 
     [Theory]
+    [InlineData("1.0.11")]
     [InlineData("1.0.12")]
-    [InlineData("1.0.10")]
+    [InlineData("1.1.0")]
     [InlineData("2.0.0")]
-    public async Task Another_synaptic_version_disables_every_breaker(string version)
+    public async Task A_synaptic_update_with_unchanged_interfaces_keeps_the_breakers_working(string version)
     {
         await using var rig = new Rig(new SynapticCircuitBreakerOptions { AircraftVersion = version, QualifiedTrips = ["CB_NAV_IRU"] });
 
-        Assert.DoesNotContain(SynapticFailureCatalog.CircuitBreakerRecipes, r => rig.Failures.Capabilities.CanTrigger(r.Key));
-        var result = await rig.Failures.TriggerAsync(Cmd(Dome));
-        Assert.Equal(FailureCommandStatus.NotSupported, result.Status);
-        Assert.Contains("qualified on Synaptic A220 1.0.11", result.Message, StringComparison.Ordinal);
-        Assert.Contains(version, result.Message, StringComparison.Ordinal);
-        Assert.Equal(0, rig.Reader.ReadCount);
-        Assert.Empty(rig.Writes);
-    }
-
-    [Theory]
-    [InlineData("v1.0.11")]
-    [InlineData(" 1.0.11 ")]
-    public void The_reported_version_is_normalized(string version)
-    {
-        var activation = SynapticCircuitBreakerActivation.From(new SynapticCircuitBreakerOptions { AircraftVersion = version }, Manifest);
-
-        Assert.Equal(["CB_LIGHTS_DOME"], activation.Enabled);
+        Assert.True(rig.Failures.Capabilities.CanTrigger(FailureKey.Parse(Dome)));
+        Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
+        Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd(Iru))).Status);
+        Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.ClearAsync(Cmd(Dome))).Status);
+        Assert.Equal([(DomeCell, 1.0), (CellOf(Iru), 1.0), (DomeCell, 0.0)], rig.Writes);
     }
 
     [Fact]
-    public void An_unknown_version_disables_every_breaker()
+    public async Task An_unknown_version_with_accessible_cells_keeps_the_breakers_working()
     {
-        Assert.Empty(SynapticCircuitBreakerActivation.From(new SynapticCircuitBreakerOptions { QualifiedTrips = ["CB_NAV_IRU"] }, Manifest).Enabled);
-        Assert.Empty(SynapticCircuitBreakerActivation.From(null, Manifest).Enabled);
+        await using var rig = new Rig(new SynapticCircuitBreakerOptions { AircraftVersion = null });
+
+        Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
+        var status = StatusOf(rig.Failures, "CB_LIGHTS_DOME");
+        Assert.Equal(SynapticBreakerInterface.Accessible, status.Interface);
+        Assert.Equal(SynapticBreakerExecution.Succeeded, status.LastExecution);
+    }
+
+    [Fact]
+    public void The_reported_version_is_diagnostic_only()
+    {
+        var reference = SynapticCircuitBreakerActivation.From(Options("CB_NAV_IRU"), Manifest);
+        foreach (var version in new[] { "1.0.11", "v1.0.12", "9.9.9" })
+        {
+            var activation = SynapticCircuitBreakerActivation.From(new SynapticCircuitBreakerOptions { AircraftVersion = version, QualifiedTrips = ["CB_NAV_IRU"] }, Manifest);
+            Assert.Equal(reference.Enabled.Order(), activation.Enabled.Order());
+        }
+
+        Assert.Equal("1.0.12", SynapticCircuitBreakerActivation.From(new SynapticCircuitBreakerOptions { AircraftVersion = " v1.0.12 " }, Manifest).ReportedVersion);
+        Assert.Null(SynapticCircuitBreakerActivation.From(null, Manifest).ReportedVersion);
+        Assert.Equal("1.0.11", SynapticCircuitBreakerActivation.Default.QualifiedOnVersion);
+        Assert.Equal(["CB_LIGHTS_DOME"], SynapticCircuitBreakerActivation.Default.Enabled);
+    }
+
+    [Fact]
+    public async Task A_breaker_disabled_by_the_application_is_listed_but_never_executed_and_the_others_are_not_affected()
+    {
+        await using var rig = new Rig(new SynapticCircuitBreakerOptions { QualifiedTrips = ["CB_NAV_IRU"], DisabledCircuitBreakers = ["CB_LIGHTS_DOME"] });
+
+        var dome = await rig.Failures.TriggerAsync(Cmd(Dome));
+
+        Assert.Equal(FailureCommandStatus.NotSupported, dome.Status);
+        Assert.Contains("the application disabled it", dome.Message, StringComparison.Ordinal);
+        Assert.Equal(0, rig.Reader.ReadCount);
+        Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd(Iru))).Status);
+        Assert.True(StatusOf(rig.Failures, "CB_LIGHTS_DOME").Listed);
+    }
+
+    [Fact]
+    public async Task Opening_a_session_reads_no_breaker_cell_and_every_interface_starts_unverified()
+    {
+        var reader = new FakeVariableReader();
+        var provider = new SynapticAircraftProvider(simulatorVariables: reader, simulatorVariableWriter: new FakeVariableWriter(reader), circuitBreakers: AllEnabled());
+
+        await using var session = await provider.AttachAsync(Descriptors.AirFrance);
+        _ = session.Capabilities.Failures.Catalog.Count(d => session.Capabilities.Failures.CanTrigger(d.Key));
+
+        Assert.Equal(0, reader.ReadsWhere(v => v.Name.StartsWith("L:A22X Circuit Breaker ", StringComparison.Ordinal)));
+        Assert.All(((SynapticFailureProvider)session.Failures).CircuitBreakerStatuses(), b => Assert.Equal(SynapticBreakerInterface.Unverified, b.Interface));
     }
 
     [Fact]
     public void Invalid_options_are_refused()
     {
-        Assert.Throws<ArgumentException>(() => new SynapticCircuitBreakerOptions { AircraftVersion = "1.0.11", QualifiedTrips = ["CB_DOES_NOT_EXIST"] }.Validate());
+        Assert.Throws<ArgumentException>(() => new SynapticCircuitBreakerOptions { QualifiedTrips = ["CB_DOES_NOT_EXIST"] }.Validate());
+        Assert.Throws<ArgumentException>(() => new SynapticCircuitBreakerOptions { DisabledCircuitBreakers = ["CB_DOES_NOT_EXIST"] }.Validate());
         Assert.Throws<ArgumentException>(() => new SynapticCircuitBreakerOptions { AircraftVersion = " " }.Validate());
-        Assert.Throws<ArgumentException>(() => new SynapticAircraftProvider(circuitBreakers: Supported("CB_DOES_NOT_EXIST")));
+        Assert.Throws<ArgumentException>(() => new SynapticAircraftProvider(circuitBreakers: Options("CB_DOES_NOT_EXIST")));
     }
 
     // -- Trip / read / reset on all 55 ------------------------------------------------------------------------------------
@@ -376,7 +392,7 @@ public class CircuitBreakerTests
     [Fact]
     public async Task Trip_and_reset_read_the_cell_before_writing_and_read_it_back()
     {
-        await using var rig = new Rig(Supported());
+        await using var rig = new Rig(Options());
 
         await rig.Failures.TriggerAsync(Cmd(Dome));
 
@@ -387,7 +403,7 @@ public class CircuitBreakerTests
     [Fact]
     public async Task Tripping_twice_or_resetting_twice_writes_once()
     {
-        await using var rig = new Rig(Supported());
+        await using var rig = new Rig(Options());
 
         Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
         Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
@@ -419,7 +435,7 @@ public class CircuitBreakerTests
     [Fact]
     public async Task A_trip_the_aircraft_does_not_take_is_unconfirmed_never_a_success()
     {
-        await using var rig = new Rig(Supported());
+        await using var rig = new Rig(Options());
         rig.Writer.Ignore = true;
 
         var trip = await rig.Failures.TriggerAsync(Cmd(Dome));
@@ -432,7 +448,7 @@ public class CircuitBreakerTests
     [Fact]
     public async Task An_ambiguous_reset_is_unconfirmed_keeps_the_breaker_owned_and_can_be_retried()
     {
-        await using var rig = new Rig(Supported());
+        await using var rig = new Rig(Options());
         Assert.True((await rig.Failures.TriggerAsync(Cmd(Dome))).IsSuccess);
         rig.Writer.Ignore = true;
 
@@ -451,7 +467,7 @@ public class CircuitBreakerTests
     [Fact]
     public async Task A_lost_connection_writes_nothing_and_reports_unavailable()
     {
-        await using var rig = new Rig(Supported());
+        await using var rig = new Rig(Options());
         rig.Reader.Failure = new InvalidOperationException("The simulator is not connected.");
 
         Assert.Equal(FailureCommandStatus.Unavailable, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
@@ -467,7 +483,7 @@ public class CircuitBreakerTests
     public async Task A_disconnection_drops_ownership_and_a_replaced_aircraft_is_never_written()
     {
         var detector = new StreamingDetector(Descriptors.AirFrance);
-        await using var rig = new Rig(Supported(), detector);
+        await using var rig = new Rig(Options(), detector);
         await Wait.UntilAsync(() => detector.Watchers == 1, "the board watch");
         Assert.True((await rig.Failures.TriggerAsync(Cmd(Dome))).IsSuccess);
 
@@ -486,7 +502,7 @@ public class CircuitBreakerTests
     [Fact]
     public async Task A_breaker_already_pulled_outside_fsgap_is_never_claimed_nor_reset()
     {
-        await using var rig = new Rig(Supported(), configure: r => r.Values[DomeCell] = 1);
+        await using var rig = new Rig(Options(), configure: r => r.Values[DomeCell] = 1);
 
         Assert.Equal(FailureCommandStatus.Rejected, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
         Assert.Equal(FailureCommandStatus.Rejected, (await rig.Failures.ClearAsync(Cmd(Dome))).Status);
@@ -497,7 +513,7 @@ public class CircuitBreakerTests
     [Fact]
     public async Task A_pilot_pushing_the_breaker_back_in_makes_it_inactive_and_nothing_is_rewritten()
     {
-        await using var rig = new Rig(Supported());
+        await using var rig = new Rig(Options());
         await rig.Failures.TriggerAsync(Cmd(Dome));
         rig.Reader.Values[DomeCell] = 0; // the pilot re-armed it in the cockpit
 
@@ -510,7 +526,7 @@ public class CircuitBreakerTests
     [Fact]
     public async Task An_unexpected_cell_value_is_never_written()
     {
-        await using var rig = new Rig(Supported(), configure: r => r.Values[DomeCell] = 2);
+        await using var rig = new Rig(Options(), configure: r => r.Values[DomeCell] = 2);
 
         Assert.Equal(FailureCommandStatus.Rejected, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
         Assert.Empty(rig.Writes);
@@ -529,6 +545,176 @@ public class CircuitBreakerTests
         Assert.Equal(0, rig.Reader.Values[CellOf(Iru)]);
     }
 
+    // -- Compatibility: a failing breaker is disabled alone ---------------------------------------------------------------
+
+    [Fact]
+    public async Task A_cell_that_became_unavailable_disables_only_its_breaker()
+    {
+        await using var rig = new Rig(AllEnabled(), configure: r => r.Values[DomeCell] = double.NaN);
+
+        var first = await rig.Failures.TriggerAsync(Cmd(Dome));
+
+        Assert.Equal(FailureCommandStatus.Rejected, first.Status);
+        Assert.Contains("could not be read", first.Message, StringComparison.Ordinal);
+        Assert.Empty(rig.Writes);
+        var status = StatusOf(rig.Failures, "CB_LIGHTS_DOME");
+        Assert.Equal(SynapticBreakerInterface.Unavailable, status.Interface);
+        Assert.False(status.Executable);
+        Assert.Equal(SynapticBreakerExecution.Failed, status.LastExecution);
+
+        var reads = rig.Reader.ReadCount;
+        Assert.Equal(FailureCommandStatus.NotSupported, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
+        Assert.Equal(reads, rig.Reader.ReadCount);
+
+        Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd(Iru))).Status);
+        Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd("electrical.generator.2"))).Status);
+        Assert.Equal(54, rig.Failures.CircuitBreakerStatuses().Count(b => b.Executable));
+    }
+
+    [Fact]
+    public async Task A_readable_cell_whose_write_is_ineffective_fails_explicitly_and_is_never_written_again_automatically()
+    {
+        await using var rig = new Rig(AllEnabled());
+        rig.Writer.IgnoredVariables.Add(DomeCell);
+
+        var trip = await rig.Failures.TriggerAsync(Cmd(Dome));
+
+        Assert.Equal(FailureCommandStatus.Unconfirmed, trip.Status);
+        Assert.Contains("disabled for this session", trip.Message, StringComparison.Ordinal);
+        Assert.Equal([(DomeCell, 1.0)], rig.Writes);
+        Assert.Equal(SynapticBreakerInterface.WriteIneffective, StatusOf(rig.Failures, "CB_LIGHTS_DOME").Interface);
+
+        Assert.Equal(FailureCommandStatus.NotSupported, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
+        Assert.Equal([(DomeCell, 1.0)], rig.Writes);
+
+        Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd(Iru))).Status);
+        Assert.Equal([Iru], (await rig.Failures.GetActiveFailuresAsync()).Select(a => a.Key!.Value));
+    }
+
+    [Fact]
+    public async Task A_cell_with_an_incoherent_value_disables_only_its_breaker()
+    {
+        await using var rig = new Rig(AllEnabled(), configure: r => r.Values[DomeCell] = 2);
+
+        var trip = await rig.Failures.TriggerAsync(Cmd(Dome));
+
+        Assert.Equal(FailureCommandStatus.Rejected, trip.Status);
+        Assert.Empty(rig.Writes);
+        Assert.Equal(SynapticBreakerInterface.IncoherentValue, StatusOf(rig.Failures, "CB_LIGHTS_DOME").Interface);
+        Assert.Equal(FailureCommandStatus.NotSupported, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
+        Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd(Iru))).Status);
+    }
+
+    [Fact]
+    public async Task An_open_breaker_is_not_written_and_stays_usable()
+    {
+        await using var rig = new Rig(Options(), configure: r => r.Values[DomeCell] = 1);
+
+        var trip = await rig.Failures.TriggerAsync(Cmd(Dome));
+
+        Assert.Equal(FailureCommandStatus.Rejected, trip.Status);
+        Assert.Contains("already out", trip.Message, StringComparison.Ordinal);
+        Assert.Empty(rig.Writes);
+        var status = StatusOf(rig.Failures, "CB_LIGHTS_DOME");
+        Assert.True(status.Executable);
+        Assert.Equal(SynapticBreakerInterface.Accessible, status.Interface);
+
+        rig.Reader.Values[DomeCell] = 0; // the pilot pushed it back in
+        Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
+    }
+
+    [Fact]
+    public async Task A_tripped_breaker_whose_cell_becomes_unreadable_stays_reported_and_does_not_hide_the_others()
+    {
+        await using var rig = new Rig(AllEnabled());
+        Assert.True((await rig.Failures.TriggerAsync(Cmd(Dome))).IsSuccess);
+        Assert.True((await rig.Failures.TriggerAsync(Cmd(Iru))).IsSuccess);
+        Assert.True((await rig.Failures.TriggerAsync(Cmd("electrical.generator.2"))).IsSuccess);
+        rig.Reader.Values[DomeCell] = double.NaN;
+
+        var active = await rig.Failures.GetActiveFailuresAsync();
+
+        Assert.Equal([Dome, Iru, "electrical.generator.2"], active.Select(a => a.Key!.Value).Order());
+        Assert.Equal(SynapticBreakerInterface.Unavailable, StatusOf(rig.Failures, "CB_LIGHTS_DOME").Interface);
+    }
+
+    [Fact]
+    public async Task A_lost_connection_never_disables_a_breaker()
+    {
+        await using var rig = new Rig(Options());
+        rig.Reader.Failure = new InvalidOperationException("The simulator is not connected.");
+
+        Assert.Equal(FailureCommandStatus.Unavailable, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
+
+        rig.Reader.Failure = null;
+        Assert.True(StatusOf(rig.Failures, "CB_LIGHTS_DOME").Executable);
+        Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
+    }
+
+    [Fact]
+    public async Task Breaker_failures_never_affect_the_historical_recipes_nor_the_degradations()
+    {
+        await using var rig = new Rig(AllEnabled(), configure: r => r.Values[CellOf(Iru)] = double.NaN);
+        await using var degradations = new FSGAP.Synaptic.Degradations.SynapticDegradationProvider(rig.Board, ownsBoard: false);
+        rig.Writer.IgnoredVariables.Add(DomeCell);
+        await rig.Failures.TriggerAsync(Cmd(Dome));
+        await rig.Failures.TriggerAsync(Cmd(Iru));
+
+        Assert.True((await rig.Failures.TriggerAsync(Cmd("electrical.generator.2"))).IsSuccess);
+        Assert.True((await rig.Failures.TriggerAsync(Cmd("pneumatic.bleed-valve.1"))).IsSuccess);
+        Assert.True((await degradations.ApplyAsync(FSGAP.Abstractions.Degradations.DegradationKey.Parse("flight-controls.pfcc.1.forced-off"))).IsSuccess);
+        Assert.Equal(["electrical.generator.2", "pneumatic.bleed-valve.1"], (await rig.Failures.GetActiveFailuresAsync()).Select(a => a.Key!.Value).Order());
+        Assert.True((await rig.Failures.ClearAsync(Cmd("electrical.generator.2"))).IsSuccess);
+        Assert.Equal(53, rig.Failures.CircuitBreakerStatuses().Count(b => b.Executable));
+    }
+
+    [Fact]
+    public async Task Breaker_failures_are_returned_as_results_never_thrown()
+    {
+        await using var rig = new Rig(AllEnabled(), configure: r =>
+        {
+            r.Values[DomeCell] = double.NaN;
+            r.Values[CellOf(Iru)] = 2;
+        });
+        rig.Writer.IgnoredVariables.Add(CellOf("electrical.circuit-breaker.nav-ads"));
+
+        foreach (var key in new[] { Dome, Iru, "electrical.circuit-breaker.nav-ads", Dome, Iru })
+        {
+            Assert.Null(await Record.ExceptionAsync(() => rig.Failures.TriggerAsync(Cmd(key))));
+            Assert.Null(await Record.ExceptionAsync(() => rig.Failures.ClearAsync(Cmd(key))));
+        }
+
+        Assert.Null(await Record.ExceptionAsync(() => rig.Failures.GetActiveFailuresAsync()));
+        Assert.True((await rig.Failures.TriggerAsync(Cmd("electrical.generator.2"))).IsSuccess);
+    }
+
+    [Fact]
+    public async Task Each_status_dimension_is_separate_and_a_write_never_implies_a_functional_effect()
+    {
+        await using var rig = new Rig(Options());
+
+        var dome = StatusOf(rig.Failures, "CB_LIGHTS_DOME");
+        Assert.True(dome.Listed);
+        Assert.True(dome.Executable);
+        Assert.Equal(SynapticBreakerInterface.Unverified, dome.Interface);
+        Assert.Equal(SynapticBreakerQualification.LabValidated, dome.TripQualification);
+        Assert.Equal(SynapticBreakerExecution.NotAttempted, dome.LastExecution);
+        Assert.Equal(SynapticBreakerFunctionalEffect.NotObserved, dome.FunctionalEffect);
+
+        var ads = StatusOf(rig.Failures, "CB_NAV_ADS");
+        Assert.True(ads.Listed);
+        Assert.False(ads.Executable);
+        Assert.Equal(SynapticBreakerQualification.Unqualified, ads.TripQualification);
+        Assert.Equal(SynapticBreakerFunctionalEffect.MasterCautionInLab, ads.FunctionalEffect);
+
+        Assert.True((await rig.Failures.TriggerAsync(Cmd(Dome))).IsSuccess);
+        dome = StatusOf(rig.Failures, "CB_LIGHTS_DOME");
+        Assert.Equal(SynapticBreakerInterface.Accessible, dome.Interface);
+        Assert.Equal(SynapticBreakerExecution.Succeeded, dome.LastExecution);
+        Assert.Equal(SynapticBreakerFunctionalEffect.NotObserved, dome.FunctionalEffect);
+        Assert.Equal(SynapticBreakerQualification.LabValidated, dome.TripQualification);
+    }
+
     // -- Session ----------------------------------------------------------------------------------------------------------
 
     [Fact]
@@ -541,7 +727,7 @@ public class CircuitBreakerTests
         }
 
         var writer = new FakeVariableWriter(reader);
-        var provider = new SynapticAircraftProvider(simulatorVariables: reader, simulatorVariableWriter: writer, circuitBreakers: Supported());
+        var provider = new SynapticAircraftProvider(simulatorVariables: reader, simulatorVariableWriter: writer, circuitBreakers: Options());
         await using var session = await provider.AttachAsync(Descriptors.AirFrance);
 
         Assert.Equal(384 + 55, session.Capabilities.Failures.Catalog.Count);

@@ -115,14 +115,14 @@ public class CompositionTests
         Assert.Equal(fenixKeys, synapticKeys.Where(k => !k.StartsWith("electrical.circuit-breaker.", StringComparison.Ordinal)));
         Assert.Equal(55, synapticKeys.Count(k => k.StartsWith("electrical.circuit-breaker.", StringComparison.Ordinal)));
         Assert.Equal(384, fenix.Capabilities.Failures.Catalog.Count(d => fenix.Capabilities.Failures.CanTrigger(d.Key)));
-        Assert.Equal(17, synaptic.Capabilities.Failures.Catalog.Count(d => synaptic.Capabilities.Failures.CanTrigger(d.Key)));
-        Assert.Equal(367 + 55, synaptic.Capabilities.Failures.Catalog.Count(d => d.Operations == FailureOperations.None));
+        Assert.Equal(17 + 1, synaptic.Capabilities.Failures.Catalog.Count(d => synaptic.Capabilities.Failures.CanTrigger(d.Key))); // + the trip-qualified breaker
+        Assert.Equal(367 + 54, synaptic.Capabilities.Failures.Catalog.Count(d => d.Operations == FailureOperations.None));
     }
 
     [Fact]
-    public async Task The_reported_synaptic_version_enables_the_qualified_circuit_breakers_and_nothing_else()
+    public async Task Any_reported_synaptic_version_keeps_the_qualified_circuit_breakers_and_nothing_else()
     {
-        await using var rig = new RuntimeRig(synapticVersion: "1.0.11");
+        await using var rig = new RuntimeRig(synapticVersion: "1.0.12");
         await rig.Runtime.StartAsync();
 
         var synaptic = (await rig.LoadAsync(Aircraft.SynapticA220)).Session!.Capabilities.Failures;

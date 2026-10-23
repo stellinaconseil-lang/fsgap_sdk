@@ -185,56 +185,58 @@ internal sealed partial class SynapticCircuitBreakerManifest
 }
 
 /// <summary>
-/// The breakers a session may execute, decided once from <see cref="SynapticCircuitBreakerOptions"/>: none unless the
-/// application reports the manifest's Synaptic version, then those whose direct trip is qualified (manifest or options).
+/// The breakers a session may execute, decided once from <see cref="SynapticCircuitBreakerOptions"/>: those whose direct
+/// trip is qualified (in the manifest or by the application), minus those the application disables. The Synaptic version is
+/// never a condition: it is recorded for diagnostics only, and an aircraft update keeps every breaker whose interface still
+/// works (each breaker's cell is verified when it is used, and a failing breaker is disabled alone, see
+/// <see cref="FSGAP.Synaptic.Failures.SynapticFailureProvider"/>).
 /// </summary>
 internal sealed class SynapticCircuitBreakerActivation
 {
-    private readonly FrozenSet<string> _enabled;
+    private const string NotQualified = "its direct trip (cell = 1) is not qualified live yet";
+    private const string DisabledByApplication = "the application disabled it";
 
-    private SynapticCircuitBreakerActivation(FrozenSet<string> enabled, string reason)
+    private readonly FrozenSet<string> _enabled;
+    private readonly FrozenSet<string> _disabledByApplication;
+
+    private SynapticCircuitBreakerActivation(FrozenSet<string> enabled, FrozenSet<string> disabledByApplication, string? reportedVersion, string qualifiedOnVersion)
     {
         _enabled = enabled;
-        Reason = reason;
+        _disabledByApplication = disabledByApplication;
+        ReportedVersion = reportedVersion;
+        QualifiedOnVersion = qualifiedOnVersion;
     }
 
-    /// <summary>No breaker executable (the default: no options given).</summary>
-    internal static SynapticCircuitBreakerActivation Disabled { get; } =
-        new(FrozenSet<string>.Empty, "circuit-breaker failures are disabled (no Synaptic A220 version reported by the application)");
-
-    /// <summary>Why breakers that are not enabled are not executable.</summary>
-    internal string Reason { get; }
+    /// <summary>The default (no options): the breakers whose direct trip the manifest qualifies.</summary>
+    internal static SynapticCircuitBreakerActivation Default { get; } = From(null, SynapticCircuitBreakerManifest.Embedded);
 
     /// <summary>The executable breaker ids.</summary>
     internal IReadOnlySet<string> Enabled => _enabled;
 
+    /// <summary>The Synaptic A220 version the application reported (diagnostic only); <see langword="null"/> when unknown.</summary>
+    internal string? ReportedVersion { get; }
+
+    /// <summary>The Synaptic A220 version the manifest was qualified on (diagnostic only).</summary>
+    internal string QualifiedOnVersion { get; }
+
     internal static SynapticCircuitBreakerActivation From(SynapticCircuitBreakerOptions? options, SynapticCircuitBreakerManifest manifest)
     {
-        if (options is null)
-        {
-            return Disabled;
-        }
-
-        options.Validate();
-        var version = Normalize(options.AircraftVersion);
-        if (version is null)
-        {
-            return Disabled;
-        }
-
-        if (!string.Equals(version, Normalize(manifest.SynapticVersion), StringComparison.Ordinal))
-        {
-            return new(FrozenSet<string>.Empty, $"the circuit-breaker cells were qualified on Synaptic A220 {manifest.SynapticVersion}, not on the reported {version}");
-        }
-
+        options?.Validate();
+        var qualified = options?.QualifiedTrips ?? [];
+        var disabled = (options?.DisabledCircuitBreakers ?? []).ToFrozenSet(StringComparer.Ordinal);
         var enabled = manifest.Breakers
-            .Where(b => b.Trip == SynapticBreakerQualification.LabValidated || options.QualifiedTrips.Contains(b.Id, StringComparer.Ordinal))
+            .Where(b => b.Trip == SynapticBreakerQualification.LabValidated || qualified.Contains(b.Id, StringComparer.Ordinal))
+            .Where(b => !disabled.Contains(b.Id))
             .Select(b => b.Id)
             .ToFrozenSet(StringComparer.Ordinal);
-        return new(enabled, "its direct trip (cell = 1) is not qualified live yet");
+        return new(enabled, disabled, Normalize(options?.AircraftVersion), manifest.SynapticVersion);
     }
 
     internal bool IsEnabled(SynapticCircuitBreaker breaker) => _enabled.Contains(breaker.Id);
+
+    /// <summary>Why <paramref name="breaker"/> is not executable in this session (it is not <see cref="IsEnabled"/>).</summary>
+    internal string ReasonFor(SynapticCircuitBreaker breaker) =>
+        _disabledByApplication.Contains(breaker.Id) ? DisabledByApplication : NotQualified;
 
     private static string? Normalize(string? version)
     {

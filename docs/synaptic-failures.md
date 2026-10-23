@@ -118,19 +118,43 @@ Aircraft), one recipe per breaker on its documented cell `L:A22X Circuit Breaker
 evidence (`docs/qualification/synaptic-a220-circuit-breakers/`) by `tools/synaptic-cb-manifest/generate.py`; no breaker,
 cell or qualification is typed by hand, and tests compare the manifest with the evidence.
 
-- **Trip** writes the cell = 1 through the session's variable writer and succeeds once it reads 1. **Read**: the
-  breaker is active while its cell reads 1. **Reset** (`ClearAsync`) writes the cell = 0 and succeeds once it reads 0.
-  Same board as every other recipe (read before write, read back, ownership, conflicts, disposal); no input event, no
-  second connection, no native simulator failure.
+- **Trip** reads the cell; writes nothing if the breaker is already out (`Rejected`, FSGAP never resets what it did not
+  trip); otherwise writes 1 and succeeds once it reads 1. **Read**: the breaker is active while its cell reads 1.
+  **Reset** (`ClearAsync`) writes 0 and succeeds once it reads 0. Same board as every other recipe (read before write,
+  read back, ownership, conflicts, disposal); no input event, no second connection, no native simulator failure. An
+  unconfirmed write is never repeated automatically.
 - **Listed is not executable.** Unlike the historical recipes, a breaker's qualification gates execution. All 55 have
-  their mapping and reset validated live; only `CB_LIGHTS_DOME` (`R B4`) has its direct trip (cell = 1) validated live.
-  By default no breaker has operations. An application enables them with `FsgapRuntimeOptions.SynapticAircraftVersion`
-  (the installed Synaptic A220 version it observed): with `1.0.11`, the trip-qualified breakers become executable; with
-  any other or an unknown version, none. A breaker qualified later is enabled with
-  `FsgapRuntimeOptions.SynapticQualifiedCircuitBreakers` (its id), without a new SDK. A breaker that is listed but not
-  enabled answers `NotSupported` with the reason, without reading or writing anything.
+  their mapping and reset validated live; only `CB_LIGHTS_DOME` (`R B4`) has its direct trip (cell = 1) validated live,
+  and it is the only breaker executable by default. A breaker qualified later is enabled with
+  `FsgapRuntimeOptions.SynapticQualifiedCircuitBreakers` (its id), without a new SDK; a faulty one is disabled with
+  `SynapticDisabledCircuitBreakers`. A breaker listed but not enabled answers `NotSupported` with the reason, without
+  reading or writing anything. A readable cell never promotes an unqualified breaker.
+
+### Compatibility policy: capabilities, not the Synaptic version
+
+The Synaptic version is **never** a condition. `FsgapRuntimeOptions.SynapticAircraftVersion` is logged next to the
+version the manifest was qualified on (1.0.11), as a diagnostic. After a Synaptic update, every breaker whose interface
+still works keeps working without a new FSGAP; an incompatibility only disables the breakers it actually affects.
+
+- **Session start** reads no breaker cell: the provider is identified (the strict A220 recognizer), the manifest and the
+  session catalog are checked against each other, and every cell starts *unverified*. Reading an unknown `L:` can create
+  it in the simulator, so cells are never probed speculatively.
+- **First use** of a breaker reads its documented cell before anything is written. The breaker is then disabled for the
+  rest of the session, alone, when its cell cannot be read while the simulator answers and the aircraft is attached
+  (`Rejected`), holds a value that is neither 0 nor 1 (`Rejected`), or does not take a write (`Unconfirmed`, never
+  retried). A lost connection or a replaced aircraft is `Unavailable` and disables nothing.
+- A tripped breaker whose cell becomes unreadable stays reported active (its reset was never confirmed); it never hides
+  the other active failures. Breaker failures are returned as results, never thrown; the historical recipes, the
+  degradations and the other breakers are not affected.
+- Each breaker's status keeps five dimensions apart: listed in the catalog, interface (unverified / accessible /
+  unavailable / incoherent value / write ineffective), lab qualification of the direct trip, last execution, observed
+  functional effect (only the 5 master cautions seen in the lab; never inferred from a successful write).
+
+**Residual limit.** A successful trip proves the cell changed, not that the aircraft reacts: if a Synaptic update renamed
+a cell, writing the old name would create an unused variable that reads back 1. FSGAP cannot detect that from the cell
+alone (see the 0.13.0-preview.4 compatibility report); the functional effect of 50 breakers is not observable from
+telemetry anyway. The direct trip of 54 breakers is still to be qualified live: see
+`docs/qualification/synaptic-a220-circuit-breakers/LIVE_QUALIFICATION_PROCEDURE.md`.
+
 - **Ownership** is the same as for every recipe: FSGAP never resets a breaker it did not trip (a breaker already pulled
   is `Rejected`), and a breaker the pilot pushed back in is no longer active.
-- **Limits.** The mapping is valid for Synaptic A220 v1.0.11 only. The functional effect of 50 breakers is not observable
-  from telemetry (5 raise the master caution). The direct trip of 54 breakers is still to be qualified live: see
-  `docs/qualification/synaptic-a220-circuit-breakers/LIVE_QUALIFICATION_PROCEDURE.md`.

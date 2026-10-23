@@ -158,17 +158,25 @@ internal sealed class SynapticControlBoard : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Whether the last <see cref="ReadCoreAsync"/> failed as a whole (the read request itself failed: not connected, an
+    /// error from the simulator), as opposed to answering with an unusable value for some control. Read inside the lock.
+    /// </summary>
+    internal bool LastReadFaulted { get; private set; }
+
     /// <summary>Reads the controls in one request; every value is <see langword="null"/> when the read fails.</summary>
     internal async Task<double?[]> ReadCoreAsync(IReadOnlyList<SynapticControl> controls, CancellationToken cancellationToken)
     {
         try
         {
             var values = await _reader.ReadAsync(controls.Select(c => c.Variable).ToArray(), cancellationToken).ConfigureAwait(false);
+            LastReadFaulted = values.Count != controls.Count;
             return values.Count == controls.Count ? values.Select(v => double.IsFinite(v) ? v : (double?)null).ToArray() : new double?[controls.Count];
         }
         catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
             _logger.LogDebug(ex, "Read of {Count} A22X control(s) failed.", controls.Count);
+            LastReadFaulted = true;
             return new double?[controls.Count];
         }
     }
