@@ -20,7 +20,8 @@ internal sealed record FsgapSimulatorServices(
     ISimulatorVariableReader Reader,
     ISimulatorVariableWriter Writer,
     IInstalledLiveryService Liveries,
-    IAirportService Airports);
+    IAirportService Airports,
+    ISimulatorInputEventInventory? InputEvents = null);
 
 /// <summary>The built-in providers registered in the existing registry, and their installed-aircraft catalogs.</summary>
 internal sealed record FsgapComposition(AircraftProviderRegistry Registry, IReadOnlyList<IInstalledAircraftCatalog> InstalledAircraft)
@@ -75,7 +76,8 @@ internal sealed record FsgapComposition(AircraftProviderRegistry Registry, IRead
             services.Detector,
             sdk.Telemetry,
             simulatorVariableWriter: commands ? services.Writer : null,
-            circuitBreakers: options.SynapticCircuitBreakers()));
+            circuitBreakers: options.SynapticCircuitBreakers(),
+            inputEvents: services.InputEvents));
 
         return new FsgapComposition(registry, [fenixCatalog, synapticCatalog]);
     }

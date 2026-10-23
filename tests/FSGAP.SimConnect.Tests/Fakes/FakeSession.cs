@@ -65,6 +65,25 @@ internal sealed class FakeSession : ISimConnectSession
     public Task ObserveClientDataAsync(string name, int length, Action<byte[]> observed, CancellationToken cancellationToken) =>
         ClientDataObservation?.Invoke(name, length, observed, cancellationToken) ?? Task.FromException(new NotSupportedException());
 
+    /// <summary>The loaded aircraft's input events this session lists.</summary>
+    public IReadOnlyList<SimulatorInputEvent> InputEvents { get; set; } = [];
+
+    /// <summary>When set, the input-event listing waits for it (a slow simulator).</summary>
+    public TaskCompletionSource? InputEventGate { get; set; }
+
+    public int InputEventListings { get; private set; }
+
+    public async Task<IReadOnlyList<SimulatorInputEvent>> EnumerateInputEventsAsync(CancellationToken cancellationToken)
+    {
+        InputEventListings++;
+        if (InputEventGate is { } gate)
+        {
+            await gate.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        return InputEvents;
+    }
+
     public int IdentityReads => Volatile.Read(ref _identityReads);
 
     public int DisposeCount => Volatile.Read(ref _disposeCount);

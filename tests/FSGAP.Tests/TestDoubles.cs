@@ -20,7 +20,7 @@ internal static class Aircraft
 
 /// <summary>One fake simulator standing for the single connection: every service is this one object.</summary>
 internal sealed class FakeSimulator : ISimulatorConnection, ISimulatorStateProvider, IAircraftDetector, ITelemetryProvider,
-    ISimulatorVariableReader, ISimulatorVariableWriter, IInstalledLiveryService, IAirportService
+    ISimulatorVariableReader, ISimulatorVariableWriter, IInstalledLiveryService, IAirportService, ISimulatorInputEventInventory
 {
     private readonly object _gate = new();
     private readonly List<Channel<AircraftDescriptor?>> _watchers = [];
@@ -35,7 +35,13 @@ internal sealed class FakeSimulator : ISimulatorConnection, ISimulatorStateProvi
 
     public int DisposeCount { get; private set; }
 
-    public FsgapSimulatorServices Services => new(this, this, this, this, this, this, this, this);
+    public FsgapSimulatorServices Services => new(this, this, this, this, this, this, this, this, InputEvents: this);
+
+    /// <summary>The loaded aircraft's input events (read-only listing).</summary>
+    public List<SimulatorInputEvent> InputEvents { get; } = [];
+
+    public Task<IReadOnlyList<SimulatorInputEvent>> EnumerateInputEventsAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<SimulatorInputEvent>>(InputEvents.ToArray());
 
     // ISimulatorConnection
     public SimulatorConnectionStatus Status { get; private set; } = SimulatorConnectionStatus.Initial;

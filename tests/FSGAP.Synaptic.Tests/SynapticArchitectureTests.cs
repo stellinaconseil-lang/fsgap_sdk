@@ -103,6 +103,18 @@ public class SynapticArchitectureTests
     }
 
     [Fact]
+    public void Input_events_are_only_listed_never_sent()
+    {
+        // 0.13.0-preview.4: the breakers' input events are read-only evidence. No input event is set, subscribed or mapped.
+        foreach (var forbidden in new[] { "SetInputEvent", "SubscribeToInputEvent", "MapInputEventToClientEvent", "TransmitClientEvent" })
+        {
+            Assert.False(BinaryContains(Synaptic, forbidden), forbidden);
+        }
+
+        Assert.Equal(["EnumerateInputEventsAsync"], typeof(ISimulatorInputEventInventory).GetMethods().Select(m => m.Name));
+    }
+
+    [Fact]
     public void No_native_simulator_failure_event_is_used()
     {
         // BLOCK 11.2: Synaptic failures are A22X recipes only. The native toggles stay research evidence elsewhere.

@@ -107,6 +107,16 @@ internal sealed partial class SimConnectNetSession : ISimConnectSession
     public Task WriteLocalAsync(SimulatorVariable variable, double value, CancellationToken cancellationToken) =>
         _client.SimVars.SetAsync(variable.Name, variable.Unit, value, 0, cancellationToken);
 
+    /// <summary>
+    /// Lists the loaded aircraft's input events (<c>SimConnect_EnumerateInputEvents</c>, read only). This is the only
+    /// input-event call FSGAP makes: no input event is ever set, subscribed or mapped.
+    /// </summary>
+    public async Task<IReadOnlyList<SimulatorInputEvent>> EnumerateInputEventsAsync(CancellationToken cancellationToken)
+    {
+        var events = await _client.InputEvents.EnumerateInputEventsAsync(cancellationToken).ConfigureAwait(false);
+        return events.Select(e => new SimulatorInputEvent(e.Name, e.Hash)).ToArray();
+    }
+
     /// <inheritdoc />
     /// <remarks>
     /// <para>

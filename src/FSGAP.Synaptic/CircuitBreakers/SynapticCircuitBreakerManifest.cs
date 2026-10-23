@@ -20,7 +20,8 @@ internal enum SynapticBreakerQualification
 
 /// <summary>
 /// One cockpit circuit breaker of the Synaptic A220: its stable id, failure key, the documented cell that is its position
-/// (1 = tripped / out, 0 = in) and the qualification of its mapping, reset (cell = 0) and direct trip (cell = 1).
+/// (1 = tripped / out, 0 = in), the qualification of its mapping, reset (cell = 0) and direct trip (cell = 1), and the
+/// input event (<c>B:</c>) the lab mapped it from, used only as read-only evidence that the loaded aircraft still has it.
 /// </summary>
 internal sealed record SynapticCircuitBreaker(
     string Id,
@@ -31,7 +32,9 @@ internal sealed record SynapticCircuitBreaker(
     SynapticBreakerQualification Mapping,
     SynapticBreakerQualification Reset,
     SynapticBreakerQualification Trip,
-    bool MasterCaution);
+    bool MasterCaution,
+    string InputEvent,
+    ulong InputEventHash);
 
 /// <summary>
 /// The 55 Synaptic A220 circuit breakers, loaded from the manifest embedded in this assembly
@@ -98,6 +101,8 @@ internal sealed partial class SynapticCircuitBreakerManifest
         RequireUnique(breakers, b => b.Key.Value, "failure key");
         RequireUnique(breakers, b => b.Control.Variable.Name, "cell");
         RequireUnique(breakers, b => b.DisplayName, "display name");
+        RequireUnique(breakers, b => b.InputEvent, "input event");
+        RequireUnique(breakers, b => b.InputEventHash.ToString(System.Globalization.CultureInfo.InvariantCulture), "input event hash");
         return new SynapticCircuitBreakerManifest(document.SynapticVersion.Trim(), breakers);
     }
 
@@ -131,6 +136,16 @@ internal sealed partial class SynapticCircuitBreakerManifest
             throw new InvalidOperationException($"{entry.Id}: invalid display name '{entry.DisplayName}'.");
         }
 
+        if (entry.LabInputEvent is null || !InputEventPattern().IsMatch(entry.LabInputEvent) || "CB_" + entry.LabInputEvent["AIRLINER_CB_".Length..] != entry.Id)
+        {
+            throw new InvalidOperationException($"{entry.Id}: invalid input event '{entry.LabInputEvent}'.");
+        }
+
+        if (!ulong.TryParse(entry.LabInputEventHash, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var hash) || hash == 0)
+        {
+            throw new InvalidOperationException($"{entry.Id}: invalid input event hash '{entry.LabInputEventHash}'.");
+        }
+
         // A breaker cell reads 1 when the breaker is out (tripped) and 0 when it is in: normal 0, degraded 1.
         var control = new SynapticControl($"circuit breaker {entry.Id}", new SimulatorVariable(entry.Cell, LocalUnit), 0, 1, SynapticControlEvidence.LabValidated);
         return new SynapticCircuitBreaker(
@@ -142,7 +157,9 @@ internal sealed partial class SynapticCircuitBreakerManifest
             Qualification(entry.Id, entry.Mapping),
             Qualification(entry.Id, entry.Reset),
             Qualification(entry.Id, entry.Trip),
-            entry.MasterCaution);
+            entry.MasterCaution,
+            entry.LabInputEvent,
+            hash);
     }
 
     private static SynapticBreakerQualification Qualification(string id, string? value) =>
@@ -165,6 +182,9 @@ internal sealed partial class SynapticCircuitBreakerManifest
     [GeneratedRegex(@"^L:A22X Circuit Breaker [LR] [A-I][1-5]$", RegexOptions.CultureInvariant)]
     private static partial Regex CellPattern();
 
+    [GeneratedRegex(@"^AIRLINER_CB_[A-Z0-9]+(?:_[A-Z0-9]+)*$", RegexOptions.CultureInvariant)]
+    private static partial Regex InputEventPattern();
+
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = false, ReadCommentHandling = JsonCommentHandling.Disallow };
 
     private sealed record ManifestDocument(
@@ -181,7 +201,9 @@ internal sealed partial class SynapticCircuitBreakerManifest
         [property: JsonPropertyName("mapping")] string? Mapping,
         [property: JsonPropertyName("reset")] string? Reset,
         [property: JsonPropertyName("trip")] string? Trip,
-        [property: JsonPropertyName("masterCaution")] bool MasterCaution);
+        [property: JsonPropertyName("masterCaution")] bool MasterCaution,
+        [property: JsonPropertyName("labInputEvent")] string? LabInputEvent,
+        [property: JsonPropertyName("labInputEventHash")] string? LabInputEventHash);
 }
 
 /// <summary>
@@ -196,15 +218,20 @@ internal sealed class SynapticCircuitBreakerActivation
     private const string NotQualified = "its direct trip (cell = 1) is not qualified live yet";
     private const string DisabledByApplication = "the application disabled it";
 
+    private const string NoEvidence =
+        "the session has no read-only input-event inventory, so the breaker's presence in the loaded aircraft cannot be verified independently (COMPATIBILITY_UNVERIFIED)";
+
     private readonly FrozenSet<string> _enabled;
     private readonly FrozenSet<string> _disabledByApplication;
+    private readonly string? _globalReason;
 
-    private SynapticCircuitBreakerActivation(FrozenSet<string> enabled, FrozenSet<string> disabledByApplication, string? reportedVersion, string qualifiedOnVersion)
+    private SynapticCircuitBreakerActivation(FrozenSet<string> enabled, FrozenSet<string> disabledByApplication, string? reportedVersion, string qualifiedOnVersion, string? globalReason = null)
     {
         _enabled = enabled;
         _disabledByApplication = disabledByApplication;
         ReportedVersion = reportedVersion;
         QualifiedOnVersion = qualifiedOnVersion;
+        _globalReason = globalReason;
     }
 
     /// <summary>The default (no options): the breakers whose direct trip the manifest qualifies.</summary>
@@ -236,7 +263,14 @@ internal sealed class SynapticCircuitBreakerActivation
 
     /// <summary>Why <paramref name="breaker"/> is not executable in this session (it is not <see cref="IsEnabled"/>).</summary>
     internal string ReasonFor(SynapticCircuitBreaker breaker) =>
-        _disabledByApplication.Contains(breaker.Id) ? DisabledByApplication : NotQualified;
+        _globalReason ?? (_disabledByApplication.Contains(breaker.Id) ? DisabledByApplication : NotQualified);
+
+    /// <summary>
+    /// The same activation for a session without an input-event inventory: no breaker is executable, because nothing
+    /// independent of the breaker's own cell could show that it belongs to the loaded aircraft.
+    /// </summary>
+    internal SynapticCircuitBreakerActivation WithoutEvidence() =>
+        new(FrozenSet<string>.Empty, _disabledByApplication, ReportedVersion, QualifiedOnVersion, NoEvidence);
 
     private static string? Normalize(string? version)
     {

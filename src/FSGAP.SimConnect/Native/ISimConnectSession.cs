@@ -32,6 +32,11 @@ internal interface ISimConnectSession : IAsyncDisposable
     /// <summary>Optional read-only client data subscription; ends with this native session.</summary>
     Task ObserveClientDataAsync(string name, int length, Action<byte[]> observed, CancellationToken cancellationToken) =>
         Task.FromException(new NotSupportedException("ClientData is not supported by this session."));
+
+    /// <summary>Optional read-only listing of the loaded aircraft's input events (never sets, subscribes or maps one).</summary>
+    Task<IReadOnlyList<Abstractions.Simulator.SimulatorInputEvent>> EnumerateInputEventsAsync(CancellationToken cancellationToken) =>
+        Task.FromException<IReadOnlyList<Abstractions.Simulator.SimulatorInputEvent>>(new NotSupportedException("Input events are not supported by this session."));
+
     /// <summary>The connection was lost (simulator closed or connection dropped).</summary>
     event Action? Disconnected;
 

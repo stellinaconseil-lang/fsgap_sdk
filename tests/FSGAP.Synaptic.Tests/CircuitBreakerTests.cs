@@ -37,8 +37,22 @@ public class CircuitBreakerTests
 
     private sealed class Rig : IAsyncDisposable
     {
-        public Rig(SynapticCircuitBreakerOptions? options, IAircraftDetector? detector = null, Action<FakeVariableReader>? configure = null)
+        public Rig(
+            SynapticCircuitBreakerOptions? options,
+            IAircraftDetector? detector = null,
+            Action<FakeVariableReader>? configure = null,
+            Action<FakeInputEventInventory>? events = null,
+            bool withInventory = true)
         {
+            // The loaded aircraft lists the 55 breaker input events with the hashes recorded in the lab, plus others.
+            foreach (var breaker in Manifest.Breakers)
+            {
+                Inventory.Events[breaker.InputEvent] = breaker.InputEventHash;
+            }
+
+            Inventory.Events["UNKNOWN_EXT_ENG_L_COWL_LEFT"] = 1635279238526924768;
+            events?.Invoke(Inventory);
+
             // Normal configuration: every historical control at its normal value, every breaker in (cell 0).
             foreach (var control in SynapticControls.All)
             {
@@ -53,10 +67,15 @@ public class CircuitBreakerTests
             configure?.Invoke(Reader);
             Writer = new FakeVariableWriter(Reader);
             Board = new SynapticControlBoard(Reader, Writer, detector, Descriptors.AirFrance, NullLogger.Instance, Fast);
-            Failures = new SynapticFailureProvider(Board, ownsBoard: false, SynapticCircuitBreakerActivation.From(options, Manifest));
+            Failures = new SynapticFailureProvider(Board, ownsBoard: false, SynapticCircuitBreakerActivation.From(options, Manifest), withInventory ? Inventory : null);
         }
 
+        public FakeInputEventInventory Inventory { get; } = new();
+
         public FakeVariableReader Reader { get; } = new();
+
+        /// <summary>Reads that included the cell of <paramref name="key"/> (a read of an unknown L: can create it).</summary>
+        public int CellReads(string key) => Reader.ReadsWhere(v => v.Name == CellOf(key));
 
         public FakeVariableWriter Writer { get; }
 
@@ -306,7 +325,7 @@ public class CircuitBreakerTests
         Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
         var status = StatusOf(rig.Failures, "CB_LIGHTS_DOME");
         Assert.Equal(SynapticBreakerInterface.Accessible, status.Interface);
-        Assert.Equal(SynapticBreakerExecution.Succeeded, status.LastExecution);
+        Assert.Equal(SynapticBreakerExecution.PositionConfirmed, status.LastExecution);
     }
 
     [Fact]
@@ -343,12 +362,14 @@ public class CircuitBreakerTests
     public async Task Opening_a_session_reads_no_breaker_cell_and_every_interface_starts_unverified()
     {
         var reader = new FakeVariableReader();
-        var provider = new SynapticAircraftProvider(simulatorVariables: reader, simulatorVariableWriter: new FakeVariableWriter(reader), circuitBreakers: AllEnabled());
+        var inventory = new FakeInputEventInventory();
+        var provider = new SynapticAircraftProvider(simulatorVariables: reader, simulatorVariableWriter: new FakeVariableWriter(reader), circuitBreakers: AllEnabled(), inputEvents: inventory);
 
         await using var session = await provider.AttachAsync(Descriptors.AirFrance);
         _ = session.Capabilities.Failures.Catalog.Count(d => session.Capabilities.Failures.CanTrigger(d.Key));
 
         Assert.Equal(0, reader.ReadsWhere(v => v.Name.StartsWith("L:A22X Circuit Breaker ", StringComparison.Ordinal)));
+        Assert.Equal(0, inventory.Listings); // the input-event list is taken only when a breaker is used
         Assert.All(((SynapticFailureProvider)session.Failures).CircuitBreakerStatuses(), b => Assert.Equal(SynapticBreakerInterface.Unverified, b.Interface));
     }
 
@@ -699,7 +720,7 @@ public class CircuitBreakerTests
         Assert.Equal(SynapticBreakerInterface.Unverified, dome.Interface);
         Assert.Equal(SynapticBreakerQualification.LabValidated, dome.TripQualification);
         Assert.Equal(SynapticBreakerExecution.NotAttempted, dome.LastExecution);
-        Assert.Equal(SynapticBreakerFunctionalEffect.NotObserved, dome.FunctionalEffect);
+        Assert.Equal(SynapticBreakerFunctionalEffect.AircraftEffectUnverified, dome.FunctionalEffect);
 
         var ads = StatusOf(rig.Failures, "CB_NAV_ADS");
         Assert.True(ads.Listed);
@@ -710,9 +731,185 @@ public class CircuitBreakerTests
         Assert.True((await rig.Failures.TriggerAsync(Cmd(Dome))).IsSuccess);
         dome = StatusOf(rig.Failures, "CB_LIGHTS_DOME");
         Assert.Equal(SynapticBreakerInterface.Accessible, dome.Interface);
-        Assert.Equal(SynapticBreakerExecution.Succeeded, dome.LastExecution);
-        Assert.Equal(SynapticBreakerFunctionalEffect.NotObserved, dome.FunctionalEffect);
+        Assert.Equal(SynapticBreakerExecution.PositionConfirmed, dome.LastExecution);
+        Assert.Equal(SynapticBreakerFunctionalEffect.AircraftEffectUnverified, dome.FunctionalEffect);
         Assert.Equal(SynapticBreakerQualification.LabValidated, dome.TripQualification);
+    }
+
+    // -- Compatibility safety gate: independent evidence before any cell access ----------------------------------------
+
+    [Theory]
+    [InlineData("1.0.11")]
+    [InlineData("1.0.12")]
+    [InlineData(null)]
+    public async Task A_synaptic_update_with_unchanged_input_events_keeps_the_breakers_working(string? version)
+    {
+        await using var rig = new Rig(new SynapticCircuitBreakerOptions { AircraftVersion = version, QualifiedTrips = ["CB_NAV_IRU"] });
+
+        var trip = await rig.Failures.TriggerAsync(Cmd(Dome));
+
+        Assert.Equal(FailureCommandStatus.Succeeded, trip.Status);
+        Assert.StartsWith("POSITION_CONFIRMED", trip.Message, StringComparison.Ordinal);
+        Assert.Contains("AIRCRAFT_EFFECT_UNVERIFIED", trip.Message, StringComparison.Ordinal);
+        Assert.Equal(SynapticBreakerEvidence.EventPresent, StatusOf(rig.Failures, "CB_LIGHTS_DOME").Evidence);
+        Assert.True((await rig.Failures.TriggerAsync(Cmd(Iru))).IsSuccess);
+        Assert.Equal(1, rig.Inventory.Listings); // one listing per session
+    }
+
+    [Fact]
+    public async Task An_absent_input_event_refuses_the_breaker_without_touching_its_cell()
+    {
+        await using var rig = new Rig(AllEnabled(), events: e => e.Events.TryRemove("AIRLINER_CB_LIGHTS_DOME", out _));
+
+        var trip = await rig.Failures.TriggerAsync(Cmd(Dome));
+
+        Assert.Equal(FailureCommandStatus.NotSupported, trip.Status);
+        Assert.StartsWith("COMPATIBILITY_UNVERIFIED", trip.Message, StringComparison.Ordinal);
+        Assert.Equal(0, rig.CellReads(Dome)); // the cell is never read: a read could create a missing L:
+        Assert.Empty(rig.Writes);
+        var status = StatusOf(rig.Failures, "CB_LIGHTS_DOME");
+        Assert.Equal(SynapticBreakerEvidence.EventAbsent, status.Evidence);
+        Assert.Equal(SynapticBreakerInterface.Unverified, status.Interface);
+        Assert.False(status.Executable);
+        Assert.Equal(FailureCommandStatus.NotSupported, (await rig.Failures.ClearAsync(Cmd(Dome))).Status);
+        Assert.Equal(0, rig.CellReads(Dome));
+    }
+
+    [Fact]
+    public async Task A_changed_hash_with_the_same_name_establishes_presence_and_is_recorded()
+    {
+        await using var rig = new Rig(Options(), events: e => e.Events["AIRLINER_CB_LIGHTS_DOME"] = 42);
+
+        var trip = await rig.Failures.TriggerAsync(Cmd(Dome));
+
+        Assert.Equal(FailureCommandStatus.Succeeded, trip.Status);
+        Assert.Contains("hash changed", trip.Message, StringComparison.Ordinal);
+        Assert.Contains("AIRCRAFT_EFFECT_UNVERIFIED", trip.Message, StringComparison.Ordinal);
+        Assert.Equal(SynapticBreakerEvidence.EventPresentHashChanged, StatusOf(rig.Failures, "CB_LIGHTS_DOME").Evidence);
+    }
+
+    [Fact]
+    public async Task An_obsolete_cell_after_a_rename_is_never_read_nor_written()
+    {
+        // A Synaptic update renamed the breaker: its input event and its cell carry new names. The manifest's old cell
+        // no longer exists; reading or writing it would create an unused variable that reads back what was written.
+        await using var rig = new Rig(AllEnabled(), events: e =>
+        {
+            e.Events.TryRemove("AIRLINER_CB_LIGHTS_DOME", out _);
+            e.Events["AIRLINER_CB_LIGHTS_DOME_LH"] = 7;
+        });
+
+        Assert.Equal(FailureCommandStatus.NotSupported, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
+        Assert.Equal(FailureCommandStatus.NotSupported, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
+
+        Assert.Equal(0, rig.CellReads(Dome));
+        Assert.DoesNotContain(rig.Writes, w => w.Item1 == DomeCell);
+        Assert.Equal(1, rig.Inventory.Listings);
+    }
+
+    [Fact]
+    public async Task An_artificially_created_cell_only_yields_a_confirmed_position_never_an_aircraft_effect()
+    {
+        // Residual limit, made explicit: the input event is listed, but the cell is an unused variable (created by an earlier
+        // read or write). It reads 0, takes the write, reads back 1: FSGAP can only confirm the position, not the effect.
+        await using var rig = new Rig(Options());
+
+        var trip = await rig.Failures.TriggerAsync(Cmd(Dome));
+
+        Assert.Equal(FailureCommandStatus.Succeeded, trip.Status);
+        Assert.StartsWith("POSITION_CONFIRMED", trip.Message, StringComparison.Ordinal);
+        Assert.Contains("AIRCRAFT_EFFECT_UNVERIFIED", trip.Message, StringComparison.Ordinal);
+        var status = StatusOf(rig.Failures, "CB_LIGHTS_DOME");
+        Assert.Equal(SynapticBreakerExecution.PositionConfirmed, status.LastExecution);
+        Assert.Equal(SynapticBreakerFunctionalEffect.AircraftEffectUnverified, status.FunctionalEffect);
+    }
+
+    [Fact]
+    public async Task A_successful_cell_read_back_without_independent_evidence_is_never_a_success()
+    {
+        // Without an input-event inventory the cell would read 0, take the write and read back 1: never attempted.
+        await using var rig = new Rig(AllEnabled(), withInventory: false);
+
+        Assert.All(SynapticFailureCatalog.CircuitBreakerRecipes, r => Assert.False(rig.Failures.Capabilities.CanTrigger(r.Key)));
+        var trip = await rig.Failures.TriggerAsync(Cmd(Dome));
+
+        Assert.Equal(FailureCommandStatus.NotSupported, trip.Status);
+        Assert.Contains("COMPATIBILITY_UNVERIFIED", trip.Message, StringComparison.Ordinal);
+        Assert.Equal(0, rig.Reader.ReadCount);
+        Assert.Empty(rig.Writes);
+        // The historical recipes are not affected by the missing inventory.
+        Assert.True((await rig.Failures.TriggerAsync(Cmd("electrical.generator.2"))).IsSuccess);
+    }
+
+    [Fact]
+    public async Task An_unavailable_input_event_list_refuses_without_writing_and_is_retried_later()
+    {
+        await using var rig = new Rig(Options(), events: e => e.Failure = new InvalidOperationException("The simulator is not connected."));
+
+        var first = await rig.Failures.TriggerAsync(Cmd(Dome));
+
+        Assert.Equal(FailureCommandStatus.Unavailable, first.Status);
+        Assert.StartsWith("COMPATIBILITY_UNVERIFIED", first.Message, StringComparison.Ordinal);
+        Assert.Equal(0, rig.CellReads(Dome));
+        Assert.Empty(rig.Writes);
+        Assert.Equal(SynapticBreakerEvidence.InventoryUnavailable, StatusOf(rig.Failures, "CB_LIGHTS_DOME").Evidence);
+        Assert.True(StatusOf(rig.Failures, "CB_LIGHTS_DOME").Executable); // a lost connection disables nothing
+
+        rig.Inventory.Failure = null;
+        Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
+        Assert.Equal(2, rig.Inventory.Listings);
+    }
+
+    [Fact]
+    public async Task An_aircraft_not_ready_listing_no_event_writes_nothing()
+    {
+        await using var rig = new Rig(Options(), events: e => e.Events.Clear());
+
+        var trip = await rig.Failures.TriggerAsync(Cmd(Dome));
+
+        Assert.Equal(FailureCommandStatus.Unavailable, trip.Status);
+        Assert.Empty(rig.Writes);
+        Assert.Equal(0, rig.CellReads(Dome));
+    }
+
+    [Fact]
+    public async Task One_breaker_absent_never_affects_the_other_breakers_nor_the_historical_recipes()
+    {
+        await using var rig = new Rig(AllEnabled(), events: e =>
+        {
+            e.Events.TryRemove("AIRLINER_CB_LIGHTS_DOME", out _);
+            e.Events.TryRemove("AIRLINER_CB_NAV_ADS", out _);
+        });
+
+        Assert.Equal(FailureCommandStatus.NotSupported, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
+        Assert.Equal(FailureCommandStatus.NotSupported, (await rig.Failures.TriggerAsync(Cmd("electrical.circuit-breaker.nav-ads"))).Status);
+
+        Assert.True((await rig.Failures.TriggerAsync(Cmd(Iru))).IsSuccess);
+        Assert.True((await rig.Failures.TriggerAsync(Cmd("electrical.generator.2"))).IsSuccess);
+        Assert.Equal([Iru, "electrical.generator.2"], (await rig.Failures.GetActiveFailuresAsync()).Select(a => a.Key!.Value).Order());
+        Assert.Equal(53, rig.Failures.CircuitBreakerStatuses().Count(b => b.Executable));
+        Assert.Equal(2, rig.Failures.CircuitBreakerStatuses().Count(b => b.Evidence == SynapticBreakerEvidence.EventAbsent));
+    }
+
+    [Fact]
+    public async Task A_lost_simconnect_connection_during_the_gate_disables_nothing()
+    {
+        var detector = new StreamingDetector(Descriptors.AirFrance);
+        await using var rig = new Rig(Options(), detector);
+        await Wait.UntilAsync(() => detector.Watchers == 1, "the board watch");
+
+        detector.Publish(null);
+        await Wait.UntilAsync(() => rig.Board.AircraftGone(), "the disconnection");
+        var trip = await rig.Failures.TriggerAsync(Cmd(Dome));
+
+        Assert.Equal(FailureCommandStatus.Unavailable, trip.Status);
+        Assert.Equal(0, rig.Inventory.Listings);
+        Assert.Empty(rig.Writes);
+        Assert.True(StatusOf(rig.Failures, "CB_LIGHTS_DOME").Executable);
+
+        detector.Publish(Descriptors.AirFrance);
+        await Wait.UntilAsync(() => !rig.Board.AircraftGone(), "the reconnection");
+        Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
     }
 
     // -- Session ----------------------------------------------------------------------------------------------------------
@@ -727,7 +924,9 @@ public class CircuitBreakerTests
         }
 
         var writer = new FakeVariableWriter(reader);
-        var provider = new SynapticAircraftProvider(simulatorVariables: reader, simulatorVariableWriter: writer, circuitBreakers: Options());
+        var inventory = new FakeInputEventInventory();
+        inventory.Events["AIRLINER_CB_LIGHTS_DOME"] = Manifest.FindById("CB_LIGHTS_DOME")!.InputEventHash;
+        var provider = new SynapticAircraftProvider(simulatorVariables: reader, simulatorVariableWriter: writer, circuitBreakers: Options(), inputEvents: inventory);
         await using var session = await provider.AttachAsync(Descriptors.AirFrance);
 
         Assert.Equal(384 + 55, session.Capabilities.Failures.Catalog.Count);

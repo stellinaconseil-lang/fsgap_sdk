@@ -68,6 +68,7 @@ def main() -> None:
         if len({p[field] for p in pairs}) != 55:
             fail(f"duplicate '{field}' in the mapping")
     cell_by_event = {p["b"]: p["l"] for p in pairs}
+    hash_by_event = {p["b"]: p["hash"] for p in pairs}
 
     # The cells are exactly the 55 documented ones.
     with CSV.open(encoding="utf-8") as handle:
@@ -87,6 +88,8 @@ def main() -> None:
                 fail(f"{name}: {flag} is not true")
         if run.get("cell_after_rearm") != 0:
             fail(f"{name}: the cell did not read 0 after the re-arm")
+        if run["hash"] != hash_by_event[name]:
+            fail(f"{name}: qualification hash {run['hash']} differs from the mapping")
     if qualification["summary"]["final_l_all_zero"] is not True:
         fail("the qualification run did not end with every cell at 0")
 
@@ -123,6 +126,8 @@ def main() -> None:
         breaker_id = "CB_" + event[len("AIRLINER_CB_"):]
         if capability["id"] != breaker_id:
             fail(f"{event}: capability id {capability['id']} differs from {breaker_id}")
+        if capability["b_hash"] != hash_by_event[event] or not hash_by_event[event].isdigit() or int(hash_by_event[event]) >= 2**64:
+            fail(f"{event}: input event hash missing, inconsistent or out of range")
         if capability["rearm_verified"] is not True or capability["recovery_verified"] is not True:
             fail(f"{event}: re-arm or recovery not verified in the capability list")
         key = KEY_PREFIX + breaker_id[3:].lower().replace("_", "-")
@@ -140,9 +145,10 @@ def main() -> None:
             "trip": "LabValidated" if event == direct_event else "Unqualified",
             "masterCaution": capability["master_caution"] is True,
             "labInputEvent": event,
+            "labInputEventHash": hash_by_event[event],
         })
 
-    for field in ("id", "failureKey", "cell", "displayName"):
+    for field in ("id", "failureKey", "cell", "displayName", "labInputEvent", "labInputEventHash"):
         if len({b[field] for b in breakers}) != 55:
             fail(f"duplicate {field} in the generated manifest")
 

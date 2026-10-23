@@ -139,21 +139,33 @@ still works keeps working without a new FSGAP; an incompatibility only disables 
 - **Session start** reads no breaker cell: the provider is identified (the strict A220 recognizer), the manifest and the
   session catalog are checked against each other, and every cell starts *unverified*. Reading an unknown `L:` can create
   it in the simulator, so cells are never probed speculatively.
-- **First use** of a breaker reads its documented cell before anything is written. The breaker is then disabled for the
+- **Compatibility safety gate.** Before a breaker's cell is read or written, the breaker's input event (`B:`, mapped in
+  the lab, for example `AIRLINER_CB_LIGHTS_DOME`) must be listed by the loaded aircraft. The list comes from
+  `ISimulatorInputEventInventory` (`SimConnect_EnumerateInputEvents`, read only, the same connection; nothing is ever
+  set, subscribed or mapped, and listing creates nothing). It is taken once per session, when a breaker is first used.
+  Event absent: `NotSupported` with `COMPATIBILITY_UNVERIFIED`, the cell is neither read nor written, the breaker is
+  disabled for the session. List unavailable or empty: `Unavailable` (`COMPATIBILITY_UNVERIFIED`), nothing done, retried
+  on the next use. Same name, another hash: presence established (the hash is a build artifact; the name is the
+  contract), the change is logged and recorded. Without an inventory, breakers are listed but not executable.
+- **First use** of a breaker (after the gate) reads its documented cell before anything is written. The breaker is then disabled for the
   rest of the session, alone, when its cell cannot be read while the simulator answers and the aircraft is attached
   (`Rejected`), holds a value that is neither 0 nor 1 (`Rejected`), or does not take a write (`Unconfirmed`, never
   retried). A lost connection or a replaced aircraft is `Unavailable` and disables nothing.
 - A tripped breaker whose cell becomes unreadable stays reported active (its reset was never confirmed); it never hides
   the other active failures. Breaker failures are returned as results, never thrown; the historical recipes, the
   degradations and the other breakers are not affected.
-- Each breaker's status keeps five dimensions apart: listed in the catalog, interface (unverified / accessible /
-  unavailable / incoherent value / write ineffective), lab qualification of the direct trip, last execution, observed
-  functional effect (only the 5 master cautions seen in the lab; never inferred from a successful write).
+- Each breaker's status keeps its dimensions apart: listed in the catalog, independent evidence (input event), interface
+  (unverified / accessible / unavailable / incoherent value / write ineffective), lab qualification of the direct trip,
+  last execution, observed functional effect (only the 5 master cautions seen in the lab; never inferred from a write).
+- A successful trip answers `Succeeded` with **`POSITION_CONFIRMED`** (the cell read back 1) and
+  **`AIRCRAFT_EFFECT_UNVERIFIED`** (FSGAP does not observe the aircraft's reaction): a confirmed position is never
+  reported as an observed effect.
 
-**Residual limit.** A successful trip proves the cell changed, not that the aircraft reacts: if a Synaptic update renamed
-a cell, writing the old name would create an unused variable that reads back 1. FSGAP cannot detect that from the cell
-alone (see the 0.13.0-preview.4 compatibility report); the functional effect of 50 breakers is not observable from
-telemetry anyway. The direct trip of 54 breakers is still to be qualified live: see
+**Residual limit.** The gate proves the breaker's input event belongs to the loaded aircraft; it does not prove the
+breaker's *cell* name is unchanged. If a Synaptic update renamed the cell but kept the input event, writing the old cell
+name would create an unused variable that reads back 1 (`POSITION_CONFIRMED`, `AIRCRAFT_EFFECT_UNVERIFIED`). Only a
+live check (the lab's automap, or an effect visible in telemetry) can close that gap; the functional effect of 50
+breakers is not observable from telemetry anyway. The direct trip of 54 breakers is still to be qualified live: see
 `docs/qualification/synaptic-a220-circuit-breakers/LIVE_QUALIFICATION_PROCEDURE.md`.
 
 - **Ownership** is the same as for every recipe: FSGAP never resets a breaker it did not trip (a breaker already pulled

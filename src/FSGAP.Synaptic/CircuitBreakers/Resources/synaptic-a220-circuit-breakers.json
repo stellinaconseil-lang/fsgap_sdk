@@ -23,7 +23,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_AIR_BLEED_SNSR"
+      "labInputEvent": "AIRLINER_CB_AIR_BLEED_SNSR",
+      "labInputEventHash": "16096870236802648507"
     },
     {
       "id": "CB_AIR_IASC_2B",
@@ -35,7 +36,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_AIR_IASC_2B"
+      "labInputEvent": "AIRLINER_CB_AIR_IASC_2B",
+      "labInputEventHash": "8097727598431136993"
     },
     {
       "id": "CB_AIR_RAM_VLV",
@@ -47,7 +49,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_AIR_RAM_VLV"
+      "labInputEvent": "AIRLINER_CB_AIR_RAM_VLV",
+      "labInputEventHash": "12117178406550998777"
     },
     {
       "id": "CB_AIR_SNSR",
@@ -59,7 +62,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_AIR_SNSR"
+      "labInputEvent": "AIRLINER_CB_AIR_SNSR",
+      "labInputEventHash": "9499810436860159793"
     },
     {
       "id": "CB_ANTI_ICE_HEAT_3A",
@@ -71,7 +75,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_ANTI_ICE_HEAT_3A"
+      "labInputEvent": "AIRLINER_CB_ANTI_ICE_HEAT_3A",
+      "labInputEventHash": "14921752521817364588"
     },
     {
       "id": "CB_ANTI_ICE_HEAT_4A",
@@ -83,7 +88,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_ANTI_ICE_HEAT_4A"
+      "labInputEvent": "AIRLINER_CB_ANTI_ICE_HEAT_4A",
+      "labInputEventHash": "4980492937493274342"
     },
     {
       "id": "CB_ANTI_ICE_L_TAT",
@@ -95,7 +101,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_ANTI_ICE_L_TAT"
+      "labInputEvent": "AIRLINER_CB_ANTI_ICE_L_TAT",
+      "labInputEventHash": "4985286889187242876"
     },
     {
       "id": "CB_ANTI_ICE_L_WINDOW",
@@ -107,7 +114,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": true,
-      "labInputEvent": "AIRLINER_CB_ANTI_ICE_L_WINDOW"
+      "labInputEvent": "AIRLINER_CB_ANTI_ICE_L_WINDOW",
+      "labInputEventHash": "13732417533200252909"
     },
     {
       "id": "CB_ANTI_ICE_R_TAT",
@@ -119,7 +127,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_ANTI_ICE_R_TAT"
+      "labInputEvent": "AIRLINER_CB_ANTI_ICE_R_TAT",
+      "labInputEventHash": "12980627944177518224"
     },
     {
       "id": "CB_ANTI_ICE_WINDOW_HTR",
@@ -131,7 +140,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": true,
-      "labInputEvent": "AIRLINER_CB_ANTI_ICE_WINDOW_HTR"
+      "labInputEvent": "AIRLINER_CB_ANTI_ICE_WINDOW_HTR",
+      "labInputEventHash": "14661351350705133043"
     },
     {
       "id": "CB_AUTO_FPC_A",
@@ -143,7 +153,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_AUTO_FPC_A"
+      "labInputEvent": "AIRLINER_CB_AUTO_FPC_A",
+      "labInputEventHash": "7914759110444159217"
     },
     {
       "id": "CB_COMM_ACP_1",
@@ -155,7 +166,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_COMM_ACP_1"
+      "labInputEvent": "AIRLINER_CB_COMM_ACP_1",
+      "labInputEventHash": "11062184287030450700"
     },
     {
       "id": "CB_COMM_RIU_1B",
@@ -167,7 +179,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": true,
-      "labInputEvent": "AIRLINER_CB_COMM_RIU_1B"
+      "labInputEvent": "AIRLINER_CB_COMM_RIU_1B",
+      "labInputEventHash": "8108816738027462116"
     },
     {
       "id": "CB_COMM_RIU_2A",
@@ -179,7 +192,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_COMM_RIU_2A"
+      "labInputEvent": "AIRLINER_CB_COMM_RIU_2A",
+      "labInputEventHash": "317205491566072281"
     },
     {
       "id": "CB_COMM_VHF_1",
@@ -191,7 +205,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_COMM_VHF_1"
+      "labInputEvent": "AIRLINER_CB_COMM_VHF_1",
+      "labInputEventHash": "15941457829937565821"
     },
     {
       "id": "CB_ENG_L_FADEC_A",
@@ -203,7 +218,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_ENG_L_FADEC_A"
+      "labInputEvent": "AIRLINER_CB_ENG_L_FADEC_A",
+      "labInputEventHash": "2529927155561876918"
     },
     {
       "id": "CB_ENG_L_IGN_A",
@@ -215,7 +231,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_ENG_L_IGN_A"
+      "labInputEvent": "AIRLINER_CB_ENG_L_IGN_A",
+      "labInputEventHash": "16746857811667184525"
     },
     {
       "id": "CB_ENG_R_FADEC_A",
@@ -227,7 +244,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_ENG_R_FADEC_A"
+      "labInputEvent": "AIRLINER_CB_ENG_R_FADEC_A",
+      "labInputEventHash": "5751854878535658706"
     },
     {
       "id": "CB_ENG_R_IGN_A",
@@ -239,7 +257,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_ENG_R_IGN_A"
+      "labInputEvent": "AIRLINER_CB_ENG_R_IGN_A",
+      "labInputEventHash": "12108183258878152891"
     },
     {
       "id": "CB_FC_AFT_2_PRI",
@@ -251,7 +270,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_FC_AFT_2_PRI"
+      "labInputEvent": "AIRLINER_CB_FC_AFT_2_PRI",
+      "labInputEventHash": "7897137372240701150"
     },
     {
       "id": "CB_FC_AFT_2_SEC",
@@ -263,7 +283,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_FC_AFT_2_SEC"
+      "labInputEvent": "AIRLINER_CB_FC_AFT_2_SEC",
+      "labInputEventHash": "8355038919239989645"
     },
     {
       "id": "CB_FC_AFT_3_PRI",
@@ -275,7 +296,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_FC_AFT_3_PRI"
+      "labInputEvent": "AIRLINER_CB_FC_AFT_3_PRI",
+      "labInputEventHash": "1914641245569583534"
     },
     {
       "id": "CB_FC_AFT_3_SEC",
@@ -287,7 +309,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_FC_AFT_3_SEC"
+      "labInputEvent": "AIRLINER_CB_FC_AFT_3_SEC",
+      "labInputEventHash": "358431073920489213"
     },
     {
       "id": "CB_FC_AIL_PRI",
@@ -299,7 +322,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_FC_AIL_PRI"
+      "labInputEvent": "AIRLINER_CB_FC_AIL_PRI",
+      "labInputEventHash": "11299266831354216286"
     },
     {
       "id": "CB_FC_AIL_SEC",
@@ -311,7 +335,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_FC_AIL_SEC"
+      "labInputEvent": "AIRLINER_CB_FC_AIL_SEC",
+      "labInputEventHash": "9413724339380559885"
     },
     {
       "id": "CB_FC_FLAP_CH_2",
@@ -323,7 +348,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_FC_FLAP_CH_2"
+      "labInputEvent": "AIRLINER_CB_FC_FLAP_CH_2",
+      "labInputEventHash": "17448589345615611741"
     },
     {
       "id": "CB_FC_IIM_3",
@@ -335,7 +361,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_FC_IIM_3"
+      "labInputEvent": "AIRLINER_CB_FC_IIM_3",
+      "labInputEventHash": "12072301166658399893"
     },
     {
       "id": "CB_FC_MFS_PRI",
@@ -347,7 +374,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_FC_MFS_PRI"
+      "labInputEvent": "AIRLINER_CB_FC_MFS_PRI",
+      "labInputEventHash": "6333032072069196670"
     },
     {
       "id": "CB_FC_MFS_SEC",
@@ -359,7 +387,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_FC_MFS_SEC"
+      "labInputEvent": "AIRLINER_CB_FC_MFS_SEC",
+      "labInputEventHash": "5298546696015688749"
     },
     {
       "id": "CB_FC_PFCC_3",
@@ -371,7 +400,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_FC_PFCC_3"
+      "labInputEvent": "AIRLINER_CB_FC_PFCC_3",
+      "labInputEventHash": "1585326128355751297"
     },
     {
       "id": "CB_FC_SLAT_CH_1",
@@ -383,7 +413,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_FC_SLAT_CH_1"
+      "labInputEvent": "AIRLINER_CB_FC_SLAT_CH_1",
+      "labInputEventHash": "8032795931014765955"
     },
     {
       "id": "CB_FC_STAB_TRIM_1",
@@ -395,7 +426,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_FC_STAB_TRIM_1"
+      "labInputEvent": "AIRLINER_CB_FC_STAB_TRIM_1",
+      "labInputEventHash": "18054899321912216304"
     },
     {
       "id": "CB_FUEL_XFR_SOV",
@@ -407,7 +439,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_FUEL_XFR_SOV"
+      "labInputEvent": "AIRLINER_CB_FUEL_XFR_SOV",
+      "labInputEventHash": "635401023641502914"
     },
     {
       "id": "CB_GEAR_GEAR_CTRL",
@@ -419,7 +452,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_GEAR_GEAR_CTRL"
+      "labInputEvent": "AIRLINER_CB_GEAR_GEAR_CTRL",
+      "labInputEventHash": "10620728583324849745"
     },
     {
       "id": "CB_GEAR_MLG_L_EXTN",
@@ -431,7 +465,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_GEAR_MLG_L_EXTN"
+      "labInputEvent": "AIRLINER_CB_GEAR_MLG_L_EXTN",
+      "labInputEventHash": "2447182577575693065"
     },
     {
       "id": "CB_GEAR_MLG_R_EXTN",
@@ -443,7 +478,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_GEAR_MLG_R_EXTN"
+      "labInputEvent": "AIRLINER_CB_GEAR_MLG_R_EXTN",
+      "labInputEventHash": "17187698649473190473"
     },
     {
       "id": "CB_GEAR_NLG_EXTN",
@@ -455,7 +491,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_GEAR_NLG_EXTN"
+      "labInputEvent": "AIRLINER_CB_GEAR_NLG_EXTN",
+      "labInputEventHash": "1430907443012343033"
     },
     {
       "id": "CB_HYD_XDCRS",
@@ -467,7 +504,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_HYD_XDCRS"
+      "labInputEvent": "AIRLINER_CB_HYD_XDCRS",
+      "labInputEventHash": "10841725969053428359"
     },
     {
       "id": "CB_IND_CCP_1",
@@ -479,7 +517,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_IND_CCP_1"
+      "labInputEvent": "AIRLINER_CB_IND_CCP_1",
+      "labInputEventHash": "4604409745756030977"
     },
     {
       "id": "CB_IND_CTP_1",
@@ -491,7 +530,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_IND_CTP_1"
+      "labInputEvent": "AIRLINER_CB_IND_CTP_1",
+      "labInputEventHash": "406069384780722113"
     },
     {
       "id": "CB_IND_DMC_1A",
@@ -503,7 +543,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_IND_DMC_1A"
+      "labInputEvent": "AIRLINER_CB_IND_DMC_1A",
+      "labInputEventHash": "3015482002562571698"
     },
     {
       "id": "CB_IND_DSPL",
@@ -515,7 +556,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_IND_DSPL"
+      "labInputEvent": "AIRLINER_CB_IND_DSPL",
+      "labInputEventHash": "18363035578766335626"
     },
     {
       "id": "CB_IND_ICCP_3",
@@ -527,7 +569,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_IND_ICCP_3"
+      "labInputEvent": "AIRLINER_CB_IND_ICCP_3",
+      "labInputEventHash": "15261670535143851865"
     },
     {
       "id": "CB_IND_IPC_1",
@@ -539,7 +582,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_IND_IPC_1"
+      "labInputEvent": "AIRLINER_CB_IND_IPC_1",
+      "labInputEventHash": "1921244579036405522"
     },
     {
       "id": "CB_IND_OVHD_3",
@@ -551,7 +595,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_IND_OVHD_3"
+      "labInputEvent": "AIRLINER_CB_IND_OVHD_3",
+      "labInputEventHash": "9469555188284833368"
     },
     {
       "id": "CB_IND_RDC_3",
@@ -563,7 +608,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_IND_RDC_3"
+      "labInputEvent": "AIRLINER_CB_IND_RDC_3",
+      "labInputEventHash": "15096283998344055573"
     },
     {
       "id": "CB_IND_RSP",
@@ -575,7 +621,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_IND_RSP"
+      "labInputEvent": "AIRLINER_CB_IND_RSP",
+      "labInputEventHash": "10465823960801323254"
     },
     {
       "id": "CB_LIGHTS_DOME",
@@ -587,7 +634,8 @@
       "reset": "LabValidated",
       "trip": "LabValidated",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_LIGHTS_DOME"
+      "labInputEvent": "AIRLINER_CB_LIGHTS_DOME",
+      "labInputEventHash": "16488432375645494847"
     },
     {
       "id": "CB_NAV_ADS",
@@ -599,7 +647,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": true,
-      "labInputEvent": "AIRLINER_CB_NAV_ADS"
+      "labInputEvent": "AIRLINER_CB_NAV_ADS",
+      "labInputEventHash": "4711767189385675766"
     },
     {
       "id": "CB_NAV_ATC_1",
@@ -611,7 +660,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": true,
-      "labInputEvent": "AIRLINER_CB_NAV_ATC_1"
+      "labInputEvent": "AIRLINER_CB_NAV_ATC_1",
+      "labInputEventHash": "13536822563622812104"
     },
     {
       "id": "CB_NAV_GPS_1",
@@ -623,7 +673,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_NAV_GPS_1"
+      "labInputEvent": "AIRLINER_CB_NAV_GPS_1",
+      "labInputEventHash": "2413732876006935348"
     },
     {
       "id": "CB_NAV_IRU",
@@ -635,7 +686,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_NAV_IRU"
+      "labInputEvent": "AIRLINER_CB_NAV_IRU",
+      "labInputEventHash": "1363466317097348911"
     },
     {
       "id": "CB_NAV_ISI_1",
@@ -647,7 +699,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_NAV_ISI_1"
+      "labInputEvent": "AIRLINER_CB_NAV_ISI_1",
+      "labInputEventHash": "16424774117481484783"
     },
     {
       "id": "CB_NAV_NAV_1",
@@ -659,7 +712,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_NAV_NAV_1"
+      "labInputEvent": "AIRLINER_CB_NAV_NAV_1",
+      "labInputEventHash": "7462042519752951350"
     },
     {
       "id": "CB_NAV_RAD_1",
@@ -671,7 +725,8 @@
       "reset": "LabValidated",
       "trip": "Unqualified",
       "masterCaution": false,
-      "labInputEvent": "AIRLINER_CB_NAV_RAD_1"
+      "labInputEvent": "AIRLINER_CB_NAV_RAD_1",
+      "labInputEventHash": "9530246272421559778"
     }
   ]
 }

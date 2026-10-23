@@ -148,6 +148,6 @@ public sealed class FsgapRuntime : IAsyncDisposable
 
         // The one native connection: every provider reads, writes and detects through this instance.
         var simulator = new SimConnectSimulator(options.Sdk, loggerFactory?.CreateLogger<SimConnectSimulator>(), timeProvider);
-        return new FsgapSimulatorServices(simulator, simulator.State, simulator.AircraftDetector, simulator.Telemetry, simulator, simulator, simulator, simulator);
+        return new FsgapSimulatorServices(simulator, simulator.State, simulator.AircraftDetector, simulator.Telemetry, simulator, simulator, simulator, simulator, InputEvents: simulator);
     }
 }

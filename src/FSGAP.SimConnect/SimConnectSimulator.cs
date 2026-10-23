@@ -36,8 +36,11 @@ namespace FSGAP.SimConnect;
 /// <item><description>After disposal, Start throws <see cref="ObjectDisposedException"/>.</description></item>
 /// </list>
 /// </remarks>
-public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariableReader, ISimulatorVariableWriter, ISimulatorClientDataReader, IAirportService, IInstalledLiveryService
+public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariableReader, ISimulatorVariableWriter, ISimulatorClientDataReader, ISimulatorInputEventInventory, IAirportService, IInstalledLiveryService
 {
+    /// <summary>Time limit of one input-event listing (several pages for an airliner).</summary>
+    private static readonly TimeSpan InputEventListingTimeout = TimeSpan.FromSeconds(10);
+
     /// <summary>Identity poll interval while connecting or while the aircraft is changing.</summary>
     internal static readonly TimeSpan IdentityFastInterval = TimeSpan.FromSeconds(2);
 
@@ -201,6 +204,36 @@ public sealed class SimConnectSimulator : ISimulatorConnection, ISimulatorVariab
 
         var snapshot = variables.ToArray();
         return await session.ReadVariablesAsync(snapshot, cancellationToken).ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+    }
+
+    /// <summary>
+    /// Lists the loaded aircraft's input events on this transport's single connection. Read only: nothing is set,
+    /// subscribed or mapped, and nothing is created in the simulator. Explicit: an aircraft provider receives it as its
+    /// <see cref="ISimulatorInputEventInventory"/>, for example as independent evidence that a control belongs to the
+    /// loaded aircraft before any of its variables is read or written.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The simulator is not connected.</exception>
+    /// <exception cref="TimeoutException">The listing did not complete within its time limit.</exception>
+    async Task<IReadOnlyList<SimulatorInputEvent>> ISimulatorInputEventInventory.EnumerateInputEventsAsync(CancellationToken cancellationToken)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        cancellationToken.ThrowIfCancellationRequested();
+        var session = _connectedSession?.Session;
+        if (session is null || !session.IsConnected)
+        {
+            throw new InvalidOperationException(SimulatorNotConnected);
+        }
+
+        using var limit = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        limit.CancelAfter(InputEventListingTimeout);
+        try
+        {
+            return await session.EnumerateInputEventsAsync(limit.Token).ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new TimeoutException($"The input-event listing did not complete within {InputEventListingTimeout.TotalSeconds:0} s.");
+        }
     }
 
     /// <summary>

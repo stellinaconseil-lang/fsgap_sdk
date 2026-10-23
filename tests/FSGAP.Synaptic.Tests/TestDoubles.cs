@@ -24,6 +24,27 @@ internal static class Descriptors
     public static readonly AircraftDescriptor Cessna = new() { Title = "Cessna Skyhawk G1000 Asobo", Model = "C172", Manufacturer = "Cessna" };
 }
 
+/// <summary>Scriptable read-only input-event inventory of the loaded aircraft: events by name, listing count, optional failure.</summary>
+internal sealed class FakeInputEventInventory : ISimulatorInputEventInventory
+{
+    private int _listings;
+
+    public ConcurrentDictionary<string, ulong> Events { get; } = new(StringComparer.Ordinal);
+
+    public int Listings => Volatile.Read(ref _listings);
+
+    public Exception? Failure { get; set; }
+
+    public Task<IReadOnlyList<SimulatorInputEvent>> EnumerateInputEventsAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Interlocked.Increment(ref _listings);
+        return Failure is { } failure
+            ? Task.FromException<IReadOnlyList<SimulatorInputEvent>>(failure)
+            : Task.FromResult<IReadOnlyList<SimulatorInputEvent>>(Events.Select(e => new SimulatorInputEvent(e.Key, e.Value)).ToArray());
+    }
+}
+
 /// <summary>Scriptable simulator variable reader: values by name, read log, optional failure.</summary>
 internal sealed class FakeVariableReader : ISimulatorVariableReader
 {

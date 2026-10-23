@@ -50,7 +50,8 @@ namespace FSGAP.Synaptic;
 /// (<c>electrical.circuit-breaker.*</c>): trip writes the breaker's documented cell = 1, clear writes it back to 0, both on
 /// the same writer and read back. A breaker is executable when its direct trip is qualified (manifest or
 /// <see cref="SynapticCircuitBreakerOptions"/>) and the application has not disabled it; the Synaptic version is never a
-/// condition. Cells are verified when used, and a breaker whose cell fails is disabled for the session, alone.
+/// condition. Before a breaker's cell is read or written, its input event must be listed by the loaded aircraft (read-only
+/// inventory on the same connection); cells are verified when used, and a breaker that fails is disabled alone.
 /// </para>
 /// <para>
 /// <b>Controlled degradations.</b> Given a variable writer on the same connection, sessions also offer four controlled
@@ -73,6 +74,7 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
     private readonly ISimulatorVariableWriter? _simulatorVariableWriter;
     private readonly TimeSpan _staleAfter;
     private readonly SynapticCircuitBreakerActivation _circuitBreakers;
+    private readonly ISimulatorInputEventInventory? _inputEvents;
 
     /// <summary>Creates the provider.</summary>
     /// <param name="installedAircraft">
@@ -94,6 +96,10 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
     /// Which circuit-breaker failures sessions may execute; <see langword="null"/> (the default) makes the
     /// manifest-qualified breakers executable.
     /// </param>
+    /// <param name="inputEvents">
+    /// Read-only input-event inventory on the same connection, typically the <c>SimConnectSimulator</c>: the independent
+    /// evidence a breaker needs before its cell is read or written. Without it, breakers are listed but never executable.
+    /// </param>
     /// <exception cref="ArgumentException">An option is invalid.</exception>
     public SynapticAircraftProvider(
         SynapticInstalledAircraftCatalog? installedAircraft = null,
@@ -104,11 +110,13 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
         IAircraftDetector? aircraftDetector = null,
         TelemetryOptions? telemetryOptions = null,
         ISimulatorVariableWriter? simulatorVariableWriter = null,
-        SynapticCircuitBreakerOptions? circuitBreakers = null)
+        SynapticCircuitBreakerOptions? circuitBreakers = null,
+        ISimulatorInputEventInventory? inputEvents = null)
     {
         var telemetry = telemetryOptions ?? new TelemetryOptions();
         telemetry.Validate();
         _circuitBreakers = SynapticCircuitBreakerActivation.From(circuitBreakers, SynapticCircuitBreakerManifest.Embedded);
+        _inputEvents = inputEvents;
         _catalog = installedAircraft;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _logger = (ILogger?)logger ?? NullLogger.Instance;
@@ -191,7 +199,7 @@ public sealed class SynapticAircraftProvider : IAircraftProvider
             var board = new SynapticControlBoard(_simulatorVariables, _simulatorVariableWriter, _aircraftDetector, aircraft, _logger);
             degradations = new SynapticDegradationProvider(board, ownsBoard: false);
             degradationCapabilities = SynapticDegradationProvider.Capabilities;
-            var failureProvider = new SynapticFailureProvider(board, ownsBoard: true, _circuitBreakers);
+            var failureProvider = new SynapticFailureProvider(board, ownsBoard: true, _circuitBreakers, _inputEvents);
             failures = failureProvider;
             failureCapabilities = failureProvider.Capabilities;
         }
