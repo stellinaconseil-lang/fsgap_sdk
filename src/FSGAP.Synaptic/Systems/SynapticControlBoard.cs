@@ -283,6 +283,33 @@ internal sealed class SynapticControlBoard : IAsyncDisposable
         return new(BoardOutcome.Applied, final);
     }
 
+    /// <summary>
+    /// Claims for <paramref name="owner"/> a free control already read in its degraded value, without writing; its restore
+    /// value is its qualified normal value. Only for a persistent condition found already applied (a breaker already out),
+    /// so that the owner reports it active and an explicit clear can reset it. Returns false when the control has no
+    /// qualified normal value or is held by another owner.
+    /// </summary>
+    internal bool AdoptCore(string owner, SynapticControl control)
+    {
+        if (control.Normal is not { } normal)
+        {
+            return false;
+        }
+
+        lock (_claimsLock)
+        {
+            if (_claims.TryGetValue(control, out var held))
+            {
+                return held.Owner == owner;
+            }
+
+            _claims[control] = new Claim(owner, normal);
+        }
+
+        _logger.LogDebug("{Owner} adopted the {Control}, found already degraded (nothing written).", owner, control.Name);
+        return true;
+    }
+
     /// <summary>Writes back every control <paramref name="owner"/> holds, then reads them back; releases on confirmation.</summary>
     internal async Task<BoardResult> RestoreCoreAsync(string owner, CancellationToken cancellationToken)
     {

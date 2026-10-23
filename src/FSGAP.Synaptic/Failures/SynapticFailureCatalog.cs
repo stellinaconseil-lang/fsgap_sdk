@@ -53,6 +53,22 @@ internal enum SynapticFailureMechanism
     CircuitBreakerTrip,
 }
 
+/// <summary>What becomes of a triggered failure when its session ends (disposal, application closing, lost connection).</summary>
+internal enum SynapticFailureLifecycle
+{
+    /// <summary>
+    /// The historical behaviour: disposal restores, best effort and bounded, what the session triggered while the aircraft is
+    /// still loaded; a trigger never claims a configuration set outside the session.
+    /// </summary>
+    RestoredOnSessionEnd,
+
+    /// <summary>
+    /// A persistent aircraft condition (the circuit breakers): nothing is written when the session ends, so the breaker stays
+    /// out; a trigger on a breaker already out confirms it without writing, whoever pulled it; only an explicit clear resets it.
+    /// </summary>
+    Persistent,
+}
+
 /// <summary>
 /// One normalized failure on the Synaptic A220: the same definition as the Fenix key (key, display name, category,
 /// target), the registry controls it forces, and its provenance. Raw A22X names stay in <see cref="SynapticControls"/>.
@@ -67,6 +83,9 @@ internal sealed record SynapticFailureRecipe(FailureDefinition Definition, Synap
 
     /// <summary>A circuit-breaker recipe: listed always, executable only when the session's breaker activation enables it.</summary>
     public bool RequiresActivation => CircuitBreaker is not null;
+
+    /// <summary>A circuit breaker persists across sessions; every historical recipe is restored when its session ends.</summary>
+    public SynapticFailureLifecycle Lifecycle => CircuitBreaker is not null ? SynapticFailureLifecycle.Persistent : SynapticFailureLifecycle.RestoredOnSessionEnd;
 
     public SynapticFailureMechanism Mechanism =>
         CircuitBreaker is not null ? SynapticFailureMechanism.CircuitBreakerTrip

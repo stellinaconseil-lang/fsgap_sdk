@@ -21,8 +21,10 @@ namespace FSGAP.Synaptic.Failures;
 /// </para>
 /// <para>
 /// <b>Circuit breakers</b> (0.13.0-preview.4) are single-cell recipes on the same board: trigger reads the breaker cell,
-/// writes nothing if it is already out, otherwise writes 1 and succeeds once it reads 1; clear writes it back to 0 and
-/// succeeds once it reads 0. All 55 are listed; only those the session's <see cref="SynapticCircuitBreakerActivation"/>
+/// writes 1 and succeeds once it reads 1; clear writes it back to 0 and succeeds once it reads 0. A tripped breaker is a
+/// <see cref="SynapticFailureLifecycle.Persistent"/> condition: a trigger on a breaker already out (tripped by an earlier
+/// session or pulled in the cockpit) succeeds without writing, whichever session pulled it; only an explicit clear resets
+/// it, whichever session pulled it; ending the session never writes it. All 55 are listed; only those the session's <see cref="SynapticCircuitBreakerActivation"/>
 /// enables declare operations, the others answer <c>NotSupported</c> without reading or writing anything. The Synaptic
 /// version is never a condition. Opening a session reads no breaker cell (an unknown L: can be created by a read, so a
 /// cell is read only when its breaker is used). A breaker whose cell cannot be read while the aircraft is attached, holds a
@@ -46,8 +48,11 @@ namespace FSGAP.Synaptic.Failures;
 /// be read is still reported active (its reset was never confirmed), so one unreadable cell never hides the others.
 /// </para>
 /// <para>
-/// <b>Disposal</b> clears, best effort and bounded, what this session triggered, only while the attached aircraft is still
-/// loaded: ownership lives in memory, so a later session could not clear it.
+/// <b>Disposal</b> clears, best effort and bounded, what this session triggered with a historical recipe, only while the
+/// attached aircraft is still loaded: ownership lives in memory, so a later session could not clear it. A tripped breaker is
+/// never written on disposal (nor on a lost connection or another aircraft): it stays out. FSGAP keeps no state across
+/// sessions; a breaker found back in after the aircraft was reloaded is simply in, and the consumer re-triggers it if its
+/// own record says so.
 /// </para>
 /// </remarks>
 internal sealed class SynapticFailureProvider : IFailureProvider, IAsyncDisposable
@@ -233,9 +238,17 @@ internal sealed class SynapticFailureProvider : IFailureProvider, IAsyncDisposab
                     return FailureCommandResult.Unavailable("The controls could not be read; nothing was written.");
                 }
 
-                return recipe.Controls.Select((c, i) => c.IsDegraded(values[i]!.Value)).Any(d => d)
-                    ? FailureCommandResult.Rejected($"'{recipe.Key}' was not triggered by this session (its configuration was set outside FSGAP); FSGAP clears only what it triggered. Nothing was written.")
-                    : FailureCommandResult.Succeeded;
+                if (!recipe.Controls.Select((c, i) => c.IsDegraded(values[i]!.Value)).Any(d => d))
+                {
+                    return FailureCommandResult.Succeeded;
+                }
+
+                // A persistent breaker outlives the session that tripped it: an explicit clear resets it whoever pulled it.
+                // Every historical recipe keeps the rule that FSGAP clears only what this session triggered.
+                if (recipe.Lifecycle != SynapticFailureLifecycle.Persistent || !_board.AdoptCore(Owner(recipe), recipe.Controls.Single()))
+                {
+                    return FailureCommandResult.Rejected($"'{recipe.Key}' was not triggered by this session (its configuration was set outside FSGAP); FSGAP clears only what it triggered. Nothing was written.");
+                }
             }
 
             var outcome = await _board.RestoreCoreAsync(Owner(recipe), cancellationToken).ConfigureAwait(false);
@@ -266,7 +279,10 @@ internal sealed class SynapticFailureProvider : IFailureProvider, IAsyncDisposab
         }
     }
 
-    /// <summary>Clears what this session triggered if the attached aircraft is still loaded (best effort, bounded), then stops.</summary>
+    /// <summary>
+    /// Clears what this session triggered if the attached aircraft is still loaded (best effort, bounded), then stops. A
+    /// persistent failure (a tripped breaker) is never written: its ownership is released and the breaker stays out.
+    /// </summary>
     public async ValueTask DisposeAsync()
     {
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
@@ -281,7 +297,11 @@ internal sealed class SynapticFailureProvider : IFailureProvider, IAsyncDisposab
             {
                 foreach (var owner in _board.Owners().Where(o => o.StartsWith(OwnerPrefix, StringComparison.Ordinal)))
                 {
-                    if (_board.AircraftGone())
+                    if (SynapticFailureCatalog.Find(FailureKey.Parse(owner[OwnerPrefix.Length..])) is { Lifecycle: SynapticFailureLifecycle.Persistent })
+                    {
+                        _board.Logger.LogInformation("Failure {Owner} kept on dispose: a tripped circuit breaker is a persistent condition, nothing was written.", owner);
+                    }
+                    else if (_board.AircraftGone())
                     {
                         _board.Logger.LogWarning("Failure {Owner} not cleared on dispose: the attached aircraft is no longer loaded.", owner);
                     }
@@ -357,9 +377,17 @@ internal sealed class SynapticFailureProvider : IFailureProvider, IAsyncDisposab
                 return new FailureCommandResult(
                     FailureCommandStatus.Succeeded,
                     $"POSITION_CONFIRMED: {breaker.Control.Variable.Name} already reads 1 (tripped by this session, nothing written). AIRCRAFT_EFFECT_UNVERIFIED.");
+            case BoardOutcome.PreExisting when recipe.Lifecycle == SynapticFailureLifecycle.Persistent && _board.AdoptCore(Owner(recipe), breaker.Control):
+                // Already out (tripped by an earlier session, or pulled in the cockpit): the condition holds, so the trigger is
+                // an idempotent success. The cell was read 1 after the compatibility gate; nothing is written.
+                Record(breaker, SynapticBreakerInterface.Accessible, SynapticBreakerExecution.PositionConfirmed, "trip: already out, nothing written");
+                _board.Logger.LogInformation("Circuit breaker {Id} already out ({Cell} = 1); confirmed without writing (evidence {Evidence}).", breaker.Id, breaker.Control.Variable.Name, evidence);
+                return new FailureCommandResult(
+                    FailureCommandStatus.Succeeded,
+                    $"POSITION_CONFIRMED: {breaker.Control.Variable.Name} already reads 1 (breaker already out, by an earlier session or in the cockpit; nothing written). AIRCRAFT_EFFECT_UNVERIFIED. Evidence: {proof}.");
             case BoardOutcome.PreExisting:
                 Record(breaker, SynapticBreakerInterface.Accessible, null, null);
-                return FailureCommandResult.Rejected($"{breaker.Id} is already out (pulled outside FSGAP): nothing was written, and FSGAP will not reset it.");
+                return FailureCommandResult.Rejected($"{breaker.Id} is already out and held elsewhere: nothing was written.");
             case BoardOutcome.UnexpectedValue:
                 Disable(breaker, SynapticBreakerInterface.IncoherentValue, "its cell holds a value that is neither 0 nor 1");
                 return FailureCommandResult.Rejected($"The cell of {breaker.Id} holds a value that is neither 0 nor 1; nothing was written and the breaker is disabled for this session.");

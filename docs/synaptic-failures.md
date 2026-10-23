@@ -118,11 +118,16 @@ Aircraft), one recipe per breaker on its documented cell `L:A22X Circuit Breaker
 evidence (`docs/qualification/synaptic-a220-circuit-breakers/`) by `tools/synaptic-cb-manifest/generate.py`; no breaker,
 cell or qualification is typed by hand, and tests compare the manifest with the evidence.
 
-- **Trip** reads the cell; writes nothing if the breaker is already out (`Rejected`, FSGAP never resets what it did not
-  trip); otherwise writes 1 and succeeds once it reads 1. **Read**: the breaker is active while its cell reads 1.
-  **Reset** (`ClearAsync`) writes 0 and succeeds once it reads 0. Same board as every other recipe (read before write,
-  read back, ownership, conflicts, disposal); no input event, no second connection, no native simulator failure. An
-  unconfirmed write is never repeated automatically.
+- **Trip** reads the cell; writes 1 and succeeds once it reads 1. A breaker **already out** (tripped by an earlier session
+  or pulled in the cockpit) is an idempotent success: nothing is written, the cell read 1 confirms it. **Read**: the
+  breaker is active while its cell reads 1. **Reset** (`ClearAsync`, explicit only) writes 0 and succeeds once it reads
+  0, whichever session pulled the breaker. Same board as every other recipe (read before write, read back, ownership,
+  conflicts); no input event set, no second connection, no native simulator failure. An unconfirmed write is never
+  repeated automatically.
+- **Persistent lifecycle** ([ADR 0009](decisions/0009-persistent-circuit-breakers.md)). Ending the session (disposal,
+  application closing, lost connection, another aircraft) never writes a breaker: it stays out. The historical recipes
+  keep restoring on disposal. FSGAP keeps no state across sessions: a breaker found back in after a reload is in, and the
+  consumer re-triggers it from its own record.
 - **Listed is not executable.** Unlike the historical recipes, a breaker's qualification gates execution. All 55 have
   their mapping and reset validated live; only `CB_LIGHTS_DOME` (`R B4`) has its direct trip (cell = 1) validated live,
   and it is the only breaker executable by default. A breaker qualified later is enabled with

@@ -181,8 +181,10 @@ internal sealed class RuntimeRig : IAsyncDisposable
 {
     private readonly string _data = Path.Combine(Path.GetTempPath(), "fsgap-runtime-tests", Guid.NewGuid().ToString("N"));
 
-    public RuntimeRig(bool commands = true, string? synapticVersion = null)
+    /// <param name="simulator">A simulator shared with another rig (an aircraft that outlives one runtime); a new one by default.</param>
+    public RuntimeRig(bool commands = true, string? synapticVersion = null, FakeSimulator? simulator = null)
     {
+        Simulator = simulator ?? new FakeSimulator();
         Directory.CreateDirectory(_data);
         Options = new FsgapRuntimeOptions
         {
@@ -193,7 +195,7 @@ internal sealed class RuntimeRig : IAsyncDisposable
         Runtime = new FsgapRuntime(Options, Simulator.Services, null, TimeProvider.System, ownsSimulator: false, fenixPackageRoots: [], fenixEfbHttpClient: new HttpClient(new NoEfb()), synapticPackageRoots: []);
     }
 
-    public FakeSimulator Simulator { get; } = new();
+    public FakeSimulator Simulator { get; }
 
     public FsgapRuntimeOptions Options { get; }
 

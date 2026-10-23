@@ -13,3 +13,4 @@ consequences. A decision is changed by adding a new record that supersedes the o
 | [0006](0006-telemetry-freshness.md) | Every known value carries its observation time; stale values become `Unknown` | Accepted | 2 |
 | [0007](0007-immutable-snapshots.md) | Published snapshots and models are immutable | Accepted | 2 |
 | [0008](0008-simulator-abstractions.md) | Simulator connection, simulation state and aircraft detection are three small contracts observed as latest-value streams | Accepted | 2 |
+| [0009](0009-persistent-circuit-breakers.md) | A tripped Synaptic circuit breaker is a persistent condition: never reset at session end, idempotent trigger, reset only by an explicit clear | Accepted | 0.13.0-preview.4 |

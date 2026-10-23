@@ -518,17 +518,20 @@ public class CircuitBreakerTests
         Assert.Single(rig.Writes);
     }
 
-    // -- Ownership: what FSGAP did not trip it never resets ---------------------------------------------------------------
+    // -- Persistence: a breaker already out is confirmed, never rewritten; only an explicit clear resets it ---------------
 
     [Fact]
-    public async Task A_breaker_already_pulled_outside_fsgap_is_never_claimed_nor_reset()
+    public async Task A_breaker_already_pulled_outside_fsgap_is_confirmed_without_writing_and_reset_only_by_an_explicit_clear()
     {
         await using var rig = new Rig(Options(), configure: r => r.Values[DomeCell] = 1);
 
-        Assert.Equal(FailureCommandStatus.Rejected, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
-        Assert.Equal(FailureCommandStatus.Rejected, (await rig.Failures.ClearAsync(Cmd(Dome))).Status);
-        Assert.Empty(await rig.Failures.GetActiveFailuresAsync());
+        Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
+        Assert.Equal([Dome], (await rig.Failures.GetActiveFailuresAsync()).Select(a => a.Key!.Value));
         Assert.Empty(rig.Writes);
+
+        Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.ClearAsync(Cmd(Dome))).Status);
+        Assert.Equal([(DomeCell, 0.0)], rig.Writes);
+        Assert.Empty(await rig.Failures.GetActiveFailuresAsync());
     }
 
     [Fact]
@@ -554,7 +557,7 @@ public class CircuitBreakerTests
     }
 
     [Fact]
-    public async Task Disposing_resets_the_breakers_the_session_tripped()
+    public async Task Disposing_keeps_the_breakers_the_session_tripped_out()
     {
         var rig = new Rig(AllEnabled());
         await rig.Failures.TriggerAsync(Cmd(Dome));
@@ -562,8 +565,9 @@ public class CircuitBreakerTests
 
         await rig.DisposeAsync();
 
-        Assert.Equal(0, rig.Reader.Values[DomeCell]);
-        Assert.Equal(0, rig.Reader.Values[CellOf(Iru)]);
+        Assert.Equal(1, rig.Reader.Values[DomeCell]);
+        Assert.Equal(1, rig.Reader.Values[CellOf(Iru)]);
+        Assert.Equal([(DomeCell, 1.0), (CellOf(Iru), 1.0)], rig.Writes);
     }
 
     // -- Compatibility: a failing breaker is disabled alone ---------------------------------------------------------------
@@ -633,8 +637,8 @@ public class CircuitBreakerTests
 
         var trip = await rig.Failures.TriggerAsync(Cmd(Dome));
 
-        Assert.Equal(FailureCommandStatus.Rejected, trip.Status);
-        Assert.Contains("already out", trip.Message, StringComparison.Ordinal);
+        Assert.Equal(FailureCommandStatus.Succeeded, trip.Status);
+        Assert.Contains("already reads 1", trip.Message, StringComparison.Ordinal);
         Assert.Empty(rig.Writes);
         var status = StatusOf(rig.Failures, "CB_LIGHTS_DOME");
         Assert.True(status.Executable);
@@ -642,6 +646,7 @@ public class CircuitBreakerTests
 
         rig.Reader.Values[DomeCell] = 0; // the pilot pushed it back in
         Assert.Equal(FailureCommandStatus.Succeeded, (await rig.Failures.TriggerAsync(Cmd(Dome))).Status);
+        Assert.Equal([(DomeCell, 1.0)], rig.Writes);
     }
 
     [Fact]

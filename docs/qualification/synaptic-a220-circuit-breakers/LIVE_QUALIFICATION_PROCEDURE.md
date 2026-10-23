@@ -47,8 +47,8 @@ read back), verify the 55 cells read 0, and report the breaker and step.
 
 - Trip, then reload the aircraft: record whether the cell is still 1. Reset if needed.
 - Trip, then restart MSFS: record the cell after the restart. Reset if needed.
-- Trip, then dispose the FSGAP session (end of flight in FSHANGAR terms): the session resets what it tripped within its
-  5 s budget; record the cell.
+- Trip, then dispose the FSGAP session (end of flight in FSHANGAR terms): since ADR 0009 the breaker stays out (nothing
+  is written on disposal); record the cell, then reset it explicitly.
 
 ## 6. Outputs
 
